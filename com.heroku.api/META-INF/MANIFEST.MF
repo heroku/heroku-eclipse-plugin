@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Api
 Bundle-SymbolicName: com.heroku.api
-Bundle-Version: 1.0.0
+Bundle-Version: 0.8.0
 Bundle-ClassPath: heroku-api-0.8-SNAPSHOT.jar,
  bsh-2.0b4.jar,
  jcommander-1.12.jar,
