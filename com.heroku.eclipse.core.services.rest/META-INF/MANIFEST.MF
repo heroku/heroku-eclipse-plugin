@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Rest
 Bundle-SymbolicName: com.heroku.eclipse.core.services.rest
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 0.9.0
 Bundle-Vendor: HEROKU
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: com.heroku.eclipse.core.services;bundle-version="0.9.0",
