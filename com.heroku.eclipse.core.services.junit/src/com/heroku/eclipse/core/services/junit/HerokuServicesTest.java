@@ -15,7 +15,9 @@ public class HerokuServicesTest extends TestCase {
 	private HerokuServices getService() {
 		Bundle b = FrameworkUtil.getBundle(HerokuServicesTest.class);
 		BundleContext btx = b.getBundleContext();
-		ServiceReference<HerokuServices> ref = btx.getServiceReference(HerokuServices.class);
+		
+		ServiceReference<HerokuServices> ref = null;
+		ref = btx.getServiceReference(HerokuServices.class);
 		return btx.getService(ref);
 	}
 	
