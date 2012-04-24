@@ -20,7 +20,7 @@ public class MockHerkokuServices implements HerokuServices {
 		
 		sleep();
 		
-		throw new HerokuServiceException( "Blabla", null );
+		throw new HerokuServiceException( "just4pureHappyness: a dummy failure", null );
 		
 //		return appsListing;
 	}
