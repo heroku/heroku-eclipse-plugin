@@ -19,6 +19,6 @@ public interface HerokuServices {
 	 * Invokes GET https://username:password@api.heroku.com/vendor/apps
 	 * @return the list of registered applications
 	 */
-	public String[] getAllApps();
+	public String[] getAllApps() throws HerokuServiceException;
 
 }

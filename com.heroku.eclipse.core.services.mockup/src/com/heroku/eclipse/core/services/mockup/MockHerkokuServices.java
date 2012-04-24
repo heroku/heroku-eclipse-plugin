@@ -1,6 +1,7 @@
 package com.heroku.eclipse.core.services.mockup;
 
 import com.heroku.eclipse.core.services.HerokuServices;
+import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 
 public class MockHerkokuServices implements HerokuServices {
 
@@ -8,19 +9,29 @@ public class MockHerkokuServices implements HerokuServices {
 	public String getAPIKey(String username, String password) {
 		String apiKey = "Ceterum autem censeo, Carthaginem esse delendam";
 		
+//		sleep();
+
+		return apiKey;
+	}
+
+	@Override
+	public String[] getAllApps() throws HerokuServiceException {
+		String[] appsListing = null;
+		
+		sleep();
+		
+		throw new HerokuServiceException( "Blabla", null );
+		
+//		return appsListing;
+	}
+
+	private void sleep() {
 		try {
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		// TODO Auto-generated method stub
-		return apiKey;
-	}
 
-	@Override
-	public String[] getAllApps() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

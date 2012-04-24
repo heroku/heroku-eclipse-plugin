@@ -10,7 +10,6 @@ import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
-import org.eclipse.jface.operation.IRunnableContext;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.*;
 import org.eclipse.swt.SWT;
@@ -26,6 +25,8 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.PreferenceLinkArea;
+import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
@@ -34,7 +35,7 @@ import com.heroku.eclipse.ui.Activator;
 public class HerokuPreferencePage extends PreferencePage implements
 		IWorkbenchPreferencePage {
 
-	private static final String HEROKU_PREFERENCE_PAGE_CONTEXT = "com.heroku.eclipse.heroclipse_context"; //$NON-NLS-1$
+	private static final String HEROKU_PREFERENCE_PAGE_CONTEXT = "com.heroku.eclipse.context"; //$NON-NLS-1$
 	
 	private Map<String, Object>	widgetRegistry = new HashMap<String, Object>();
 	private Map<String, ControlDecoration>	decoratorRegistry = new HashMap<String, ControlDecoration>();
@@ -122,42 +123,17 @@ public class HerokuPreferencePage extends PreferencePage implements
 						((Button) widgetRegistry.get( PreferenceConstants.P_VALIDATE_API_KEY )).setEnabled( false );
 					}
 					else {
-						final AtomicReference<String> apiKey = new AtomicReference<String>();
-						
-						final String email = ((Text) widgetRegistry.get( PreferenceConstants.P_EMAIL )).getText();
-						final String password = ((Text) widgetRegistry.get( PreferenceConstants.P_PASSWORD )).getText();
-						
-						try {
-							PlatformUI.getWorkbench().getProgressService().busyCursorWhile( new IRunnableWithProgress() {
-//							PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
-								
-								@Override
-								public void run(IProgressMonitor monitor) throws InvocationTargetException,
-										InterruptedException {
-									try {
-										apiKey.set( service.getAPIKey( email, password ) );
-									} catch (HerokuServiceException e) {
-										// TODO Auto-generated catch block
-										e.printStackTrace();
-										throw new InvocationTargetException( e );
-									}
-								}
-							});
-						} catch (InvocationTargetException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						} catch (InterruptedException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
-						}
-						
+						String apiKey = getAPIKey(service);
+
 						// login failed
-						if ( apiKey.get() == null ) {
+						if ( apiKey == null ) {
 							MessageDialog.openError(getShell(), Messages.getString( "HerokuPreferencePage_Error_LoginFailed_Title" ), Messages.getString( "HerokuPreferencePage_Error_LoginFailed" ) );
 						}
 						else {
 							((Button) widgetRegistry.get( PreferenceConstants.P_VALIDATE_API_KEY )).setEnabled( true );
-							// TODO: set API key 
+							((Text) widgetRegistry.get( PreferenceConstants.P_API_KEY )).setText( apiKey );
+							
+							MessageDialog.openInformation(getShell(), Messages.getString( "HerokuPreferencePage_Info_Login_OK_Title" ), Messages.getString( "HerokuPreferencePage_Info_Login_OK" ) );
 						}
 					}
 				}
@@ -193,7 +169,31 @@ public class HerokuPreferencePage extends PreferencePage implements
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					if ( validateAPIKeyData( true ) ) {
-						// TODO "list apps" w/o error
+						try {
+							PlatformUI.getWorkbench().getProgressService().busyCursorWhile( new IRunnableWithProgress() {
+								@Override
+								public void run(IProgressMonitor monitor) throws InvocationTargetException,
+										InterruptedException {
+									try {
+										service.getAllApps();
+									} 
+									catch (HerokuServiceException e) {
+										e.printStackTrace();
+									}
+								}
+							});
+						} 
+						catch (InvocationTargetException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} 
+						catch (InterruptedException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						
+//						MessageDialog.openInformation(getShell(), Messages.getString( "HerokuPreferencePage_Info_KeyValidation_OK_Title" ), Messages.getString( "HerokuPreferencePage_Info_KeyValidation_OK" ) );
+//						MessageDialog.openError(parent.getShell(), Messages.getString( "HerokuPreferencePage_Error_KeyValidationFailed_Title" ), Messages.getString( "HerokuPreferencePage_Error_KeyValidationFailed" ) );
 					}
 				}
 
@@ -232,17 +232,12 @@ public class HerokuPreferencePage extends PreferencePage implements
 
 			right.setLayout(gl);
 
-			Button gen = new Button(right, SWT.NULL);
-			gen.setText(Messages.getString( "HerokuPreferencePage_Generate" ) );
-			gen.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1,
-					1));
-			gen.addSelectionListener(new SelectionAdapter() {
-				@Override
-				public void widgetSelected(SelectionEvent e) {
-					// TODO utilize eclipse keygen
-				}
+			PreferenceLinkArea p = new PreferenceLinkArea(right, SWT.NONE,
+					"org.eclipse.jsch.ui.SSHPreferences", Messages.getString( "HerokuPreferencePage_Generate" ),//$NON-NLS-1$
+					(IWorkbenchPreferenceContainer) getContainer(),null);
 
-			});
+//			GridData data = new GridData(GridData.FILL_HORIZONTAL | GridData.GRAB_HORIZONTAL);
+			p.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1,1));
 
 			Button upd = new Button(right, SWT.NULL);
 			upd.setText(Messages.getString( "HerokuPreferencePage_Update" ) );
@@ -270,9 +265,11 @@ public class HerokuPreferencePage extends PreferencePage implements
 
 			});
 		}
-
+		
 		PlatformUI.getWorkbench().getHelpSystem()
 				.setHelp(getControl(), HEROKU_PREFERENCE_PAGE_CONTEXT);
+
+		applyDialogFont( group );
 
 		return group;
 	}
@@ -333,6 +330,42 @@ public class HerokuPreferencePage extends PreferencePage implements
 			decoratorRegistry.get( PreferenceConstants.P_API_KEY ).hide();
 		}
 		return isValid;
+	}
+
+	/**
+	 * @param service
+	 */
+	private String getAPIKey(final HerokuServices service) {
+		final AtomicReference<String> apiKey = new AtomicReference<String>();
+		
+		final String email = ((Text) widgetRegistry.get( PreferenceConstants.P_EMAIL )).getText();
+		final String password = ((Text) widgetRegistry.get( PreferenceConstants.P_PASSWORD )).getText();
+		
+		try {
+			PlatformUI.getWorkbench().getProgressService().busyCursorWhile( new IRunnableWithProgress() {
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException,
+						InterruptedException {
+					try {
+						apiKey.set( service.getAPIKey( email, password ) );
+					} 
+					catch (HerokuServiceException e) {
+						// rethrow to outer space
+						throw new InvocationTargetException( e );
+					}
+				}
+			});
+		} 
+		catch (InvocationTargetException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} 
+		catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		return apiKey.get();
 	}
 	
 }
