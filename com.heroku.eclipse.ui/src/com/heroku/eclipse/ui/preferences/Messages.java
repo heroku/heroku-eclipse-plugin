@@ -1,25 +1,52 @@
 package com.heroku.eclipse.ui.preferences;
 
+import java.text.MessageFormat;
+import java.util.MissingResourceException;
+import java.util.ResourceBundle;
+
 import org.eclipse.osgi.util.NLS;
 
 public class Messages extends NLS {
+
 	private static final String BUNDLE_NAME = "com.heroku.eclipse.ui.preferences.messages"; //$NON-NLS-1$
-	public static String HerokuPreferencePage_Title;
-	public static String HerokuPreferencePage_Email;
-	public static String HerokuPreferencePage_Password;
-	public static String HerokuPreferencePage_APIKey;
-	public static String HerokuPreferencePage_SSHKey;
-	public static String HerokuPreferencePage_GetAPIKey;
-	public static String HerokuPreferencePage_Validate;
-	public static String HerokuPreferencePage_Generate;
-	public static String HerokuPreferencePage_Update;
-	public static String HerokuPreferencePage_Clear;
+	
+	private static final ResourceBundle	RESOURCE_BUNDLE	= ResourceBundle.getBundle( BUNDLE_NAME );
 
 	static {
 		// initialize resource bundle
-		NLS.initializeMessages(BUNDLE_NAME, Messages.class);
+		NLS.initializeMessages( BUNDLE_NAME, Messages.class );
 	}
 
 	private Messages() {
 	}
+
+	/**
+	 * Returns the unformatted value associated to the given key.
+	 * @param key
+	 * @return the unformatted value
+	 */
+	public static String getString( String key ) {
+		try {
+			return RESOURCE_BUNDLE.getString( key );
+		}
+		catch ( MissingResourceException e ) {
+			return '!' + key + '!';
+		}
+	}
+	
+	/**
+	 * Returns the formatted value associated to the given key.
+	 * @param key
+	 * @param the replacements objects
+	 * @return the formatted value
+	 */
+	public static String getFormattedString( String key, Object ... replacements ) {
+		try {
+			return MessageFormat.format( RESOURCE_BUNDLE.getString( key ), replacements );
+		}
+		catch ( MissingResourceException e ) {
+			return '!' + key + '!';
+		}
+	}
+
 }

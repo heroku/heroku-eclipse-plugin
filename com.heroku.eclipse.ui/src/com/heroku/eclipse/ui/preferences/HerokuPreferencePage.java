@@ -1,8 +1,18 @@
 package com.heroku.eclipse.ui.preferences;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.preference.*;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -12,16 +22,22 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.PlatformUI;
+
 import com.heroku.eclipse.ui.Activator;
 
 public class HerokuPreferencePage extends PreferencePage implements
 		IWorkbenchPreferencePage {
 
+	private static final String HEROKU_PREFERENCE_PAGE_CONTEXT = "com.heroku.eclipse.heroclipse_context"; //$NON-NLS-1$
+	
+	private Map<String, Object>	widgetRegistry = new HashMap<String, Object>();
+	private Map<String, ControlDecoration>	decoratorRegistry = new HashMap<String, ControlDecoration>();
+	
 	public HerokuPreferencePage() {
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
-		setDescription(Messages.HerokuPreferencePage_Title);
+		setDescription(Messages.getString( "HerokuPreferencePage_Title" ) );
 	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -33,8 +49,8 @@ public class HerokuPreferencePage extends PreferencePage implements
 	}
 
 	@Override
-	protected Control createContents(Composite parent) {
-		Composite group = new Composite(parent, SWT.NULL);
+	protected Control createContents(final Composite parent) {
+		final Composite group = new Composite(parent, SWT.NULL);
 
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 3;
@@ -42,19 +58,28 @@ public class HerokuPreferencePage extends PreferencePage implements
 		layout.marginWidth = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_MARGIN);
 		layout.verticalSpacing = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_SPACING);
 		layout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
-		
+
 		group.setLayout(layout);
 
 		// Email
 		{
 			Label l = new Label(group, SWT.NONE);
-			l.setText(Messages.HerokuPreferencePage_Email);
-			l.setLayoutData(new GridData( SWT.RIGHT, SWT.CENTER, false, false, 1, 1 ) );
+			l.setText(Messages.getString( "HerokuPreferencePage_Email" ) );
+			l.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false,
+					1, 1));
 
 			Text t = new Text(group, SWT.SINGLE | SWT.BORDER);
 			t.setFont(group.getFont());
-			t.setLayoutData( new GridData( SWT.FILL, SWT.NONE, true, false, 1, 1 ) );
-
+			t.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
+			
+			ControlDecoration c = new ControlDecoration( t, SWT.BOTTOM | SWT.LEFT );
+			c.setImage( FieldDecorationRegistry.getDefault().getFieldDecoration( FieldDecorationRegistry.DEC_ERROR ).getImage() );
+			c.setDescriptionText( Messages.getString( "HerokuPreferencePage_Error_Decorator_EmailMissing" ) ); //$NON-NLS-1$
+			c.hide();
+			
+			widgetRegistry.put( PreferenceConstants.P_EMAIL, t );
+			decoratorRegistry.put( PreferenceConstants.P_EMAIL, c );
+			
 			@SuppressWarnings("unused")
 			Label dummy = new Label(group, SWT.NONE);
 		}
@@ -62,112 +87,203 @@ public class HerokuPreferencePage extends PreferencePage implements
 		// Password
 		{
 			Label l = new Label(group, SWT.NONE);
-			l.setText(Messages.HerokuPreferencePage_Password);
-			l.setLayoutData(new GridData( SWT.RIGHT, SWT.CENTER, false, false, 1, 1 ) );
+			l.setText(Messages.getString( "HerokuPreferencePage_Password" ) );
+			l.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false,
+					1, 1));
 
-			Text t = new Text(group, SWT.PASSWORD | SWT.BORDER );
-			
+			Text t = new Text(group, SWT.PASSWORD | SWT.BORDER);
 			t.setFont(group.getFont());
-
-			t.setLayoutData(new GridData( SWT.FILL, SWT.NONE, true, false, 1, 1 ));
+			t.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
+			
+			ControlDecoration c = new ControlDecoration( t, SWT.BOTTOM | SWT.LEFT );
+			c.setImage( FieldDecorationRegistry.getDefault().getFieldDecoration( FieldDecorationRegistry.DEC_ERROR ).getImage() );
+			c.setDescriptionText( Messages.getString( "HerokuPreferencePage_Error_Decorator_PasswordMissing" ) ); //$NON-NLS-1$
+			c.hide();
+			
+			widgetRegistry.put( PreferenceConstants.P_PASSWORD, t );
+			decoratorRegistry.put( PreferenceConstants.P_PASSWORD, c );
 
 			Button b = new Button(group, SWT.NULL);
-			b.setText(Messages.HerokuPreferencePage_GetAPIKey);
-			b.setLayoutData(new GridData( SWT.NONE, SWT.NONE, false, false, 1, 1 ));
+			b.setText(Messages.getString( "HerokuPreferencePage_GetAPIKey" ) );
+			b.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
+			b.addSelectionListener(new SelectionAdapter() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					if ( !validateLoginData( true ) ) {
+						MessageDialog.openError(group.getShell(), Messages.getString( "HerokuPreferencePage_Error_Title" ), Messages.getString( "HerokuPreferencePage_Error_EmailAndPasswordRequired" ) );
+						((Button) widgetRegistry.get( PreferenceConstants.P_VALIDATE_API_KEY )).setEnabled( false );
+					}
+					else {
+						((Button) widgetRegistry.get( PreferenceConstants.P_VALIDATE_API_KEY )).setEnabled( true );
+						// TODO call /login
+					}
+				}
+			});
 		}
 
 		// API Key
 		{
 			Label l = new Label(group, SWT.NONE);
-			l.setText(Messages.HerokuPreferencePage_APIKey);
-			l.setLayoutData(new GridData( SWT.RIGHT, SWT.CENTER, false, false, 1, 1 ) );
+			l.setText(Messages.getString( "HerokuPreferencePage_APIKey" ) );
+			l.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false,
+					1, 1));
 
 			Text t = new Text(group, SWT.SINGLE | SWT.BORDER);
 			t.setFont(group.getFont());
-
-			t.setLayoutData(new GridData( SWT.FILL, SWT.NONE, true, false, 1, 1 ));
-
+			t.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
+			
+			ControlDecoration c = new ControlDecoration( t, SWT.BOTTOM | SWT.LEFT );
+			c.setImage( FieldDecorationRegistry.getDefault().getFieldDecoration( FieldDecorationRegistry.DEC_ERROR ).getImage() );
+			c.setDescriptionText( Messages.getString( "HerokuPreferencePage_Error_Decorator_APIKeyMissing" ) ); //$NON-NLS-1$
+			c.hide();
+			
+			widgetRegistry.put( PreferenceConstants.P_API_KEY, t );
+			decoratorRegistry.put( PreferenceConstants.P_API_KEY, c );
+			
 			Button b = new Button(group, SWT.NULL);
-			b.setText(Messages.HerokuPreferencePage_Validate);
-			b.setLayoutData(new GridData( SWT.NONE, SWT.NONE, false, false, 1, 1 ));
+			b.setText(Messages.getString( "HerokuPreferencePage_Validate" ) );
+			b.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
+			// only enable if we have valid login data
+			b.setEnabled( validateLoginData( false ) );
+			b.addSelectionListener(new SelectionAdapter() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					// validate API key
+					boolean isValid = true;
+					
+					Text t = (Text) widgetRegistry.get( PreferenceConstants.P_API_KEY );
+					
+					if ( t.getText().trim().isEmpty() ) {
+						decoratorRegistry.get( PreferenceConstants.P_API_KEY ).show();
+						isValid = false;
+					}
+					else {
+						decoratorRegistry.get( PreferenceConstants.P_API_KEY ).hide();
+					}
+					
+					if ( ! isValid ) {
+						MessageDialog.openError(group.getShell(), Messages.getString( "HerokuPreferencePage_Error_Title" ), Messages.getString( "HerokuPreferencePage_Error_APIKeyRequired" ) );
+					}
+					else {
+						// TODO "list apps" w/o error
+					}
+				}
+
+			});
+			
+			widgetRegistry.put( PreferenceConstants.P_VALIDATE_API_KEY, b );
 		}
-		
+
 		// SSH Key
 		{
 			Label l = new Label(group, SWT.NONE);
-			l.setText(Messages.HerokuPreferencePage_SSHKey);
-			l.setLayoutData(new GridData( SWT.RIGHT, SWT.CENTER, false, false, 1, 1 ) );
+			l.setText(Messages.getString( "HerokuPreferencePage_SSHKey" ) );
+			l.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
 
-			Text t = new Text(group, SWT.BORDER | SWT.MULTI );
+			Text t = new Text(group, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL
+					| SWT.V_SCROLL);
 			t.setFont(group.getFont());
-			t.setLayoutData(new GridData( SWT.FILL, SWT.FILL, false, false, 2, 3 ));
+			GridData g = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1);
+			g.heightHint = 50;
+			t.setLayoutData(g);
+			
+			widgetRegistry.put( PreferenceConstants.P_SSH_KEY, t );
+
 		}
-		
-		// API Key
-		{
-			Label l = new Label(group, SWT.NONE);
-			l.setText(Messages.HerokuPreferencePage_APIKey);
-			l.setLayoutData(new GridData( SWT.RIGHT, SWT.CENTER, false, false, 1, 1 ) );
 
-			Text t = new Text(group, SWT.SINGLE | SWT.BORDER);
-			t.setFont(group.getFont());
-
-			t.setLayoutData(new GridData( SWT.FILL, SWT.NONE, true, false, 1, 1 ));
-
-			Button b = new Button(group, SWT.NULL);
-			b.setText(Messages.HerokuPreferencePage_Validate);
-			b.setLayoutData(new GridData( SWT.NONE, SWT.NONE, false, false, 1, 1 ));
-		}
-		
 		// button row
 		{
-			Button gen = new Button(group, SWT.NULL);
-			gen.setText(Messages.HerokuPreferencePage_Validate);
-			gen.setLayoutData(new GridData( SWT.NONE, SWT.NONE, false, false, 1, 1 ));
+			Composite right = new Composite(group, SWT.NONE);
+			right.setLayoutData(new GridData(SWT.RIGHT, SWT.NONE, false, false,
+					3, 1));
 
-			Button upd = new Button(group, SWT.NULL);
-			upd.setText(Messages.HerokuPreferencePage_Validate);
-			upd.setLayoutData(new GridData( SWT.NONE, SWT.NONE, false, false, 1, 1 ));
-			
-			Button clr = new Button(group, SWT.NULL);
-			clr.setText(Messages.HerokuPreferencePage_Validate);
-			clr.setLayoutData(new GridData( SWT.NONE, SWT.NONE, false, false, 1, 1 ));
+			GridLayout gl = new GridLayout(3, true);
+
+			gl.marginHeight = 0;
+			gl.marginWidth = 0;
+
+			right.setLayout(gl);
+
+			Button gen = new Button(right, SWT.NULL);
+			gen.setText(Messages.getString( "HerokuPreferencePage_Generate" ) );
+			gen.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1,
+					1));
+			gen.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					// TODO utilize eclipse keygen
+				}
+
+			});
+
+			Button upd = new Button(right, SWT.NULL);
+			upd.setText(Messages.getString( "HerokuPreferencePage_Update" ) );
+			upd.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1,
+					1));
+			upd.addSelectionListener(new SelectionAdapter() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					// TODO call /keys/add
+				}
+
+			});
+
+			Button clr = new Button(right, SWT.NULL);
+			clr.setText(Messages.getString( "HerokuPreferencePage_Clear" ) );
+			clr.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1,
+					1));
+			clr.addSelectionListener(new SelectionAdapter() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					// TODO remove from heroku account?
+				}
+
+			});
 		}
-		
+
+		PlatformUI.getWorkbench().getHelpSystem()
+				.setHelp(getControl(), HEROKU_PREFERENCE_PAGE_CONTEXT);
+
 		return group;
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	/**
+	 * Verifies that all data required for login is present
+	 * @param decorate if set to true, the relevant fields will be decorated with an error icon
+	 * @return
+	 */
+	private boolean validateLoginData( boolean decorate ) {
+		boolean isValid = true;
+		// validate Email/Password
+		Text email = (Text) widgetRegistry.get( PreferenceConstants.P_EMAIL );
+		Text password = (Text) widgetRegistry.get( PreferenceConstants.P_PASSWORD );
+		
+		if ( email.getText().trim().isEmpty() ) {
+			if ( decorate ) {
+				decoratorRegistry.get( PreferenceConstants.P_EMAIL ).show();
+			}
+			isValid = false;
+		}
+		else {
+			decoratorRegistry.get( PreferenceConstants.P_EMAIL ).hide();
+		}
+		
+		if ( password.getText().trim().isEmpty() ) {
+			if ( decorate ) {
+				decoratorRegistry.get( PreferenceConstants.P_PASSWORD ).show();
+			}
+			isValid = false;
+		}
+		else {
+			if ( decorate ) {
+				decoratorRegistry.get( PreferenceConstants.P_PASSWORD ).hide();
+			}
+		}
+		return isValid;
+	}
+
 }
