@@ -5,3 +5,6 @@ Bundle-SymbolicName: com.heroku.eclipse.core.services.mockup
 Bundle-Version: 0.9.0
 Bundle-Vendor: HEROKU
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Service-Component: OSGI-INF/mockupservices.xml
+Require-Bundle: com.heroku.eclipse.core.services;bundle-version="0.9.0"
+Bundle-ActivationPolicy: lazy

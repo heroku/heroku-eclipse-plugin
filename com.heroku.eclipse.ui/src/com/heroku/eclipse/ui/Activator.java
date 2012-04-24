@@ -3,6 +3,9 @@ package com.heroku.eclipse.ui;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+
+import com.heroku.eclipse.core.services.HerokuServices;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -47,7 +50,15 @@ public class Activator extends AbstractUIPlugin {
 	public static Activator getDefault() {
 		return plugin;
 	}
-
+	
+	public HerokuServices getService() {
+		BundleContext btx = this.getBundle().getBundleContext();
+		
+		ServiceReference<HerokuServices> ref = btx.getServiceReference(HerokuServices.class);
+		
+		return btx.getService( ref );
+	}
+	
 	/**
 	 * Returns an image descriptor for the image file at the given
 	 * plug-in relative path
