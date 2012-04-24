@@ -32,7 +32,7 @@ public class HerokuServicesTest extends TestCase {
 		
 		// TODO Need a dummy account from heroku
 		try {
-			h.getAPIKey("eclipse-junit@bestsolution.at", "nopassword");
+			h.getAPIKey("heroku.junit@bestsolution.at", "nopassword");
 			fail("The login has to fail because the password for eclipse-junit@bestsolution.at is different to 'nopassword'");
 		} catch (HerokuServiceException e) {
 			assertEquals(HerokuServiceException.LOGIN_FAILED_ERROR_CODE, e.getErrorCode());
@@ -41,7 +41,7 @@ public class HerokuServicesTest extends TestCase {
 		
 		// TODO Need a dummy account from heroku
 //		try {
-//			String apiKey = h.getAPIKey("eclipse-junit@bestsolution.at", "junit-pwd");
+//			String apiKey = h.getAPIKey("heroku.junit@bestsolution.at", "junit-pwd");
 //			assertNotNull(apiKey);
 //		} catch (HerokuServiceException e) {
 //			e.printStackTrace();
