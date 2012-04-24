@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Api
 Bundle-SymbolicName: com.heroku.api
-Bundle-Version: 0.8.0
+Bundle-Version: 0.7.0
 Bundle-ClassPath: async-http-client-1.7.0.jar,
  commons-codec-1.4.jar,
  commons-logging-1.1.1.jar,
