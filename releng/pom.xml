@@ -21,9 +21,10 @@
 	<modules>
 		<module>../com.heroku.api</module>
 		<module>../com.heroku.eclipse.core.services</module>
-		<module>../com.heroku.eclipse.core.services.mockup</module>
+		<!--  >module>../com.heroku.eclipse.core.services.mockup</module-->
 		<module>../com.heroku.eclipse.core.services.rest</module>
 		<module>../com.heroku.eclipse.ui</module>
+		<module>../com.heroku.eclipse.core.services.junit</module>
 		<module>../com.heroku.eclipse.feature</module>
 		<module>../com.heroku.eclipse.updatesite</module>
 	</modules>
@@ -34,6 +35,16 @@
 			<layout>p2</layout>
 			<url>file:///E:/eclipse-targets/platform-37</url>
 		</repository>
+		<repository>
+			<id>jdt</id>
+			<layout>p2</layout>
+			<url>file:///E:/eclipse-targets/jdt-3.7</url>
+		</repository>
+		<!--  repository>
+			<id>delta</id>
+			<layout>p2</layout>
+			<url>file:///E:/eclipse-targets/delta-pack-3.7</url>
+		</repository-->
 		<!--  repository>
      		<id>indigo</id>
      		<layout>p2</layout>
@@ -119,6 +130,15 @@
 				</executions>
 			</plugin>
 			<plugin>
+  				<groupId>org.eclipse.tycho</groupId>
+  				<artifactId>tycho-surefire-plugin</artifactId>
+  				<version>${tycho-version}</version>
+  				<configuration>
+    				<useUIHarness>true</useUIHarness>
+    				<useUIThread>true</useUIThread>
+  				</configuration>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.9</version>
@@ -135,7 +155,24 @@
 		</plugins>
 	</build>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>junit</groupId>
+				<artifactId>junit</artifactId>
+				<version>4.8.2</version>
+				<scope>test</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>1.8.4</version>
+		</dependency>
+		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
