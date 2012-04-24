@@ -1,10 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="bsh-2.0b4.jar"/>
-	<classpathentry exported="true" kind="lib" path="jcommander-1.12.jar"/>
-	<classpathentry exported="true" kind="lib" path="snakeyaml-1.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="async-http-client-1.7.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="commons-codec-1.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="commons-logging-1.1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="gson-1.7.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="heroku-api-0.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="heroku-http-apache-0.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="heroku-http-ning-async-0.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="heroku-json-gson-0.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="heroku-json-jackson-0.7.jar"/>
+	<classpathentry exported="true" kind="lib" path="httpclient-4.1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="httpcore-4.1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="jackson-core-asl-1.9.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="jackson-mapper-asl-1.9.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="netty-3.2.7.Final.jar"/>
+	<classpathentry exported="true" kind="lib" path="slf4j-api-1.6.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
-	<classpathentry exported="true" kind="lib" path="heroku-api-0.8-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

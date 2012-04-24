@@ -3,10 +3,21 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Api
 Bundle-SymbolicName: com.heroku.api
 Bundle-Version: 0.8.0
-Bundle-ClassPath: heroku-api-0.8-SNAPSHOT.jar,
- bsh-2.0b4.jar,
- jcommander-1.12.jar,
- snakeyaml-1.6.jar
+Bundle-ClassPath: async-http-client-1.7.0.jar,
+ commons-codec-1.4.jar,
+ commons-logging-1.1.1.jar,
+ gson-1.7.1.jar,
+ heroku-api-0.7.jar,
+ heroku-http-apache-0.7.jar,
+ heroku-http-ning-async-0.7.jar,
+ heroku-json-gson-0.7.jar,
+ heroku-json-jackson-0.7.jar,
+ httpclient-4.1.2.jar,
+ httpcore-4.1.2.jar,
+ jackson-core-asl-1.9.2.jar,
+ jackson-mapper-asl-1.9.2.jar,
+ netty-3.2.7.Final.jar,
+ slf4j-api-1.6.2.jar
 Export-Package: com.heroku.api,
  com.heroku.api.connection,
  com.heroku.api.exception,
