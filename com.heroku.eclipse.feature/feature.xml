@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="com.heroku.eclipse.feature"
-      label="Feature"
+      label="Heroku Eclipse Plugin"
       version="1.0.0.qualifier"
       provider-name="HEROKU">
 
