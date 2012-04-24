@@ -19,7 +19,7 @@ public class HerokuServicesTest extends TestCase {
 		return btx.getService(ref);
 	}
 	
-	public void testDoLogin() {
+	public void testGetAPIKey() {
 		HerokuServices h = getService();
 		
 		try {
@@ -32,8 +32,8 @@ public class HerokuServicesTest extends TestCase {
 		
 		// TODO Need a dummy account from heroku
 		try {
-			h.getAPIKey("udo.rader@bestsolution.at", "nopassword");
-			fail("The login has to fail because the password for udo.rader@bestsolution.at is different to 'nopassword'");
+			h.getAPIKey("eclipse-junit@bestsolution.at", "nopassword");
+			fail("The login has to fail because the password for eclipse-junit@bestsolution.at is different to 'nopassword'");
 		} catch (HerokuServiceException e) {
 			assertEquals(HerokuServiceException.LOGIN_FAILED_ERROR_CODE, e.getErrorCode());
 			assertNotNull(e.getCause());
@@ -41,7 +41,7 @@ public class HerokuServicesTest extends TestCase {
 		
 		// TODO Need a dummy account from heroku
 //		try {
-//			String apiKey = h.doLogin("eclipse-junit@bestsolution.at", "junit-pwd");
+//			String apiKey = h.getAPIKey("eclipse-junit@bestsolution.at", "junit-pwd");
 //			assertNotNull(apiKey);
 //		} catch (HerokuServiceException e) {
 //			e.printStackTrace();
