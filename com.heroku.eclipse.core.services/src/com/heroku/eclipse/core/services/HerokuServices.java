@@ -12,7 +12,7 @@ public interface HerokuServices {
 	 * @param password
 	 * @return the Heroku API key
 	 */
-	public String doLogin( String username, String password ) throws HerokuServiceException;
+	public String getAPIKey( String username, String password ) throws HerokuServiceException;
 
 	/**
 	 * Lists all apps associated with the currently logged in account.

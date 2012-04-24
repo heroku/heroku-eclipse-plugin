@@ -6,7 +6,7 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 public class MockHerkokuServices implements HerokuServices {
 
 	@Override
-	public String doLogin(String username, String password) {
+	public String getAPIKey(String username, String password) {
 		String apiKey = "Ceterum autem censeo, Carthaginem esse delendam";
 		
 //		sleep();
@@ -20,7 +20,7 @@ public class MockHerkokuServices implements HerokuServices {
 		
 		sleep();
 		
-		throw new HerokuServiceException();
+		throw new HerokuServiceException( "Blabla", null );
 		
 //		return appsListing;
 	}
