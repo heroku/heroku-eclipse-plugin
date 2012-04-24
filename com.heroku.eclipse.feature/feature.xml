@@ -31,14 +31,14 @@
          unpack="false"/>
 
    <plugin
-         id="com.heroku.eclipse.core.services.mockup"
+         id="com.heroku.eclipse.ui"
          download-size="0"
          install-size="0"
          version="0.9.0"
          unpack="false"/>
 
    <plugin
-         id="com.heroku.eclipse.ui"
+         id="com.heroku.eclipse.core.services.rest"
          download-size="0"
          install-size="0"
          version="0.9.0"
