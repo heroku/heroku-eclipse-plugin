@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Services
+Bundle-SymbolicName: com.heroku.eclipse.core.services
+Bundle-Version: 1.0.0.qualifier
+Bundle-Vendor: HEROKU
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+   <extension
+         id="herokuBuilder"
+         name="Heroku Project Biulder"
+         point="org.eclipse.core.resources.builders">
+      <builder
+            hasNature="true">
+         <run
+               class="com.heroku.eclipse.ui.builder.HerokuBuilder">
+         </run>
+      </builder>
+   </extension>
+   <extension
+         id="herokuNature"
+         name="Heroku Project Nature"
+         point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run
+               class="com.heroku.eclipse.ui.builder.HerokuNature">
+         </run>
+      </runtime>
+      <builder
+            id="com.heroku.eclipse.ui.herokuBuilder">
+      </builder>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <objectContribution
+            adaptable="true"
+            objectClass="org.eclipse.core.resources.IProject"
+            nameFilter="*"
+            id="com.heroku.eclipse.ui.contribution1">
+         <action
+               label="Add/Remove Sample Nature"
+               class="com.heroku.eclipse.ui.builder.ToggleNatureAction"
+               menubarPath="additions"
+               enablesFor="+"
+               id="com.heroku.eclipse.ui.addRemoveNatureAction">
+         </action>
+      </objectContribution>
+   </extension>
+   <extension
+         id="xmlProblem"
+         name="XML Problem"
+         point="org.eclipse.core.resources.markers">
+      <super
+            type="org.eclipse.core.resources.problemmarker">
+      </super>
+      <persistent
+            value="true">
+      </persistent>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            name="Heroku"
+            class="com.heroku.eclipse.ui.preferences.HerokuPreferencePage"
+            id="com.heroku.eclipse.ui.preferences.HerokuPreferencePage">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="com.heroku.eclipse.ui.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            name="Heroku Category"
+            id="com.heroku.eclipse.ui">
+      </category>
+      <view
+            name="Heroku View"
+            icon="icons/sample.gif"
+            category="com.heroku.eclipse.ui"
+            class="com.heroku.eclipse.ui.views.HerokuView"
+            id="com.heroku.eclipse.ui.views.HerokuView">
+      </view>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="org.eclipse.jdt.ui.JavaPerspective">
+         <view
+               ratio="0.5"
+               relative="org.eclipse.ui.views.TaskList"
+               relationship="right"
+               id="com.heroku.eclipse.ui.views.HerokuView">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+
+</plugin>
