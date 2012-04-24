@@ -135,7 +135,7 @@ public class HerokuPreferencePage extends PreferencePage implements
 								public void run(IProgressMonitor monitor) throws InvocationTargetException,
 										InterruptedException {
 									try {
-										apiKey.set( service.doLogin( email, password ) );
+										apiKey.set( service.getAPIKey( email, password ) );
 									} catch (HerokuServiceException e) {
 										// TODO Auto-generated catch block
 										e.printStackTrace();

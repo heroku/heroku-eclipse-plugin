@@ -11,7 +11,7 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 public class RestHerokuServices implements HerokuServices {
 
 	@Override
-	public String doLogin(String username, String password) throws HerokuServiceException {
+	public String getAPIKey(String username, String password) throws HerokuServiceException {
 		try {
 			return HerokuAPI.obtainApiKey(username, password);	
 		} catch (LoginFailedException e) {

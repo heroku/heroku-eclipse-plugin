@@ -23,7 +23,7 @@ public class HerokuServicesTest extends TestCase {
 		HerokuServices h = getService();
 		
 		try {
-			h.doLogin("nouser@noaddres.com", "nopassword");
+			h.getAPIKey("nouser@noaddres.com", "nopassword");
 			fail("The login with nouser@noaddres.com/nopassword has to fail");
 		} catch (HerokuServiceException e) {
 			assertEquals(HerokuServiceException.LOGIN_FAILED_ERROR_CODE, e.getErrorCode());
@@ -32,7 +32,7 @@ public class HerokuServicesTest extends TestCase {
 		
 		// TODO Need a dummy account from heroku
 		try {
-			h.doLogin("udo.rader@bestsolution.at", "nopassword");
+			h.getAPIKey("udo.rader@bestsolution.at", "nopassword");
 			fail("The login has to fail because the password for udo.rader@bestsolution.at is different to 'nopassword'");
 		} catch (HerokuServiceException e) {
 			assertEquals(HerokuServiceException.LOGIN_FAILED_ERROR_CODE, e.getErrorCode());
