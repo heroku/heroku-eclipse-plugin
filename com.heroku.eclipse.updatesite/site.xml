@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/com.heroku.eclipse.feature_1.0.0.qualifier.jar" id="com.heroku.eclipse.feature" version="1.0.0.qualifier">
+      <category name="heroku"/>
+   </feature>
+   <category-def name="heroku" label="Herok Eclipse Integration"/>
+</site>
