@@ -1,9 +1,12 @@
 package com.heroku.eclipse.ui;
 
+import org.eclipse.equinox.log.ExtendedLogService;
+import org.eclipse.equinox.log.Logger;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTracker;
 
 import com.heroku.eclipse.core.services.HerokuServices;
 
@@ -18,6 +21,9 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 	
+	private ServiceTracker<ExtendedLogService, ExtendedLogService> logServiceTracker;
+	private ExtendedLogService logService;
+
 	/**
 	 * The constructor
 	 */
@@ -31,6 +37,11 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+
+		logServiceTracker = new ServiceTracker<ExtendedLogService, ExtendedLogService>(context, ExtendedLogService.class,null);
+		logServiceTracker.open();
+		
+		logService = logServiceTracker.getService();
 	}
 
 	/*
@@ -39,6 +50,10 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public void stop(BundleContext context) throws Exception {
 		plugin = null;
+
+		logServiceTracker.close();
+		logServiceTracker = null;
+
 		super.stop(context);
 	}
 
@@ -69,4 +84,9 @@ public class Activator extends AbstractUIPlugin {
 	public static ImageDescriptor getImageDescriptor(String path) {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
+	
+	public Logger getLogger() {
+		return logService.getLogger(getBundle(), null);
+	}
+
 }

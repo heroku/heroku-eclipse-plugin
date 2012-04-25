@@ -27,6 +27,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferenceLinkArea;
 import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
+import org.osgi.service.log.LogService;
 
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
@@ -56,6 +57,7 @@ public class HerokuPreferencePage extends PreferencePage implements
 
 	@Override
 	protected Control createContents(final Composite parent) {
+		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening Heroku preferences" );
 		
 		final HerokuServices service = Activator.getDefault().getService();
 
@@ -128,12 +130,14 @@ public class HerokuPreferencePage extends PreferencePage implements
 						// login failed
 						if ( apiKey == null ) {
 							MessageDialog.openError(getShell(), Messages.getString( "HerokuPreferencePage_Error_LoginFailed_Title" ), Messages.getString( "HerokuPreferencePage_Error_LoginFailed" ) );
+							Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "login failed for user '"+widgetRegistry.get(PreferenceConstants.P_EMAIL)+"'" );
 						}
 						else {
 							((Button) widgetRegistry.get( PreferenceConstants.P_VALIDATE_API_KEY )).setEnabled( true );
 							((Text) widgetRegistry.get( PreferenceConstants.P_API_KEY )).setText( apiKey );
 							
 							MessageDialog.openInformation(getShell(), Messages.getString( "HerokuPreferencePage_Info_Login_OK_Title" ), Messages.getString( "HerokuPreferencePage_Info_Login_OK" ) );
+							Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "successfully logged into Heroku account" );
 						}
 					}
 				}
@@ -169,6 +173,8 @@ public class HerokuPreferencePage extends PreferencePage implements
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					if ( validateAPIKeyData( true ) ) {
+						boolean isKeyValid = true;
+						
 						try {
 							PlatformUI.getWorkbench().getProgressService().busyCursorWhile( new IRunnableWithProgress() {
 								@Override
@@ -178,22 +184,25 @@ public class HerokuPreferencePage extends PreferencePage implements
 										service.getAllApps();
 									} 
 									catch (HerokuServiceException e) {
-										e.printStackTrace();
+										throw new InvocationTargetException( e );
 									}
 								}
 							});
 						} 
 						catch (InvocationTargetException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
+							isKeyValid = false;
+							MessageDialog.openError(parent.getShell(), Messages.getString( "HerokuPreferencePage_Error_KeyValidationFailed_Title" ), Messages.getString( "HerokuPreferencePage_Error_KeyValidationFailed" ) );
+							Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "validating API key: valdation of key failed", e1 );
 						} 
 						catch (InterruptedException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
+							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "validating API key: unknown error when trying to list apps", e1 );
+							// TODO display error dialog
 						}
 						
-//						MessageDialog.openInformation(getShell(), Messages.getString( "HerokuPreferencePage_Info_KeyValidation_OK_Title" ), Messages.getString( "HerokuPreferencePage_Info_KeyValidation_OK" ) );
-//						MessageDialog.openError(parent.getShell(), Messages.getString( "HerokuPreferencePage_Error_KeyValidationFailed_Title" ), Messages.getString( "HerokuPreferencePage_Error_KeyValidationFailed" ) );
+						if ( isKeyValid ) {
+							MessageDialog.openInformation(getShell(), Messages.getString( "HerokuPreferencePage_Info_KeyValidation_OK_Title" ), Messages.getString( "HerokuPreferencePage_Info_KeyValidation_OK" ) );
+							Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "validating API key: successfully listed all apps " );
+						}
 					}
 				}
 
@@ -260,7 +269,7 @@ public class HerokuPreferencePage extends PreferencePage implements
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					// TODO remove from heroku account?
+					// TODO remove key from heroku account?
 				}
 
 			});
