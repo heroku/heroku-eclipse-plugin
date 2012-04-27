@@ -1,4 +1,4 @@
-## Placeholder for the heroku Eclipse plugin project
+## Eclipse plugin for Heroku
 
 ###  Building
 To get the tycho build running locally you need maven 3.x. The parent
