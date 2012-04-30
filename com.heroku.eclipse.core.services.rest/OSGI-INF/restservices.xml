@@ -4,4 +4,5 @@
    <service>
       <provide interface="com.heroku.eclipse.core.services.HerokuServices"/>
    </service>
+   <reference bind="setEventAdmin" cardinality="0..1" interface="org.osgi.service.event.EventAdmin" name="EventAdmin" policy="static"/>
 </scr:component>

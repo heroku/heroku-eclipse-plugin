@@ -26,8 +26,8 @@ public class RestHerokuServices implements HerokuServices {
 	private HerokuSessionImpl herokuSession;
 	private IEclipsePreferences preferences;
 	
-	private static final String PREF_API_KEY = "apiKey"; //$NON-NLS-1$
-	private static final String PREF_SSH_KEY = "sshKey"; //$NON-NLS-1$
+	private static final String PREF_API_KEY = "apiKey";
+	private static final String PREF_SSH_KEY = "sshKey";
 	
 	private EventAdmin eventAdmin;
 	
@@ -94,8 +94,6 @@ public class RestHerokuServices implements HerokuServices {
 			
 			if( sshKey == null ) {
 				p.remove(PREF_SSH_KEY);
-			} 
-			else {
 				validateSSHKey(sshKey);
 				p.put(PREF_SSH_KEY, sshKey);	
 			}
