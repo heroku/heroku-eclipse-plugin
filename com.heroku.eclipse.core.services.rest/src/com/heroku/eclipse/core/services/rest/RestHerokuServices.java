@@ -65,11 +65,11 @@ public class RestHerokuServices implements HerokuServices {
 	
 	public void setSSHKey(String sshKey) throws HerokuServiceException {
 		try {
-			//TODO Should we validate the SSH-Key???
 			IEclipsePreferences p = getPreferences();
 			if( sshKey == null ) {
 				p.remove(PREF_SSH_KEY);
 			} else {
+				validateSSHKey(sshKey);
 				p.put(PREF_SSH_KEY, sshKey);	
 			}
 			p.flush();
