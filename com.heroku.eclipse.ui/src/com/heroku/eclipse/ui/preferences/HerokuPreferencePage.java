@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.fieldassist.ControlDecoration;
@@ -55,6 +57,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	private Map<String, ControlDecoration> decoratorRegistry = new HashMap<String, ControlDecoration>();
 
 	private HerokuServices service;
+	
+	private Composite parent;
 
 	@SuppressWarnings({ "deprecation", "restriction" })
 	private org.eclipse.core.runtime.Preferences jschPreferences = JSchCorePlugin.getPlugin().getPluginPreferences();
@@ -76,6 +80,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 	@Override
 	protected Control createContents(final Composite parent) {
+		this.parent = parent;
+		
 		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening Heroku preferences"); //$NON-NLS-1$
 
 		final Composite group = new Composite(parent, SWT.NULL);
@@ -430,10 +436,10 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	 * @return the public key or null if anything went wrong
 	 */
 	private String loadSSHPublicKey() {
-		String publicKey = null;
+		String publicKey = "";
 
 		@SuppressWarnings({ "restriction", "deprecation" })
-		String sshHome = jschPreferences.getDefaultString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
+		String sshHome = jschPreferences.getString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
 
 		FileDialog fd = new FileDialog(getShell(), SWT.OPEN);
 		fd.setFilterPath(sshHome);
@@ -456,14 +462,15 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				}
 				catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
+					publicKey = null;
 					e.printStackTrace();
 				}
 				catch (IOException e) {
 					// TODO Auto-generated catch block
+					publicKey = null;
 					e.printStackTrace();
 				}
 			}
-		    
 		}
 		
 		return publicKey;
@@ -501,8 +508,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		// ssh key:
 		// +  * add "load public key" button
 		// +  * if in prefs => DISPLAY in r/o text ara
-		//   * else if ssh-home found
-		//   ** if only one *pub => load & display immediately in r/o text area
+		// +  * else if ssh-home found
+		// +  ** if only one *pub => load & display immediately in r/o text area
 		//   ** if more than one *pub => nada
 		//   * else disable update & clear
 		
@@ -512,7 +519,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		// if the prefs are empty, ask eclipse
 		if ( sshKey == null || sshKey.isEmpty() ) {
 			@SuppressWarnings({ "restriction", "deprecation" })
-			String sshHome = jschPreferences.getDefaultString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
+			String sshHome = jschPreferences.getString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
 
 			File sshDir = new File(sshHome);
 			String[] pubkeyFiles = sshDir.list( new FilenameFilter() {
@@ -537,6 +544,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 						sshKey = new String(buffer);
 					}
 					catch (FileNotFoundException e) {
+//						ErrorDialog.openError(parent, "", "", IStatus.ERROR);
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
