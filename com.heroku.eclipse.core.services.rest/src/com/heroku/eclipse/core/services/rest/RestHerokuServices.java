@@ -88,7 +88,7 @@ public class RestHerokuServices implements HerokuServices {
 	public void setSSHKey(String sshKey) throws HerokuServiceException {
 		try {
 			IEclipsePreferences p = getPreferences();
-			if( sshKey == null ) {
+			if( sshKey == null || sshKey.trim().isEmpty() ) {
 				p.remove(PREF_SSH_KEY);
 			} else {
 				validateSSHKey(sshKey);
@@ -106,7 +106,7 @@ public class RestHerokuServices implements HerokuServices {
 		try {
 			boolean modified = false;
 			IEclipsePreferences p = getPreferences();
-			if( apiKey == null ) {
+			if( apiKey == null || apiKey.trim().isEmpty() ) {
 				p.remove(PREF_API_KEY);
 				modified = true;
 			} else {
