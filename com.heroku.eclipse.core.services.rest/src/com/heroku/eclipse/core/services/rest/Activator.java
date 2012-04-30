@@ -12,7 +12,7 @@ import org.osgi.util.tracker.ServiceTracker;
  * @author udo.rader@bestsolution.at
  */
 public class Activator implements BundleActivator {
-	public static final String ID = "com.heroku.eclipse.core.services.rest";
+	public static final String ID = "com.heroku.eclipse.core.services";
 	
 	private static BundleContext context;
 	private static Activator self;
