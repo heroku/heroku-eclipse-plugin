@@ -17,7 +17,7 @@ import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.preference.*;
+import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jsch.internal.core.JSchCorePlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -30,8 +30,8 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferenceLinkArea;
 import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
@@ -433,7 +433,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		String publicKey = null;
 
 		@SuppressWarnings({ "restriction", "deprecation" })
-		String sshHome = jschPreferences.getDefaultString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
+		String sshHome = jschPreferences.getString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
 
 		FileDialog fd = new FileDialog(getShell(), SWT.OPEN);
 		fd.setFilterPath(sshHome);
@@ -512,7 +512,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		// if the prefs are empty, ask eclipse
 		if ( sshKey == null || sshKey.isEmpty() ) {
 			@SuppressWarnings({ "restriction", "deprecation" })
-			String sshHome = jschPreferences.getDefaultString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
+			String sshHome = jschPreferences.getString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
 
 			File sshDir = new File(sshHome);
 			String[] pubkeyFiles = sshDir.list( new FilenameFilter() {
