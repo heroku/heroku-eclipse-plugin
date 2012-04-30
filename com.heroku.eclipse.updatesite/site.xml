@@ -3,5 +3,5 @@
    <feature url="features/com.heroku.eclipse.feature_0.1.0.jar" id="com.heroku.eclipse.feature" version="0.1.0">
       <category name="heroku"/>
    </feature>
-   <category-def name="heroku" label="Herok Eclipse Integration"/>
+   <category-def name="heroku" label="Heroku Eclipse Integration"/>
 </site>
