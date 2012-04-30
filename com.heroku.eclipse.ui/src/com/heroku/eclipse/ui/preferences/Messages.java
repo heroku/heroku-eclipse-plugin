@@ -17,12 +17,6 @@ public class Messages extends NLS {
 	
 	private static final ResourceBundle	RESOURCE_BUNDLE	= ResourceBundle.getBundle( BUNDLE_NAME );
 
-	// TODO: refactor to eclipse default
-	static {
-		// initialize resource bundle
-		NLS.initializeMessages( BUNDLE_NAME, Messages.class );
-	}
-
 	private Messages() {
 	}
 

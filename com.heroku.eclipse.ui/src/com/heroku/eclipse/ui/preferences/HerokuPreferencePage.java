@@ -510,14 +510,14 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		String sshKey = service.getSSHKey();
 		
 		// if the prefs are empty, ask eclipse
-		if ( sshKey == null ) {
+		if ( sshKey == null || sshKey.isEmpty() ) {
 			@SuppressWarnings({ "restriction", "deprecation" })
 			String sshHome = jschPreferences.getDefaultString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
 
-			File dir = new File(sshHome);
-			String[] pubkeyFiles = dir.list( new FilenameFilter() {
+			File sshDir = new File(sshHome);
+			String[] pubkeyFiles = sshDir.list( new FilenameFilter() {
 				public boolean accept(File dir, String name) {
-					return !name.startsWith(".pub"); //$NON-NLS-1$
+					return name.startsWith(".pub"); //$NON-NLS-1$
 				}
 			});
 			
@@ -556,6 +556,12 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	
 	private static String ensureNotNull( String nullable ) {
 		return ( nullable == null ) ? "" : nullable; //$NON-NLS-1$
+	}
+	
+	@Override
+	public boolean performOk() {
+		performApply();
+		return super.performOk();
 	}
 
 	/*
