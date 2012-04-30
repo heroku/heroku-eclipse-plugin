@@ -29,7 +29,7 @@ public interface HerokuServices {
 	 * </p>
 	 * 
 	 * @param apiKey
-	 *            the Heroku API key
+	 *            the Heroku API key, might be <code>null</code> null to reset it
 	 * @throws HerokuServiceException
 	 *             if storage of the key fails or api key is invalid
 	 */
@@ -53,7 +53,7 @@ public interface HerokuServices {
 	 * Store the SSH key stored in the global eclipse preferences
 	 * 
 	 * @param sshKey
-	 *            the SSH key
+	 *            the SSH key, might be <code>null</code> null to reset it
 	 * @throws HerokuServiceException
 	 *             if storage of the SSH key fails
 	 */
