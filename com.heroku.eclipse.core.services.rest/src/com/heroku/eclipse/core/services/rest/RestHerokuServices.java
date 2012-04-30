@@ -109,6 +109,12 @@ public class RestHerokuServices implements HerokuServices {
 		}
 	}
 
+	@Override
+	public void validateSSHKey(String sshKey) throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+	
 	private void invalidateSession() {
 		if( herokuSession != null ) {
 			herokuSession.invalidate();

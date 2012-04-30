@@ -80,4 +80,14 @@ public interface HerokuServices {
 	 *             if the key is invalid
 	 */
 	public void validateAPIKey(String apiKey) throws HerokuServiceException;
+
+	/**
+	 * Validates the SSH key
+	 * 
+	 * @param sshKey
+	 *            the SSH key to validate
+	 * @throws HerokuServiceException
+	 *             if the key is invalid
+	 */
+	public void validateSSHKey(String sshKey) throws HerokuServiceException;
 }
