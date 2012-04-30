@@ -466,12 +466,10 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 					publicKey = new String(buffer);
 				}
 				catch (FileNotFoundException e) {
-					// TODO Auto-generated catch block
 					publicKey = null;
 					internalError( e );
 				}
 				catch (IOException e) {
-					// TODO Auto-generated catch block
 					publicKey = null;
 					internalError( e );
 				}
