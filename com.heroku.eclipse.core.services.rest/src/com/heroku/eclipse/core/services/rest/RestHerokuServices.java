@@ -56,13 +56,10 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	public HerokuSession getOrCreateHerokuSession() throws HerokuServiceException {
+		// invalidate session
 		String apiKey = preferences.get(PREF_API_KEY, null);
-		
 		if ( apiKey == null ) {
-			// invalidate session
-			invalidateSession();
-			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unable to create session: no API Key configured"); //$NON-NLS-1$
-			throw new HerokuServiceException(HerokuServiceException.NO_API_KEY, "No API Key configured", null); //$NON-NLS-1$
+			throw new HerokuServiceException(HerokuServiceException.NO_API_KEY, "No API-Key configured", null);
 		}
 		else if (herokuSession == null) {
 			herokuSession = new HerokuSessionImpl( apiKey );
@@ -91,13 +88,12 @@ public class RestHerokuServices implements HerokuServices {
 	public void setSSHKey(String sshKey) throws HerokuServiceException {
 		try {
 			IEclipsePreferences p = getPreferences();
-			
 			if( sshKey == null ) {
 				p.remove(PREF_SSH_KEY);
+			} else {
 				validateSSHKey(sshKey);
 				p.put(PREF_SSH_KEY, sshKey);	
 			}
-			
 			p.flush();
 		} catch (BackingStoreException e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to persist preferences", e); //$NON-NLS-1$
@@ -136,10 +132,8 @@ public class RestHerokuServices implements HerokuServices {
 			HerokuAPI api = new HerokuAPI(apiKey);
 			api.listApps();
 		} catch (Throwable e) {
-			//TODO We should check for the exception type and HTTP-Error code to find out which problem
+			//TODO We should check for the exception type and HTTP-Error code to findout which problem
 			// we have here
-			
-			Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "validating API key: valdation of key failed", e); //$NON-NLS-1$
 			throw new HerokuServiceException(HerokuServiceException.INVALID_API_KEY, e);
 		}
 	}
