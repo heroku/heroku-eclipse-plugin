@@ -15,29 +15,44 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 public class HerokuSessionImpl implements HerokuSession {
 	final private HerokuAPI api;
 
+	private boolean valid = true;
+	
 	public HerokuSessionImpl(String apiKey) {
 		api = new HerokuAPI(apiKey);
 	}
 
 	@Override
 	public List<App> getAllApps() throws HerokuServiceException {
+		if( isValid() ) {
+			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null);
+		}
+
 		List<App> apps = api.listApps();
 		return apps;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.heroku.eclipse.core.services.HerokuSession#addSSHKey(java.lang.String)
-	 */
 	@Override
 	public void addSSHKey(String sshKey) throws HerokuServiceException {
+		if( isValid() ) {
+			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null);
+		}
 		api.addKey(sshKey);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.heroku.eclipse.core.services.HerokuSession#removeSSHKey(java.lang.String)
-	 */
 	@Override
 	public void removeSSHKey(String sshKey) throws HerokuServiceException {
+		if( isValid() ) {
+			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null);
+		}
 		api.removeKey(sshKey);
+	}
+
+	public void invalidate() {
+		valid = false;
+	}
+	
+	@Override
+	public boolean isValid() {
+		return valid;
 	}
 }

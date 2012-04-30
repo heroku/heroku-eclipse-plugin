@@ -57,4 +57,16 @@ public class MockHerkokuServices implements HerokuServices {
 	public void setAPIKey(String apiKey) {
 		this.apiKey = apiKey;
 	}
+
+	@Override
+	public void setSSHKey(String sshKey) throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void validateAPIKey(String apiKey) throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		
+	}
 }
