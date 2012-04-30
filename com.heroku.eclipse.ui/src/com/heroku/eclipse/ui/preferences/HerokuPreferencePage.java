@@ -1,27 +1,17 @@
 package com.heroku.eclipse.ui.preferences;
 
 import java.io.BufferedInputStream;
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.interfaces.DSAPublicKey;
-import java.security.interfaces.RSAPublicKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
-import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.fieldassist.ControlDecoration;
@@ -47,7 +37,6 @@ import org.eclipse.ui.dialogs.PreferenceLinkArea;
 import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 import org.osgi.service.log.LogService;
 import org.osgi.service.prefs.BackingStoreException;
-import org.osgi.service.prefs.Preferences;
 
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
@@ -67,7 +56,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 	private HerokuServices service;
 
-	private Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+	@SuppressWarnings({ "deprecation", "restriction" })
 	private org.eclipse.core.runtime.Preferences jschPreferences = JSchCorePlugin.getPlugin().getPluginPreferences();
 
 	public HerokuPreferencePage() {
@@ -510,13 +499,56 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(ensureNotNull( service.getAPIKey()));
 
 		// ssh key:
-		// * add "load public key" button
-		// * if in prefs => DISPLAY in r/o text ara
-		// * else if ssh-home found
-		// ** if only one *pub => load & display immediately in r/o text area
-		// ** if more than one *pub => nada
-		// * else disable update & clear
-		((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText(ensureNotNull(service.getSSHKey()));
+		// +  * add "load public key" button
+		// +  * if in prefs => DISPLAY in r/o text ara
+		//   * else if ssh-home found
+		//   ** if only one *pub => load & display immediately in r/o text area
+		//   ** if more than one *pub => nada
+		//   * else disable update & clear
+		
+		// primary source for the SSH key are the preferences 
+		String sshKey = service.getSSHKey();
+		
+		// if the prefs are empty, ask eclipse
+		if ( sshKey == null ) {
+			@SuppressWarnings({ "restriction", "deprecation" })
+			String sshHome = jschPreferences.getDefaultString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
+
+			File dir = new File(sshHome);
+			String[] pubkeyFiles = dir.list( new FilenameFilter() {
+				public boolean accept(File dir, String name) {
+					return !name.startsWith(".pub"); //$NON-NLS-1$
+				}
+			});
+			
+			// if we find exactly one .pub file, load and dissplay it immediately for usage
+			if (pubkeyFiles != null && pubkeyFiles.length == 1 ) {
+		        String filename = pubkeyFiles[0];
+		        
+				File keyFile = new File(sshHome, filename);
+				
+				if ( keyFile.length() <= 1024 ) {
+					byte[] buffer = new byte[(int) keyFile.length()];
+					BufferedInputStream f;
+
+					try {
+						f = new BufferedInputStream(new FileInputStream(keyFile));
+						f.read(buffer);
+						sshKey = new String(buffer);
+					}
+					catch (FileNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		
+		((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText(ensureNotNull(sshKey));
 
 		((Button) widgetRegistry.get(PreferenceConstants.P_VALIDATE_API_KEY)).setEnabled(validateAPIKeyData(false));
 	}
