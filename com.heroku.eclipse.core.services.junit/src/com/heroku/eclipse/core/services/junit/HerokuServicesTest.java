@@ -135,7 +135,10 @@ public class HerokuServicesTest extends TestCase {
 			assertNotNull(session);
 			assertTrue("The session should be valid", session.isValid());
 			h.setAPIKey("ea114114ab0c1f3e08288c5e6fc48f8e7cd44bf0");
-			assertFalse("The session should be invalidated because the API-key changed", session.isValid());
+			assertTrue("The session should be still valid because the key hasn't changed", session.isValid());
+//TODO Need a second test account			
+//			h.setAPIKey("NEED A 2nd API Key");
+//			assertFalse("The session should be invalidated because the API-key changed", session.isValid());
 		} catch (HerokuServiceException e) {
 			e.printStackTrace();
 			fail(e.getMessage());

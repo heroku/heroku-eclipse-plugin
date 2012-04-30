@@ -21,15 +21,22 @@ public interface HerokuServices {
 
 	/**
 	 * Event topic fired if a session is invalidated
+	 * @see #KEY_SESSION_INSTANCE
 	 */
 	public static final String TOPIC_SESSION_INVALID = ROOT_CORE_TOPIC
 			+ "session/invalid";
 	/**
 	 * Event topic fired if a session a new session is created
+	 * @see #KEY_SESSION_INSTANCE
 	 */
 	public static final String TOPIC_SESSION_CREATED = ROOT_CORE_TOPIC
 			+ "session/created";
 
+	/**
+	 * Event key holding the session modified
+	 * @see #TOPIC_SESSION_INVALID
+	 * @see #TOPIC_SESSION_CREATED
+	 */
 	public static final String KEY_SESSION_INSTANCE = "session";
 
 	/**
@@ -47,7 +54,7 @@ public interface HerokuServices {
 
 	/**
 	 * Sets the Heroku API key to use for further service calls. If there's an
-	 * active session it is invalidated.
+	 * active session it is invalidated in case the key changed.
 	 * 
 	 * <p>
 	 * The API key is validated before stored

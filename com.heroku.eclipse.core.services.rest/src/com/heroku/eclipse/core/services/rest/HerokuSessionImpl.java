@@ -13,11 +13,13 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
  * @author udo.rader@bestsolution.at
  */
 public class HerokuSessionImpl implements HerokuSession {
-	final private HerokuAPI api;
+	private final HerokuAPI api;
+	private final String apiKey;
 
 	private boolean valid = true;
 	
 	public HerokuSessionImpl(String apiKey) {
+		this.apiKey = apiKey;
 		api = new HerokuAPI(apiKey);
 	}
 
@@ -54,5 +56,10 @@ public class HerokuSessionImpl implements HerokuSession {
 	@Override
 	public boolean isValid() {
 		return valid;
+	}
+	
+	@Override
+	public String getAPIKey() {
+		return apiKey;
 	}
 }

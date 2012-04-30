@@ -104,16 +104,23 @@ public class RestHerokuServices implements HerokuServices {
 	@Override
 	public void setAPIKey(String apiKey) throws HerokuServiceException {
 		try {
-			
+			boolean modified = false;
 			IEclipsePreferences p = getPreferences();
 			if( apiKey == null ) {
 				p.remove(PREF_API_KEY);
+				modified = true;
 			} else {
-				validateAPIKey(apiKey);
-				p.put(PREF_API_KEY, apiKey);
+				if( ! apiKey.equals(getAPIKey()) ) {
+					validateAPIKey(apiKey);
+					p.put(PREF_API_KEY, apiKey);
+					modified = true;
+				}
 			}
-			p.flush();
-			invalidateSession();
+			
+			if( modified ) {
+				p.flush();
+				invalidateSession();	
+			}
 		} catch (BackingStoreException e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to persist preferences", e); //$NON-NLS-1$
 			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
