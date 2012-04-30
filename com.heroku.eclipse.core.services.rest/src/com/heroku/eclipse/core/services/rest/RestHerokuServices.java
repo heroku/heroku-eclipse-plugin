@@ -1,11 +1,10 @@
 package com.heroku.eclipse.core.services.rest;
 
-import java.util.List;
-
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.osgi.service.log.LogService;
+import org.osgi.service.prefs.BackingStoreException;
 
-import com.heroku.api.App;
-import com.heroku.api.Heroku;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.exception.LoginFailedException;
 import com.heroku.eclipse.core.services.HerokuServices;
@@ -19,13 +18,16 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
  * @author udo.rader@bestsolution.at
  */
 public class RestHerokuServices implements HerokuServices {
-	private HerokuSession herokuSession;
-	private String apiKey;
+	private HerokuSessionImpl herokuSession;
+	private IEclipsePreferences preferences;
+	
+	private static final String PREF_API_KEY = "apiKey";
+	private static final String PREF_SSH_KEY = "sshKey";
 
 	@Override
 	public String obtainAPIKey(String username, String password) throws HerokuServiceException {
 		try {
-			apiKey = HerokuAPI.obtainApiKey(username, password);
+			String apiKey = HerokuAPI.obtainApiKey(username, password);
 			return apiKey;
 		}
 		catch (LoginFailedException e) {
@@ -40,8 +42,9 @@ public class RestHerokuServices implements HerokuServices {
 
 	public HerokuSession getOrCreateHerokuSession() throws HerokuServiceException {
 		// invalidate session
+		String apiKey = preferences.get(PREF_API_KEY, null);
 		if ( apiKey == null ) {
-			herokuSession = null;
+			throw new HerokuServiceException(HerokuServiceException.NO_API_KEY, "No API-Key configured", null);
 		}
 		else if (herokuSession == null) {
 			herokuSession = new HerokuSessionImpl( apiKey );
@@ -52,23 +55,71 @@ public class RestHerokuServices implements HerokuServices {
 
 	@Override
 	public String getAPIKey() {
-		// TODO Auto-generated method stub
-		return null;
+		return getPreferences().get(PREF_API_KEY, null);
 	}
 
 	@Override
 	public String getSSHKey() {
-		// TODO Auto-generated method stub
-		return null;
+		return getPreferences().get(PREF_SSH_KEY, null);
+	}
+	
+	public void setSSHKey(String sshKey) throws HerokuServiceException {
+		try {
+			//TODO Should we validate the SSH-Key???
+			IEclipsePreferences p = getPreferences();
+			if( sshKey == null ) {
+				p.remove(PREF_SSH_KEY);
+			} else {
+				p.put(PREF_SSH_KEY, sshKey);	
+			}
+			p.flush();
+		} catch (BackingStoreException e) {
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to persist preferences", e); //$NON-NLS-1$
+			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.heroku.eclipse.core.services.HerokuServices#setAPIKey(java.lang.String)
-	 */
 	@Override
-	public void setAPIKey(String apiKey) {
-		// TODO Auto-generated method stub
-		
+	public void setAPIKey(String apiKey) throws HerokuServiceException {
+		try {
+			
+			IEclipsePreferences p = getPreferences();
+			if( apiKey == null ) {
+				p.remove(PREF_API_KEY);
+			} else {
+				validateAPIKey(apiKey);
+				p.put(PREF_API_KEY, apiKey);
+			}
+			p.flush();
+			invalidateSession();
+		} catch (BackingStoreException e) {
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to persist preferences", e); //$NON-NLS-1$
+			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
+		}
+	}
+	
+	public void validateAPIKey(String apiKey) throws HerokuServiceException {
+		try {
+			HerokuAPI api = new HerokuAPI(apiKey);
+			api.listApps();
+		} catch (Throwable e) {
+			//TODO We should check for the exception type and HTTP-Error code to findout which problem
+			// we have here
+			throw new HerokuServiceException(HerokuServiceException.INVALID_API_KEY, e);
+		}
 	}
 
+	private void invalidateSession() {
+		if( herokuSession != null ) {
+			herokuSession.invalidate();
+		}
+		herokuSession = null;
+	}
+	
+	private IEclipsePreferences getPreferences() {
+		if( preferences == null ) {
+			preferences = InstanceScope.INSTANCE.getNode(Activator.ID);
+		}
+		return preferences;
+	}
 }

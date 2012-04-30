@@ -7,8 +7,10 @@ public class HerokuServiceException extends Exception {
 	private static final long serialVersionUID = 1L;
 	
 	public static final int UNKNOWN_ERROR = 0;
-	
 	public static final int LOGIN_FAILED_ERROR_CODE = 1;
+	public static final int NO_API_KEY = 2;
+	public static final int INVALID_STATE = 3;
+	public static final int INVALID_API_KEY = 4;
 	
 	private final int errorCode;
 	

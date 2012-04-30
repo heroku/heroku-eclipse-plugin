@@ -31,4 +31,6 @@ public interface HerokuSession {
 	 * @throws HerokuServiceException
 	 */
 	public void removeSSHKey( String sshKey ) throws HerokuServiceException;
+	
+	public boolean isValid();
 }
