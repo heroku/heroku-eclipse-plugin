@@ -11,7 +11,7 @@
 
 	<groupId>com.heroku</groupId>
 	<artifactId>eclipse</artifactId>
-	<version>0.9.0</version>
+	<version>0.1.0</version>
 	<packaging>pom</packaging>
 	<properties>
 		<tycho-version>0.15.0-SNAPSHOT</tycho-version>
@@ -33,12 +33,12 @@
 		<repository>
 			<id>platform</id>
 			<layout>p2</layout>
-			<url>file:///opt/eclipse-3.7/targets/platform-37</url>
+			<url>file:///E:/eclipse-targets/platform-37</url>
 		</repository>
 		<repository>
 			<id>jdt</id>
 			<layout>p2</layout>
-			<url>file:///opt/eclipse-3.7/targets/jdt-37</url>
+			<url>file:///E:/eclipse-targets/jdt-37</url>
 		</repository>
 		<!--  repository>
      		<id>indigo</id>
