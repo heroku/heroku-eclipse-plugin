@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
@@ -156,6 +157,14 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 						if (apiKey == null) {
 							setErrorMessage(Messages.getString("HerokuPreferencePage_Error_LoginFailed")); //$NON-NLS-1$
 
+							try {
+								((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(""); //$NON-NLS-1$
+								service.setAPIKey(null);
+							}
+							catch (HerokuServiceException e1) {
+								herokuError( e1 );
+							}
+
 							Activator.getDefault().getLogger()
 									.log(LogService.LOG_DEBUG, "login failed for user '" + widgetRegistry.get(PreferenceConstants.P_EMAIL) + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 						}
@@ -170,8 +179,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 								Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "successfully logged into Heroku account"); //$NON-NLS-1$
 							}
 							catch (HerokuServiceException e1) {
-								// TODO Auto-generated catch block
-								e1.printStackTrace();
+								herokuError( e1 );
 							}
 						}
 					}
@@ -312,8 +320,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 							service.getOrCreateHerokuSession().removeSSHKey(sshKey);
 						}
 						catch (HerokuServiceException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
+							herokuError( e1 );
 						}
 					}
 				}
@@ -420,12 +427,10 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			});
 		}
 		catch (InvocationTargetException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			internalError( e1 );
 		}
 		catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			internalError( e1 );
 		}
 
 		return apiKey.get();
@@ -436,7 +441,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	 * @return the public key or null if anything went wrong
 	 */
 	private String loadSSHPublicKey() {
-		String publicKey = "";
+		String publicKey = ""; //$NON-NLS-1$
 
 		@SuppressWarnings({ "restriction", "deprecation" })
 		String sshHome = jschPreferences.getString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
@@ -463,12 +468,12 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					publicKey = null;
-					e.printStackTrace();
+					internalError( e );
 				}
 				catch (IOException e) {
 					// TODO Auto-generated catch block
 					publicKey = null;
-					e.printStackTrace();
+					internalError( e );
 				}
 			}
 		}
@@ -491,8 +496,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				service.setSSHKey(sshKey);
 			}
 			catch (HerokuServiceException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				herokuError( e1 );
 			}
 		}
 	}
@@ -505,14 +509,6 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	private void initialize() {
 		((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(ensureNotNull( service.getAPIKey()));
 
-		// ssh key:
-		// +  * add "load public key" button
-		// +  * if in prefs => DISPLAY in r/o text ara
-		// +  * else if ssh-home found
-		// +  ** if only one *pub => load & display immediately in r/o text area
-		//   ** if more than one *pub => nada
-		//   * else disable update & clear
-		
 		// primary source for the SSH key are the preferences 
 		String sshKey = service.getSSHKey();
 		
@@ -544,13 +540,10 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 						sshKey = new String(buffer);
 					}
 					catch (FileNotFoundException e) {
-//						ErrorDialog.openError(parent, "", "", IStatus.ERROR);
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						internalError( e );
 					}
 					catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						internalError( e );
 					}
 				}
 			}
@@ -584,8 +577,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			service.setSSHKey(((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText().trim());
 		}
 		catch (HerokuServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			herokuError( e );
 		}
 	}
 	
@@ -605,8 +597,26 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			initialize();
 		}
 		catch (HerokuServiceException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			herokuError( e );
 		}
 	}
+
+	/**
+	 * Displays an internal error
+	 */
+	private void internalError( Throwable t ) {
+		Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuPreferencePage_Error_InternalError"), t ); //$NON-NLS-1$
+		
+		ErrorDialog.openError(getShell(), Messages.getString("HerokuPreferencePage_Error_InternalError_Title"), Messages.getString("HerokuPreferencePage_Error_InternalError"), status ); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+	
+	/**
+	 * Displays an error message related to an Heroku service
+	 */
+	private void herokuError( Throwable t ) {
+		Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuPreferencePage_Error_HerokuServiceError"), t ); //$NON-NLS-1$
+		
+		ErrorDialog.openError(getShell(), Messages.getString("HerokuPreferencePage_Error_InternalError_Title"), Messages.getString("HerokuPreferencePage_Error_InternalError"), status ); //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
 }

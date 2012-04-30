@@ -78,7 +78,6 @@ public class MockHerkokuServices implements HerokuServices {
 	@Override
 	public void setAPIKey(String apiKey) throws HerokuServiceException {
 		try {
-			
 			IEclipsePreferences p = getPreferences();
 			if( apiKey == null ) {
 				p.remove(PREF_API_KEY);
@@ -91,6 +90,7 @@ public class MockHerkokuServices implements HerokuServices {
 		} catch (BackingStoreException e) {
 			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
 		}
+//		throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, "sonit");
 	}
 	
 	public void validateAPIKey(String apiKey) throws HerokuServiceException {

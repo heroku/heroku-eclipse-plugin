@@ -27,6 +27,10 @@ public class HerokuServiceException extends Exception {
 		this(UNKNOWN_ERROR, message, t);
 	}
 	
+	public HerokuServiceException(int errorCode, String message) {
+		this(UNKNOWN_ERROR, message, null);
+	}
+	
 	public HerokuServiceException(int errorCode, String message, Throwable t) {
 		super(message, t);
 		this.errorCode = errorCode;
