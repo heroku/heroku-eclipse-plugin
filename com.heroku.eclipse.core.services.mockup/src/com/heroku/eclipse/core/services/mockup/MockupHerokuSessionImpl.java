@@ -43,4 +43,13 @@ public class MockupHerokuSessionImpl implements HerokuSession {
 		return false;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuSession#getAPIKey()
+	 */
+	@Override
+	public String getAPIKey() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

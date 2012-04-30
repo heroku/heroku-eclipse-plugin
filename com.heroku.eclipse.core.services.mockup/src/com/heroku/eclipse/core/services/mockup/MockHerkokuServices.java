@@ -110,4 +110,13 @@ public class MockHerkokuServices implements HerokuServices {
 		}
 		return preferences;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuServices#validateSSHKey(java.lang.String)
+	 */
+	@Override
+	public void validateSSHKey(String sshKey) throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		
+	}
 }
