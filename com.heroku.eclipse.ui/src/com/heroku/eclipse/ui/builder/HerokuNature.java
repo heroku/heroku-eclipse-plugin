@@ -11,7 +11,7 @@ public class HerokuNature implements IProjectNature {
 	/**
 	 * ID of this project nature
 	 */
-	public static final String NATURE_ID = "com.heroku.eclipse.ui.herokuNature";
+	public static final String NATURE_ID = "com.heroku.eclipse.ui.herokuNature"; //$NON-NLS-1$
 
 	private IProject project;
 

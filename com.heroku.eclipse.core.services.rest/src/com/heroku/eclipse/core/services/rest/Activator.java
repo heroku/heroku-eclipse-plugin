@@ -6,6 +6,11 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.tracker.ServiceTracker;
 
+/**
+ * Entry point for the Heroclipse rest services bundle.    
+ * 
+ * @author udo.rader@bestsolution.at
+ */
 public class Activator implements BundleActivator {
 
 	private static BundleContext context;

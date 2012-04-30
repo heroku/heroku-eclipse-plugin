@@ -25,23 +25,23 @@ public class HerokuServicesTest extends TestCase {
 		HerokuServices h = getService();
 		
 		try {
-			h.getAPIKey("nouser@noaddres.com", "nopassword");
-			fail("The login with nouser@noaddres.com/nopassword has to fail");
+			h.obtainAPIKey("nouser@noaddres.com", "nopassword"); //$NON-NLS-1$ //$NON-NLS-2$
+			fail("The login with nouser@noaddres.com/nopassword has to fail"); //$NON-NLS-1$
 		} catch (HerokuServiceException e) {
 			assertEquals(HerokuServiceException.LOGIN_FAILED_ERROR_CODE, e.getErrorCode());
 			assertNotNull(e.getCause());
 		}
 		
 		try {
-			h.getAPIKey("heroku.junit@bestsolution.at", "nopassword");
-			fail("The login has to fail because the password for eclipse-junit@bestsolution.at is different to 'nopassword'");
+			h.obtainAPIKey("heroku.junit@bestsolution.at", "nopassword"); //$NON-NLS-1$ //$NON-NLS-2$
+			fail("The login has to fail because the password for eclipse-junit@bestsolution.at is different to 'nopassword'"); //$NON-NLS-1$
 		} catch (HerokuServiceException e) {
 			assertEquals(HerokuServiceException.LOGIN_FAILED_ERROR_CODE, e.getErrorCode());
 			assertNotNull(e.getCause());
 		}
 		
 		try {
-			String apiKey = h.getAPIKey("heroku.junit@bestsolution.at", "ooquah2V$");
+			String apiKey = h.obtainAPIKey("heroku.junit@bestsolution.at", "ooquah2V$"); //$NON-NLS-1$ //$NON-NLS-2$
 			assertNotNull(apiKey);
 		} catch (HerokuServiceException e) {
 			e.printStackTrace();

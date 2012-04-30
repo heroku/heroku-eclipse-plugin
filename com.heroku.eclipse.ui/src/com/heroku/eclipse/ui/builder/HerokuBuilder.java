@@ -82,9 +82,9 @@ public class HerokuBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-	public static final String BUILDER_ID = "com.heroku.eclipse.ui.herokuBuilder";
+	public static final String BUILDER_ID = "com.heroku.eclipse.ui.herokuBuilder"; //$NON-NLS-1$
 
-	private static final String MARKER_TYPE = "com.heroku.eclipse.ui.xmlProblem";
+	private static final String MARKER_TYPE = "com.heroku.eclipse.ui.xmlProblem"; //$NON-NLS-1$
 
 	private SAXParserFactory parserFactory;
 
@@ -124,7 +124,7 @@ public class HerokuBuilder extends IncrementalProjectBuilder {
 	}
 
 	void checkXML(IResource resource) {
-		if (resource instanceof IFile && resource.getName().endsWith(".xml")) {
+		if (resource instanceof IFile && resource.getName().endsWith(".xml")) { //$NON-NLS-1$
 			IFile file = (IFile) resource;
 			deleteMarkers(file);
 			XMLErrorHandler reporter = new XMLErrorHandler(file);

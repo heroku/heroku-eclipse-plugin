@@ -12,6 +12,8 @@ import com.heroku.eclipse.core.services.HerokuServices;
 
 /**
  * The activator class controls the plug-in life cycle
+ * 
+ * @author udo.rader@bestsolution.at
  */
 public class Activator extends AbstractUIPlugin {
 
@@ -85,8 +87,11 @@ public class Activator extends AbstractUIPlugin {
 		return imageDescriptorFromPlugin(PLUGIN_ID, path);
 	}
 	
+	/**
+	 * Returns this bundle's Logger instance 
+	 * @return a Logger instance
+	 */
 	public Logger getLogger() {
 		return logService.getLogger(getBundle(), null);
 	}
-
 }

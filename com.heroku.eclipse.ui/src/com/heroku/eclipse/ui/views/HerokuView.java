@@ -13,29 +13,16 @@ import org.eclipse.swt.SWT;
 
 
 /**
- * This sample class demonstrates how to plug-in a new
- * workbench view. The view shows data obtained from the
- * model. The sample creates a dummy model on the fly,
- * but a real implementation would connect to the model
- * available either in this or another plug-in (e.g. the workspace).
- * The view is connected to the model using a content provider.
- * <p>
- * The view uses a label provider to define how model
- * objects should be presented in the view. Each
- * view can present the same model objects using
- * different labels and icons, if needed. Alternatively,
- * a single label provider can be shared between views
- * in order to ensure that objects of the same type are
- * presented in the same way everywhere.
- * <p>
+ * The main view of the Heroclipse plugin   
+ * 
+ * @author udo.rader@bestsolution.at
  */
-
 public class HerokuView extends ViewPart {
 
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
-	public static final String ID = "com.heroku.eclipse.ui.views.HerokuView";
+	public static final String ID = "com.heroku.eclipse.ui.views.HerokuView"; //$NON-NLS-1$
 
 	private TableViewer viewer;
 	private Action action1;
@@ -58,7 +45,7 @@ public class HerokuView extends ViewPart {
 		public void dispose() {
 		}
 		public Object[] getElements(Object parent) {
-			return new String[] { "One", "Two", "Three" };
+			return new String[] { "One", "Two", "Three" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		}
 	}
 	class ViewLabelProvider extends LabelProvider implements ITableLabelProvider {
@@ -94,7 +81,7 @@ public class HerokuView extends ViewPart {
 		viewer.setInput(getViewSite());
 
 		// Create the help context id for the viewer's control
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "com.heroku.eclipse.ui.viewer");
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(viewer.getControl(), "com.heroku.eclipse.ui.viewer"); //$NON-NLS-1$
 		makeActions();
 		hookContextMenu();
 		hookDoubleClickAction();
@@ -102,7 +89,7 @@ public class HerokuView extends ViewPart {
 	}
 
 	private void hookContextMenu() {
-		MenuManager menuMgr = new MenuManager("#PopupMenu");
+		MenuManager menuMgr = new MenuManager("#PopupMenu"); //$NON-NLS-1$
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
@@ -141,28 +128,28 @@ public class HerokuView extends ViewPart {
 	private void makeActions() {
 		action1 = new Action() {
 			public void run() {
-				showMessage("Action 1 executed");
+				showMessage("Action 1 executed"); //$NON-NLS-1$
 			}
 		};
-		action1.setText("Action 1");
-		action1.setToolTipText("Action 1 tooltip");
+		action1.setText("Action 1"); //$NON-NLS-1$
+		action1.setToolTipText("Action 1 tooltip"); //$NON-NLS-1$
 		action1.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 			getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 		
 		action2 = new Action() {
 			public void run() {
-				showMessage("Action 2 executed");
+				showMessage("Action 2 executed"); //$NON-NLS-1$
 			}
 		};
-		action2.setText("Action 2");
-		action2.setToolTipText("Action 2 tooltip");
+		action2.setText("Action 2"); //$NON-NLS-1$
+		action2.setToolTipText("Action 2 tooltip"); //$NON-NLS-1$
 		action2.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages().
 				getImageDescriptor(ISharedImages.IMG_OBJS_INFO_TSK));
 		doubleClickAction = new Action() {
 			public void run() {
 				ISelection selection = viewer.getSelection();
 				Object obj = ((IStructuredSelection)selection).getFirstElement();
-				showMessage("Double-click detected on "+obj.toString());
+				showMessage("Double-click detected on "+obj.toString()); //$NON-NLS-1$
 			}
 		};
 	}
@@ -177,7 +164,7 @@ public class HerokuView extends ViewPart {
 	private void showMessage(String message) {
 		MessageDialog.openInformation(
 			viewer.getControl().getShell(),
-			"Heroku View",
+			"Heroku View", //$NON-NLS-1$
 			message);
 	}
 
