@@ -59,8 +59,6 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 	private HerokuServices service;
 	
-	private Composite parent;
-
 	@SuppressWarnings({ "deprecation", "restriction" })
 	private org.eclipse.core.runtime.Preferences jschPreferences = JSchCorePlugin.getPlugin().getPluginPreferences();
 
@@ -81,8 +79,6 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 	@Override
 	protected Control createContents(final Composite parent) {
-		this.parent = parent;
-		
 		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening Heroku preferences"); //$NON-NLS-1$
 
 		final Composite group = new Composite(parent, SWT.NULL);
@@ -616,5 +612,19 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		
 		ErrorDialog.openError(getShell(), Messages.getString("HerokuPreferencePage_Error_InternalError_Title"), Messages.getString("HerokuPreferencePage_Error_InternalError"), status ); //$NON-NLS-1$ //$NON-NLS-2$
 	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.DialogPage#setVisible(boolean)
+	 */
+	@Override
+	public void setVisible(boolean visible) {
+		// TODO Auto-generated method stub
+		super.setVisible(visible);
+		
+		if ( visible ) {
+			initialize();
+		}
+	}
+	
 
 }
