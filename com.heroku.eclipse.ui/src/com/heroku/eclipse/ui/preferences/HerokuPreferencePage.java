@@ -517,7 +517,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			File sshDir = new File(sshHome);
 			String[] pubkeyFiles = sshDir.list( new FilenameFilter() {
 				public boolean accept(File dir, String name) {
-					return name.startsWith(".pub"); //$NON-NLS-1$
+					return name.endsWith(".pub"); //$NON-NLS-1$
 				}
 			});
 			
