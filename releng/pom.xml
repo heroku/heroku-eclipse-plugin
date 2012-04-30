@@ -38,7 +38,7 @@
 		<repository>
 			<id>jdt</id>
 			<layout>p2</layout>
-			<url>file:///E:/eclipse-targets/jdt-37</url>
+			<url>file:///opt/eclipse-3.7/targets/jdt-37</url>
 		</repository>
 		<!--  repository>
      		<id>indigo</id>

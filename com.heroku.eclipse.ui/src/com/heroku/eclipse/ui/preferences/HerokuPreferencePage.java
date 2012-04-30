@@ -1,18 +1,34 @@
 package com.heroku.eclipse.ui.preferences;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.interfaces.DSAPublicKey;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.*;
+import org.eclipse.jsch.internal.core.JSchCorePlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -21,6 +37,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -47,9 +64,11 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 	private Map<String, Object> widgetRegistry = new HashMap<String, Object>();
 	private Map<String, ControlDecoration> decoratorRegistry = new HashMap<String, ControlDecoration>();
-	
-	private Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+
 	private HerokuServices service;
+
+	private Preferences prefs = InstanceScope.INSTANCE.getNode(Activator.PLUGIN_ID);
+	private org.eclipse.core.runtime.Preferences jschPreferences = JSchCorePlugin.getPlugin().getPluginPreferences();
 
 	public HerokuPreferencePage() {
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
@@ -128,11 +147,11 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					setErrorMessage( null );
-					
+					setErrorMessage(null);
+
 					// first validate input
 					if (!validateLoginData(true)) {
-						setErrorMessage( Messages.getString("HerokuPreferencePage_Error_PleaseCheckInput")); //$NON-NLS-1$
+						setErrorMessage(Messages.getString("HerokuPreferencePage_Error_PleaseCheckInput")); //$NON-NLS-1$
 					}
 					else {
 						// then talk to Heroku
@@ -140,19 +159,25 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 						// login failed
 						if (apiKey == null) {
-							setErrorMessage( Messages.getString("HerokuPreferencePage_Error_LoginFailed")); //$NON-NLS-1$
-							
+							setErrorMessage(Messages.getString("HerokuPreferencePage_Error_LoginFailed")); //$NON-NLS-1$
+
 							Activator.getDefault().getLogger()
 									.log(LogService.LOG_DEBUG, "login failed for user '" + widgetRegistry.get(PreferenceConstants.P_EMAIL) + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 						}
 						else {
-							((Button) widgetRegistry.get(PreferenceConstants.P_VALIDATE_API_KEY)).setEnabled(true);
-							((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(apiKey);
+							try {
+								service.setAPIKey(apiKey);
 
-							storeAPIKey( apiKey );
-							
-							setMessage( Messages.getString("HerokuPreferencePage_Info_Login_OK"), IMessageProvider.INFORMATION ); //$NON-NLS-1$)
-							Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "successfully logged into Heroku account"); //$NON-NLS-1$
+								((Button) widgetRegistry.get(PreferenceConstants.P_VALIDATE_API_KEY)).setEnabled(true);
+								((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(apiKey);
+								
+								setMessage(Messages.getString("HerokuPreferencePage_Info_Login_OK"), IMessageProvider.INFORMATION); //$NON-NLS-1$)
+								Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "successfully logged into Heroku account"); //$NON-NLS-1$
+							}
+							catch (HerokuServiceException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
 						}
 					}
 				}
@@ -183,23 +208,30 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			b.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
-					setErrorMessage( null );
+					setErrorMessage(null);
 
 					// first validate input
-					if (! validateAPIKeyData(true)) {
-						setErrorMessage( Messages.getString("HerokuPreferencePage_Error_PleaseCheckInput") ); //$NON-NLS-1$
+					if (!validateAPIKeyData(true)) {
+						setErrorMessage(Messages.getString("HerokuPreferencePage_Error_PleaseCheckInput")); //$NON-NLS-1$
 					}
 					else {
 						// then talk to Heroku
-						if ( validateAPIKey( service ) ) {
-							setMessage( Messages.getString("HerokuPreferencePage_Info_KeyValidation_OK"), IMessageProvider.INFORMATION ); //$NON-NLS-1$)
+						String apiKey = ((Text)widgetRegistry.get(PreferenceConstants.P_API_KEY)).getText().trim();
+						
+						try {
+							service.validateAPIKey( apiKey );
+							
+							setMessage(Messages.getString("HerokuPreferencePage_Info_KeyValidation_OK"), IMessageProvider.INFORMATION); //$NON-NLS-1$)
 							Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "validating API key: successfully listed all apps "); //$NON-NLS-1$
-
-							// immediately store a possibly existing SSH key (explicit request to do so w/o waiting for "apply")
+							
+//							// immediately store a possibly existing SSH key
+//							// (explicit request to do so w/o waiting for
+//							// "apply")
 							storeSSHKey();
+
 						}
-						else {
-							setErrorMessage( Messages.getString("HerokuPreferencePage_Error_KeyValidationFailed") ); //$NON-NLS-1$
+						catch (HerokuServiceException e1) {
+							setErrorMessage(Messages.getString("HerokuPreferencePage_Error_KeyValidationFailed")); //$NON-NLS-1$
 						}
 					}
 				}
@@ -215,10 +247,11 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			l.setText(Messages.getString("HerokuPreferencePage_SSHKey")); //$NON-NLS-1$
 			l.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
 
-			Text t = new Text(group, SWT.BORDER | SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL);
+			Text t = new Text(group, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP | SWT.READ_ONLY );
 			t.setFont(group.getFont());
 			GridData g = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1);
-			g.heightHint = 50;
+			g.heightHint = 100;
+			g.widthHint = 300;
 			t.setLayoutData(g);
 
 			widgetRegistry.put(PreferenceConstants.P_SSH_KEY, t);
@@ -230,7 +263,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			Composite right = new Composite(group, SWT.NONE);
 			right.setLayoutData(new GridData(SWT.RIGHT, SWT.NONE, false, false, 3, 1));
 
-			GridLayout gl = new GridLayout(3, true);
+			GridLayout gl = new GridLayout(4, true);
 			gl.marginHeight = 0;
 			gl.marginWidth = 0;
 			right.setLayout(gl);
@@ -240,6 +273,24 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 					(IWorkbenchPreferenceContainer) getContainer(), null);
 
 			p.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+
+			Button load = new Button(right, SWT.NULL);
+			load.setText(Messages.getString("HerokuPreferencePage_LoadKey")); //$NON-NLS-1$
+			load.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
+			load.addSelectionListener(new SelectionAdapter() {
+
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					String pubKey = loadSSHPublicKey();
+					if ( pubKey == null ) {
+						setErrorMessage(Messages.getString("HerokuPreferencePage_Error_SSHKeyInvalid")); //$NON-NLS-1$
+					}
+					else {
+						((Text)widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText( pubKey );
+					}
+				}
+
+			});
 
 			Button upd = new Button(right, SWT.NULL);
 			upd.setText(Messages.getString("HerokuPreferencePage_Update")); //$NON-NLS-1$
@@ -261,7 +312,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					String sshKey = ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText().trim();
-					if ( ! sshKey.isEmpty() ) {
+					if (!sshKey.isEmpty()) {
 						try {
 							service.getOrCreateHerokuSession().removeSSHKey(sshKey);
 						}
@@ -275,14 +326,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			});
 		}
 
-		try {
-			initialize();
-		}
-		catch (BackingStoreException e) {
-			// TODO display error
-			e.printStackTrace();
-		}
-		
+		initialize();
+
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), HEROKU_PREFERENCE_PAGE_CONTEXT);
 
 		applyDialogFont(group);
@@ -356,6 +401,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 	/**
 	 * Retrieves the user's Heroku API key
+	 * 
 	 * @param service
 	 */
 	private String retrieveAPIKey() {
@@ -391,75 +437,62 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	}
 
 	/**
-	 * Ensures that the API key is valid
-	 * @param service
-	 * @return the outcome of the validation
+	 * Load and validates a ssh DSA or RSA public key as found in a user specified file
+	 * @return the public key or null if anything went wrong
 	 */
-	private boolean validateAPIKey(final HerokuServices service) {
-		boolean isKeyValid = true;
+	private String loadSSHPublicKey() {
+		String publicKey = null;
 
-		try {
-			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
-				@Override
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					try {
-						// according ot the specs, we're fine, if this yields no error
-						service.getOrCreateHerokuSession().getAllApps();
-						
-					}
-					catch (HerokuServiceException e) {
-						throw new InvocationTargetException(e);
-					}
+		@SuppressWarnings({ "restriction", "deprecation" })
+		String sshHome = jschPreferences.getDefaultString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
+
+		FileDialog fd = new FileDialog(getShell(), SWT.OPEN);
+		fd.setFilterPath(sshHome);
+		fd.setFilterExtensions(new String[]{"*.pub"}); //$NON-NLS-1$
+
+		Object o = fd.open();
+
+		if (o != null) { 
+			String filename = fd.getFileName();
+			File keyFile = new File(fd.getFilterPath(), filename);
+			
+			if ( keyFile.length() <= 1024 ) {
+				byte[] buffer = new byte[(int) keyFile.length()];
+				BufferedInputStream f;
+
+				try {
+					f = new BufferedInputStream(new FileInputStream(keyFile));
+					f.read(buffer);
+					publicKey = new String(buffer);
 				}
-			});
-		}
-		catch (InvocationTargetException e1) {
-			isKeyValid = false;
-			Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "validating API key: valdation of key failed", e1); //$NON-NLS-1$
-		}
-		catch (InterruptedException e1) {
-			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "validating API key: unknown error when trying to list apps", e1); //$NON-NLS-1$
-			// TODO display error dialog
+				catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		    
 		}
 		
-		return isKeyValid;
+		return publicKey;
 	}
-	
+
 	/**
-	 * Stores the API key in the preferences
-	 * @param service
-	 * @param apiKey
-	 */
-	private void storeAPIKey(String apiKey) {
-		// as requested: we store the API key immediately, w/o waiting for "apply"
-		prefs.put(PreferenceConstants.P_API_KEY, apiKey);
-		service.setAPIKey( apiKey );
-	}
-	
-	/**
-	 * Ensures that the SSH key is syntactically valid
-	 * @param service
-	 * @return the outcome of the validation
-	 */
-	private boolean validateSSHKey() {
-		boolean isKeyValid = true;
-		
-		// TODO: use JSch to check key validity
-		
-		return isKeyValid;
-	}
-	
-	/**
-	 * If present, stores the SSH key both in the user's Heroku account and in the preferences
+	 * If present, stores the SSH key both in the user's Heroku account and in
+	 * the preferences
+	 * 
 	 * @param service
 	 */
 	private void storeSSHKey() {
 		String sshKey = ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText().trim();
-		
-		if ( ! sshKey.isEmpty() ) {
+
+		if (!sshKey.isEmpty()) {
 			try {
 				service.getOrCreateHerokuSession().addSSHKey(sshKey);
-				prefs.put(PreferenceConstants.P_SSH_KEY, ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText().trim() );
+				service.setSSHKey(sshKey);
 			}
 			catch (HerokuServiceException e1) {
 				// TODO Auto-generated catch block
@@ -467,35 +500,67 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			}
 		}
 	}
-	
+
 	/**
-	 * Initializes the page and loads existing preferences 
+	 * Initializes the page and loads existing preferences
+	 * 
 	 * @throws BackingStoreException
 	 */
-	private void initialize() throws BackingStoreException {
-		prefs.sync();
+	private void initialize() {
+		((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(ensureNotNull( service.getAPIKey()));
 
-		((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText( prefs.get( PreferenceConstants.P_API_KEY, "" ) ); //$NON-NLS-1$
-		((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText( prefs.get( PreferenceConstants.P_SSH_KEY, "" ) ); //$NON-NLS-1$
-		
-		((Button)widgetRegistry.get(PreferenceConstants.P_VALIDATE_API_KEY)).setEnabled( validateAPIKeyData(false) );
+		// ssh key:
+		// * add "load public key" button
+		// * if in prefs => DISPLAY in r/o text ara
+		// * else if ssh-home found
+		// ** if only one *pub => load & display immediately in r/o text area
+		// ** if more than one *pub => nada
+		// * else disable update & clear
+		((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText(ensureNotNull(service.getSSHKey()));
+
+		((Button) widgetRegistry.get(PreferenceConstants.P_VALIDATE_API_KEY)).setEnabled(validateAPIKeyData(false));
 	}
 	
-	/* (non-Javadoc)
+	
+	private static String ensureNotNull( String nullable ) {
+		return ( nullable == null ) ? "" : nullable; //$NON-NLS-1$
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.jface.preference.PreferencePage#performApply()
 	 */
 	@Override
 	protected void performApply() {
-		prefs.put(PreferenceConstants.P_API_KEY, ((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).getText().trim() );
-		prefs.put(PreferenceConstants.P_SSH_KEY, ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText().trim() );
+		try {
+			service.setAPIKey(((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).getText().trim());
+			service.setSSHKey(((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText().trim());
+		}
+		catch (HerokuServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-
-	/* (non-Javadoc)
+	
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see org.eclipse.jface.preference.PreferencePage#performDefaults()
 	 */
 	@Override
 	protected void performDefaults() {
-		// TODO Auto-generated method stub
 		super.performDefaults();
+		
+		try {
+			service.setAPIKey( null );
+			service.setSSHKey( null );
+			
+			initialize();
+		}
+		catch (HerokuServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 }

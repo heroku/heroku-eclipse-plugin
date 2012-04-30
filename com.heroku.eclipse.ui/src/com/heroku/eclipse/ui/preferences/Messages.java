@@ -12,11 +12,12 @@ import org.eclipse.osgi.util.NLS;
  * @author udo.rader@bestsolution.at
  */
 public class Messages extends NLS {
-
+	
 	private static final String BUNDLE_NAME = "com.heroku.eclipse.ui.preferences.messages"; //$NON-NLS-1$
 	
 	private static final ResourceBundle	RESOURCE_BUNDLE	= ResourceBundle.getBundle( BUNDLE_NAME );
 
+	// TODO: refactor to eclipse default
 	static {
 		// initialize resource bundle
 		NLS.initializeMessages( BUNDLE_NAME, Messages.class );
