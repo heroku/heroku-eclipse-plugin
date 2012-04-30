@@ -33,12 +33,12 @@
 		<repository>
 			<id>platform</id>
 			<layout>p2</layout>
-			<url>file:///E:/eclipse-targets/platform-37</url>
+			<url>file:///opt/eclipse-3.7/targets/platform-37</url>
 		</repository>
 		<repository>
 			<id>jdt</id>
 			<layout>p2</layout>
-			<url>file:///E:/eclipse-targets/jdt-3.7</url>
+			<url>file:///opt/eclipse-3.7/targets/jdt-37</url>
 		</repository>
 		<!--  repository>
 			<id>delta</id>
@@ -176,7 +176,6 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.8.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
