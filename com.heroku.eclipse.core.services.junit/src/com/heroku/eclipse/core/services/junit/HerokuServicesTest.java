@@ -13,6 +13,10 @@ import junit.framework.TestCase;
 
 public class HerokuServicesTest extends TestCase {
 	
+	private static final String VALID_JUNIT_USER = System.getProperty("heroku.junit.user");
+	private static final String VALID_JUNIT_PWD = System.getProperty("heroku.junit.pwd");
+	private static final String VALID_JUNIT_APIKEY = System.getProperty("heroku.junit.apikey");
+	
 	private HerokuServices getService() {
 		Bundle b = FrameworkUtil.getBundle(HerokuServicesTest.class);
 		BundleContext btx = b.getBundleContext();
@@ -44,7 +48,7 @@ public class HerokuServicesTest extends TestCase {
 		}
 		
 		try {
-			h.obtainAPIKey("heroku.junit@bestsolution.at", "nopassword"); //$NON-NLS-1$ //$NON-NLS-2$
+			h.obtainAPIKey(VALID_JUNIT_USER, "nopassword"); //$NON-NLS-1$ //$NON-NLS-2$
 			fail("The login has to fail because the password for eclipse-junit@bestsolution.at is different to 'nopassword'"); //$NON-NLS-1$
 		} catch (HerokuServiceException e) {
 			assertEquals(HerokuServiceException.LOGIN_FAILED_ERROR_CODE, e.getErrorCode());
@@ -52,9 +56,9 @@ public class HerokuServicesTest extends TestCase {
 		}
 		
 		try {
-			String apiKey = h.obtainAPIKey("heroku.junit@bestsolution.at", "ooquah2V$"); //$NON-NLS-1$ //$NON-NLS-2$
+			String apiKey = h.obtainAPIKey(VALID_JUNIT_USER, VALID_JUNIT_PWD); //$NON-NLS-1$ //$NON-NLS-2$
 			assertNotNull(apiKey);
-			assertEquals("ea114114ab0c1f3e08288c5e6fc48f8e7cd44bf0", apiKey);
+			assertEquals(VALID_JUNIT_APIKEY, apiKey);
 		} catch (HerokuServiceException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -65,7 +69,7 @@ public class HerokuServicesTest extends TestCase {
 		HerokuServices h = getService();
 		assertNull(h.getAPIKey());
 		try {
-			h.setAPIKey("ea114114ab0c1f3e08288c5e6fc48f8e7cd44bf0");
+			h.setAPIKey(VALID_JUNIT_APIKEY);
 		} catch (HerokuServiceException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -76,7 +80,7 @@ public class HerokuServicesTest extends TestCase {
 	public void testValidateAPIKey() {
 		HerokuServices h = getService();
 		try {
-			h.validateAPIKey("ea114114ab0c1f3e08288c5e6fc48f8e7cd44bf0");
+			h.validateAPIKey(VALID_JUNIT_APIKEY);
 		} catch (HerokuServiceException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -93,7 +97,7 @@ public class HerokuServicesTest extends TestCase {
 	public void testSetAPIKey() {
 		HerokuServices h = getService();
 		try {
-			h.setAPIKey("ea114114ab0c1f3e08288c5e6fc48f8e7cd44bf0");
+			h.setAPIKey(VALID_JUNIT_APIKEY);
 		} catch (HerokuServiceException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
@@ -130,11 +134,11 @@ public class HerokuServicesTest extends TestCase {
 		}
 		
 		try {
-			h.setAPIKey("ea114114ab0c1f3e08288c5e6fc48f8e7cd44bf0");
+			h.setAPIKey(VALID_JUNIT_APIKEY);
 			HerokuSession session = h.getOrCreateHerokuSession();
 			assertNotNull(session);
 			assertTrue("The session should be valid", session.isValid());
-			h.setAPIKey("ea114114ab0c1f3e08288c5e6fc48f8e7cd44bf0");
+			h.setAPIKey(VALID_JUNIT_APIKEY);
 			assertTrue("The session should be still valid because the key hasn't changed", session.isValid());
 //TODO Need a second test account			
 //			h.setAPIKey("NEED A 2nd API Key");
