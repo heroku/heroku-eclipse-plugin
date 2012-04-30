@@ -8,6 +8,30 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
  * @author udo.rader@bestsolution.at
  */
 public interface HerokuServices {
+
+	/**
+	 * Root topic of all heroku events
+	 */
+	public static final String ROOT_TOPIC = "com/heroku/eclipse/";
+	
+	/**
+	 * Root topic of all heroku core events
+	 */
+	public static final String ROOT_CORE_TOPIC = ROOT_TOPIC + "core/";
+
+	/**
+	 * Event topic fired if a session is invalidated
+	 */
+	public static final String TOPIC_SESSION_INVALID = ROOT_CORE_TOPIC
+			+ "session/invalid";
+	/**
+	 * Event topic fired if a session a new session is created
+	 */
+	public static final String TOPIC_SESSION_CREATED = ROOT_CORE_TOPIC
+			+ "session/created";
+
+	public static final String KEY_SESSION_INSTANCE = "session";
+
 	/**
 	 * Logs into the Heroku account and if successful, returns the user's
 	 * associated API key. Invokes HerokuAPI.obtainApiKey
@@ -22,7 +46,8 @@ public interface HerokuServices {
 			throws HerokuServiceException;
 
 	/**
-	 * Sets the Heroku API key to use for further service calls.
+	 * Sets the Heroku API key to use for further service calls. If there's an
+	 * active session it is invalidated.
 	 * 
 	 * <p>
 	 * The API key is validated before stored
@@ -32,6 +57,7 @@ public interface HerokuServices {
 	 *            the Heroku API key, might be <code>null</code> to reset it
 	 * @throws HerokuServiceException
 	 *             if storage of the key fails or api key is invalid
+	 * @see HerokuServices#TOPIC_SESSION_INVALID
 	 */
 	public void setAPIKey(String apiKey) throws HerokuServiceException;
 
@@ -67,6 +93,7 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 *             if the session could not be created (e.g. becasuse of a
 	 *             missing API key)
+	 * @see HerokuServices#TOPIC_SESSION_CREATED
 	 */
 	public HerokuSession getOrCreateHerokuSession()
 			throws HerokuServiceException;
