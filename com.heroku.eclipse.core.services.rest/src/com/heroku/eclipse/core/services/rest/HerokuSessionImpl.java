@@ -25,7 +25,7 @@ public class HerokuSessionImpl implements HerokuSession {
 
 	@Override
 	public List<App> getAllApps() throws HerokuServiceException {
-		if( isValid() ) {
+		if( ! isValid() ) {
 			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null);
 		}
 
@@ -35,7 +35,7 @@ public class HerokuSessionImpl implements HerokuSession {
 
 	@Override
 	public void addSSHKey(String sshKey) throws HerokuServiceException {
-		if( isValid() ) {
+		if( ! isValid() ) {
 			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null);
 		}
 		api.addKey(sshKey);
@@ -43,7 +43,7 @@ public class HerokuSessionImpl implements HerokuSession {
 
 	@Override
 	public void removeSSHKey(String sshKey) throws HerokuServiceException {
-		if( isValid() ) {
+		if( ! isValid() ) {
 			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null);
 		}
 		api.removeKey(sshKey);
