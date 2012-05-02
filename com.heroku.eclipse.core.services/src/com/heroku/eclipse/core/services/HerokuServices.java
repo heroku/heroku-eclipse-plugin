@@ -53,8 +53,9 @@ public interface HerokuServices {
 			throws HerokuServiceException;
 
 	/**
-	 * Sets the Heroku API key to use for further service calls. If there's an
-	 * active session it is invalidated in case the key changed.
+	 * Sets the Heroku API key to use for further service calls and stores 
+	 * it in the global eclipse preferences. If there's an active session,
+	 * it is invalidated in case the key changed.
 	 * 
 	 * <p>
 	 * The API key is validated before stored
@@ -83,7 +84,7 @@ public interface HerokuServices {
 	public String getSSHKey();
 
 	/**
-	 * Store the SSH key stored in the global eclipse preferences
+	 * Store the SSH key in the global eclipse preferences
 	 * 
 	 * @param sshKey
 	 *            the SSH key, might be <code>null</code> to reset it
@@ -93,12 +94,12 @@ public interface HerokuServices {
 	public void setSSHKey(String sshKey) throws HerokuServiceException;
 
 	/**
-	 * Returns and existing heroku session of the currently set API key or
+	 * Returns an existing heroku session of the currently set API key or
 	 * creates a new one in case there's none created yet
 	 * 
 	 * @return a valid heroku session for the currently configured API key
 	 * @throws HerokuServiceException
-	 *             if the session could not be created (e.g. becasuse of a
+	 *             if the session could not be created (e.g. because of a
 	 *             missing API key)
 	 * @see HerokuServices#TOPIC_SESSION_CREATED
 	 */
