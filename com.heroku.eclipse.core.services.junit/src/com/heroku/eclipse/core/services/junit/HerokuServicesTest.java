@@ -109,6 +109,14 @@ public class HerokuServicesTest extends TestCase {
 		} catch (HerokuServiceException e) {
 			assertEquals("Setting should fail with an invalid key command", HerokuServiceException.INVALID_API_KEY, e.getErrorCode());
 		}
+		
+		try {
+			h.setAPIKey("");
+			h.setAPIKey(null);
+		} catch (HerokuServiceException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
 	}
 	
 	public void testGetSSHKey() {
@@ -121,6 +129,14 @@ public class HerokuServicesTest extends TestCase {
 			fail(e.getMessage());
 		}
 		assertNotNull(h.getSSHKey());
+		
+		try {
+			h.setSSHKey("");
+			h.setSSHKey(null);
+		} catch (HerokuServiceException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
 	}
 	
 	public void testGetOrCreateHerokuSession() {
