@@ -13,9 +13,9 @@ import junit.framework.TestCase;
 
 public class HerokuServicesTest extends TestCase {
 	
-	private static final String VALID_JUNIT_USER = System.getProperty("heroku.junit.user");
-	private static final String VALID_JUNIT_PWD = System.getProperty("heroku.junit.pwd");
-	private static final String VALID_JUNIT_APIKEY = System.getProperty("heroku.junit.apikey");
+	private static final String VALID_JUNIT_USER = System.getProperty("heroku.junit.user") == null ? System.getenv("HEROKU_TEST_USERNAME") : System.getProperty("heroku.junit.user");
+	private static final String VALID_JUNIT_PWD = System.getProperty("heroku.junit.pwd") == null ?  System.getenv("HEROKU_TEST_PWD") : System.getProperty("heroku.junit.pwd");
+	private static final String VALID_JUNIT_APIKEY = System.getProperty("heroku.junit.apikey") == null ?  System.getenv("HEROKU_TEST_APIKEY") : System.getProperty("heroku.junit.apikey");
 	
 	private HerokuServices getService() {
 		Bundle b = FrameworkUtil.getBundle(HerokuServicesTest.class);
