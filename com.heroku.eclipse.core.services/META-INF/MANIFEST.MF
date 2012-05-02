@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Services
 Bundle-SymbolicName: com.heroku.eclipse.core.services
-Bundle-Version: 0.1.0
+Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: HEROKU
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: com.heroku.eclipse.core.services,
