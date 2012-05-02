@@ -2,7 +2,7 @@
 <feature
       id="com.heroku.eclipse.feature"
       label="Heroku Eclipse Plugin"
-      version="0.1.0"
+      version="0.1.0.qualifier"
       provider-name="HEROKU">
 
    <description url="http://www.example.com/description">
@@ -27,21 +27,21 @@
          id="com.heroku.eclipse.core.services"
          download-size="0"
          install-size="0"
-         version="0.1.0"
+         version="0.1.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="com.heroku.eclipse.ui"
          download-size="0"
          install-size="0"
-         version="0.1.0"
+         version="0.1.0.qualifier"
          unpack="false"/>
 
    <plugin
          id="com.heroku.eclipse.core.services.rest"
          download-size="0"
          install-size="0"
-         version="0.1.0"
+         version="0.1.0.qualifier"
          unpack="false"/>
 
 </feature>

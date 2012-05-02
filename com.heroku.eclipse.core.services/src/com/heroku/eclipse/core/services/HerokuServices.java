@@ -13,7 +13,7 @@ public interface HerokuServices {
 	 * Root topic of all heroku events
 	 */
 	public static final String ROOT_TOPIC = "com/heroku/eclipse/";
-	
+
 	/**
 	 * Root topic of all heroku core events
 	 */
@@ -21,12 +21,14 @@ public interface HerokuServices {
 
 	/**
 	 * Event topic fired if a session is invalidated
+	 * 
 	 * @see #KEY_SESSION_INSTANCE
 	 */
 	public static final String TOPIC_SESSION_INVALID = ROOT_CORE_TOPIC
 			+ "session/invalid";
 	/**
 	 * Event topic fired if a session a new session is created
+	 * 
 	 * @see #KEY_SESSION_INSTANCE
 	 */
 	public static final String TOPIC_SESSION_CREATED = ROOT_CORE_TOPIC
@@ -34,6 +36,7 @@ public interface HerokuServices {
 
 	/**
 	 * Event key holding the session modified
+	 * 
 	 * @see #TOPIC_SESSION_INVALID
 	 * @see #TOPIC_SESSION_CREATED
 	 */
@@ -53,9 +56,9 @@ public interface HerokuServices {
 			throws HerokuServiceException;
 
 	/**
-	 * Sets the Heroku API key to use for further service calls and stores 
-	 * it in the global eclipse preferences. If there's an active session,
-	 * it is invalidated in case the key changed.
+	 * Sets the Heroku API key to use for further service calls and stores it in
+	 * the global eclipse preferences. If there's an active session, it is
+	 * invalidated in case the key changed.
 	 * 
 	 * <p>
 	 * The API key is validated before stored
@@ -110,7 +113,8 @@ public interface HerokuServices {
 	 * Validates the API key
 	 * 
 	 * @param apiKey
-	 *            the API key to validate
+	 *            the API key to validate. Set <code>null</code> / empty string
+	 *            to remove it
 	 * @throws HerokuServiceException
 	 *             if the key is invalid
 	 */
@@ -120,7 +124,8 @@ public interface HerokuServices {
 	 * Validates the SSH key
 	 * 
 	 * @param sshKey
-	 *            the SSH key to validate
+	 *            the SSH key to validate. Set <code>null</code> / empty string
+	 *            to remove it
 	 * @throws HerokuServiceException
 	 *             if the key is invalid
 	 */

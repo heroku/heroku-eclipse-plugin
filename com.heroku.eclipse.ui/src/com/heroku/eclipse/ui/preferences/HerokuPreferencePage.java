@@ -423,7 +423,9 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			});
 		}
 		catch (InvocationTargetException e1) {
-			internalError( e1 );
+			if( ! (e1.getCause() instanceof HerokuServiceException) ) {
+				internalError( e1 );	
+			}
 		}
 		catch (InterruptedException e1) {
 			internalError( e1 );

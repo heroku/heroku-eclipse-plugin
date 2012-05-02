@@ -109,6 +109,14 @@ public class HerokuServicesTest extends TestCase {
 		} catch (HerokuServiceException e) {
 			assertEquals("Setting should fail with an invalid key command", HerokuServiceException.INVALID_API_KEY, e.getErrorCode());
 		}
+		
+		try {
+			h.setAPIKey("");
+			h.setAPIKey(null);
+		} catch (HerokuServiceException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
 	}
 	
 	public void testGetSSHKey() {
@@ -121,6 +129,14 @@ public class HerokuServicesTest extends TestCase {
 			fail(e.getMessage());
 		}
 		assertNotNull(h.getSSHKey());
+		
+		try {
+			h.setSSHKey("");
+			h.setSSHKey(null);
+		} catch (HerokuServiceException e) {
+			e.printStackTrace();
+			fail(e.getMessage());
+		}
 	}
 	
 	public void testGetOrCreateHerokuSession() {
@@ -137,12 +153,14 @@ public class HerokuServicesTest extends TestCase {
 			h.setAPIKey(VALID_JUNIT_APIKEY);
 			HerokuSession session = h.getOrCreateHerokuSession();
 			assertNotNull(session);
+			assertSame(session, h.getOrCreateHerokuSession());
 			assertTrue("The session should be valid", session.isValid());
 			h.setAPIKey(VALID_JUNIT_APIKEY);
 			assertTrue("The session should be still valid because the key hasn't changed", session.isValid());
 //TODO Need a second test account			
 //			h.setAPIKey("NEED A 2nd API Key");
 //			assertFalse("The session should be invalidated because the API-key changed", session.isValid());
+//			assertNotSame(session, h.getOrCreateHerokuSession());
 		} catch (HerokuServiceException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
