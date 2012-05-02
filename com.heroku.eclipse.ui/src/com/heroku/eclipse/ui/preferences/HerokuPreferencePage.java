@@ -596,7 +596,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	}
 
 	/**
-	 * Displays an internal error
+	 * Displays an internal, "really" unexpected error
+	 * @param the exception to show to the user
 	 */
 	private void internalError( Throwable t ) {
 		Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuPreferencePage_Error_InternalError"), t ); //$NON-NLS-1$
@@ -606,6 +607,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	
 	/**
 	 * Displays an error message related to an Heroku service
+	 * @param the exception to show to the user
 	 */
 	private void herokuError( Throwable t ) {
 		Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuPreferencePage_Error_HerokuServiceError"), t ); //$NON-NLS-1$
@@ -618,13 +620,11 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	 */
 	@Override
 	public void setVisible(boolean visible) {
-		// TODO Auto-generated method stub
 		super.setVisible(visible);
 		
 		if ( visible ) {
 			initialize();
 		}
 	}
-	
 
 }
