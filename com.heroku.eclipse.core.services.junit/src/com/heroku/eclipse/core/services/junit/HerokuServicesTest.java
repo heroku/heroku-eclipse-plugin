@@ -67,14 +67,14 @@ public class HerokuServicesTest extends TestCase {
 	
 	public void testGetAPIKey() {
 		HerokuServices h = getService();
-		assertNull(h.getAPIKey());
 		try {
+			assertNull(h.getAPIKey());
 			h.setAPIKey(VALID_JUNIT_APIKEY);
+			assertNotNull(h.getAPIKey());
 		} catch (HerokuServiceException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
-		assertNotNull(h.getAPIKey());
 	}
 	
 	public void testValidateAPIKey() {

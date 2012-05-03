@@ -75,9 +75,11 @@ public interface HerokuServices {
 	/**
 	 * Delivers the Heroku API key stored in the preferences
 	 * 
+	 * @throws HerokuServiceException
+	 *             if we have problems accessing the secure storage 
 	 * @return the Heroku API key
 	 */
-	public String getAPIKey();
+	public String getAPIKey() throws HerokuServiceException;
 
 	/**
 	 * Delivers the SSH key stored in the global eclipse preferences

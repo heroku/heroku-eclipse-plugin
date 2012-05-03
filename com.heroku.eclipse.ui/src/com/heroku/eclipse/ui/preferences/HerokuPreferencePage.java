@@ -168,14 +168,19 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 							try {
 								service.setAPIKey(apiKey);
 
-								((Button) widgetRegistry.get(PreferenceConstants.P_VALIDATE_API_KEY)).setEnabled(true);
+								((Button) widgetRegistry.get(PreferenceConstants.B_VALIDATE_API_KEY)).setEnabled(true);
 								((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(apiKey);
 								
 								setMessage(Messages.getString("HerokuPreferencePage_Info_Login_OK"), IMessageProvider.INFORMATION); //$NON-NLS-1$)
 								Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "successfully logged into Heroku account"); //$NON-NLS-1$
 							}
 							catch (HerokuServiceException e1) {
-								herokuError( e1 );
+								if ( e1.getErrorCode() == HerokuServiceException.SECURE_STORE_ERROR ) {
+									setErrorMessage(Messages.getString("HerokuPreferencePage_Error_SecureStoreUnvailable")); //$NON-NLS-1$
+								}
+								else {
+									herokuError( e1 );
+								}
 							}
 						}
 					}
@@ -230,14 +235,19 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 						}
 						catch (HerokuServiceException e1) {
-							setErrorMessage(Messages.getString("HerokuPreferencePage_Error_KeyValidationFailed")); //$NON-NLS-1$
+							if ( e1.getErrorCode() == HerokuServiceException.INVALID_API_KEY ) {
+								setErrorMessage(Messages.getString("HerokuPreferencePage_Error_KeyValidationFailed")); //$NON-NLS-1$
+							}
+							else {
+								internalError( e1 );
+							}
 						}
 					}
 				}
 
 			});
 
-			widgetRegistry.put(PreferenceConstants.P_VALIDATE_API_KEY, b);
+			widgetRegistry.put(PreferenceConstants.B_VALIDATE_API_KEY, b);
 		}
 
 		// SSH Key
@@ -291,10 +301,10 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 			});
 
-			Button upd = new Button(right, SWT.NULL);
-			upd.setText(Messages.getString("HerokuPreferencePage_Update")); //$NON-NLS-1$
-			upd.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
-			upd.addSelectionListener(new SelectionAdapter() {
+			Button add = new Button(right, SWT.NULL);
+			add.setText(Messages.getString("HerokuPreferencePage_Add")); //$NON-NLS-1$
+			add.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
+			add.addSelectionListener(new SelectionAdapter() {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
@@ -302,11 +312,13 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				}
 
 			});
+			
+			widgetRegistry.put(PreferenceConstants.B_ADD_SSH_KEY, add);
 
-			Button clr = new Button(right, SWT.NULL);
-			clr.setText(Messages.getString("HerokuPreferencePage_Clear")); //$NON-NLS-1$
-			clr.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
-			clr.addSelectionListener(new SelectionAdapter() {
+			Button remove = new Button(right, SWT.NULL);
+			remove.setText(Messages.getString("HerokuPreferencePage_Remove")); //$NON-NLS-1$
+			remove.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
+			remove.addSelectionListener(new SelectionAdapter() {
 
 				@Override
 				public void widgetSelected(SelectionEvent e) {
@@ -322,6 +334,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				}
 
 			});
+			
+			widgetRegistry.put(PreferenceConstants.B_REMOVE_SSH_KEY, remove);
 		}
 
 		initialize();
@@ -503,51 +517,62 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	 * @throws BackingStoreException
 	 */
 	private void initialize() {
-		((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(ensureNotNull( service.getAPIKey()));
-
-		// primary source for the SSH key are the preferences 
-		String sshKey = service.getSSHKey();
-		
-		// if the prefs are empty, ask eclipse
-		if ( sshKey == null || sshKey.isEmpty() ) {
-			@SuppressWarnings({ "restriction", "deprecation" })
-			String sshHome = jschPreferences.getString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
-
-			File sshDir = new File(sshHome);
-			String[] pubkeyFiles = sshDir.list( new FilenameFilter() {
-				public boolean accept(File dir, String name) {
-					return name.endsWith(".pub"); //$NON-NLS-1$
-				}
-			});
+		try {
+			String apiKey = service.getAPIKey();
 			
-			// if we find exactly one .pub file, load and dissplay it immediately for usage
-			if (pubkeyFiles != null && pubkeyFiles.length == 1 ) {
-		        String filename = pubkeyFiles[0];
-		        
-				File keyFile = new File(sshHome, filename);
-				
-				if ( keyFile.length() <= 1024 ) {
-					byte[] buffer = new byte[(int) keyFile.length()];
-					BufferedInputStream f;
+			((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(ensureNotNull( apiKey ));
+			
+			// primary source for the SSH key are the preferences 
+			String sshKey = service.getSSHKey();
+			
+			// if the prefs are empty, ask eclipse
+			if ( sshKey == null || sshKey.isEmpty() ) {
+				@SuppressWarnings({ "restriction", "deprecation" })
+				String sshHome = jschPreferences.getString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
 
-					try {
-						f = new BufferedInputStream(new FileInputStream(keyFile));
-						f.read(buffer);
-						sshKey = new String(buffer);
+				File sshDir = new File(sshHome);
+				String[] pubkeyFiles = sshDir.list( new FilenameFilter() {
+					public boolean accept(File dir, String name) {
+						return name.endsWith(".pub"); //$NON-NLS-1$
 					}
-					catch (FileNotFoundException e) {
-						internalError( e );
-					}
-					catch (IOException e) {
-						internalError( e );
+				});
+				
+				// if we find exactly one .pub file, load and dissplay it immediately for usage
+				if (pubkeyFiles != null && pubkeyFiles.length == 1 ) {
+			        String filename = pubkeyFiles[0];
+			        
+					File keyFile = new File(sshHome, filename);
+					
+					if ( keyFile.length() <= 1024 ) {
+						byte[] buffer = new byte[(int) keyFile.length()];
+						BufferedInputStream f;
+
+						try {
+							f = new BufferedInputStream(new FileInputStream(keyFile));
+							f.read(buffer);
+							sshKey = new String(buffer);
+						}
+						catch (FileNotFoundException e) {
+							internalError( e );
+						}
+						catch (IOException e) {
+							internalError( e );
+						}
 					}
 				}
 			}
-		}
-		
-		((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText(ensureNotNull(sshKey));
+			
+			((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText(ensureNotNull(sshKey));
 
-		((Button) widgetRegistry.get(PreferenceConstants.P_VALIDATE_API_KEY)).setEnabled(validateAPIKeyData(false));
+			boolean existingAPIKey = validateAPIKeyData(false);
+			
+			((Button) widgetRegistry.get(PreferenceConstants.B_VALIDATE_API_KEY)).setEnabled(existingAPIKey);
+			((Button) widgetRegistry.get(PreferenceConstants.B_ADD_SSH_KEY)).setEnabled(existingAPIKey);
+			((Button) widgetRegistry.get(PreferenceConstants.B_REMOVE_SSH_KEY)).setEnabled(existingAPIKey);
+		}
+		catch (HerokuServiceException e1) {
+			internalError( e1 );
+		}
 	}
 	
 	

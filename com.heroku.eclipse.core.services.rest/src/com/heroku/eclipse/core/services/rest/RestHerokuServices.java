@@ -1,10 +1,14 @@
 package com.heroku.eclipse.core.services.rest;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.equinox.security.storage.ISecurePreferences;
+import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
+import org.eclipse.equinox.security.storage.StorageException;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.log.LogService;
@@ -25,6 +29,7 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 public class RestHerokuServices implements HerokuServices {
 	private HerokuSessionImpl herokuSession;
 	private IEclipsePreferences preferences;
+	private ISecurePreferences securePreferences;
 	
 	private static final String PREF_API_KEY = "apiKey"; //$NON-NLS-1$
 	private static final String PREF_SSH_KEY = "sshKey"; //$NON-NLS-1$
@@ -76,8 +81,16 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public String getAPIKey() {
-		return getPreferences().get(PREF_API_KEY, null);
+	public String getAPIKey() throws HerokuServiceException {
+		String apiKey = null;
+		try {
+			apiKey = getSecurePreferences().get(PREF_API_KEY, null);
+		}
+		catch (StorageException e) {
+			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
+		}
+		
+		return apiKey;
 	}
 
 	@Override
@@ -105,14 +118,15 @@ public class RestHerokuServices implements HerokuServices {
 	public void setAPIKey(String apiKey) throws HerokuServiceException {
 		try {
 			boolean modified = false;
-			IEclipsePreferences p = getPreferences();
+			ISecurePreferences p = getSecurePreferences();
 			if( apiKey == null || apiKey.trim().isEmpty() ) {
 				p.remove(PREF_API_KEY);
 				modified = true;
 			} else {
+				apiKey = apiKey.trim();
 				if( ! apiKey.equals(getAPIKey()) ) {
 					validateAPIKey(apiKey);
-					p.put(PREF_API_KEY, apiKey);
+					p.put(PREF_API_KEY, apiKey, true);
 					modified = true;
 				}
 			}
@@ -121,8 +135,13 @@ public class RestHerokuServices implements HerokuServices {
 				p.flush();
 				invalidateSession();	
 			}
-		} catch (BackingStoreException e) {
-			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to persist preferences", e); //$NON-NLS-1$
+		}
+		catch (StorageException e) {
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to access secure preferences", e); //$NON-NLS-1$
+			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR,e);
+		}
+		catch (IOException e) {
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to persist secure preferences", e); //$NON-NLS-1$
 			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
 		}
 	}
@@ -163,5 +182,13 @@ public class RestHerokuServices implements HerokuServices {
 			preferences = InstanceScope.INSTANCE.getNode(Activator.ID);
 		}
 		return preferences;
+	}
+	
+	private ISecurePreferences getSecurePreferences() {
+		if( securePreferences == null ) {
+			ISecurePreferences root = SecurePreferencesFactory.getDefault();
+			securePreferences = root.node(Activator.ID);
+		}
+		return securePreferences;
 	}
 }
