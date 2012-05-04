@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.xml.bind.DatatypeConverter;
+
+import org.eclipse.core.internal.preferences.Base64;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
@@ -15,6 +18,7 @@ import org.osgi.service.log.LogService;
 import org.osgi.service.prefs.BackingStoreException;
 
 import com.heroku.api.HerokuAPI;
+import com.heroku.api.Key;
 import com.heroku.api.exception.LoginFailedException;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
@@ -61,8 +65,14 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	public HerokuSession getOrCreateHerokuSession() throws HerokuServiceException {
-		// invalidate session
-		String apiKey = preferences.get(PREF_API_KEY, null);
+		String apiKey = null;
+		try {
+			apiKey = getSecurePreferences().get(PREF_API_KEY, null);
+		}
+		catch (StorageException e) {
+			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR, "unable to access secure store", null); //$NON-NLS-1$
+		}
+		
 		if ( apiKey == null ) {
 			throw new HerokuServiceException(HerokuServiceException.NO_API_KEY, "No API-Key configured", null); //$NON-NLS-1$
 		}
@@ -108,7 +118,8 @@ public class RestHerokuServices implements HerokuServices {
 				p.put(PREF_SSH_KEY, sshKey);	
 			}
 			p.flush();
-		} catch (BackingStoreException e) {
+		} 
+		catch (BackingStoreException e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to persist preferences", e); //$NON-NLS-1$
 			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
 		}
@@ -158,9 +169,29 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void validateSSHKey(String sshKey) throws HerokuServiceException {
-		// TODO Auto-generated method stub
+	public String[] validateSSHKey(String sshKey) throws HerokuServiceException {
+		String[] parts = null;
+		if ( sshKey == null || sshKey.trim().isEmpty() ) {
+			throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, "validation of SSH key failed!"); //$NON-NLS-1$
+		}
+		else {
+			parts = sshKey.split(" "); //$NON-NLS-1$
+			
+			if ( parts.length != 3 ) {
+				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "SSH key '"+sshKey+"' is invalid" ); //$NON-NLS-1$ //$NON-NLS-2$
+				throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, "validation of SSH key failed!"); //$NON-NLS-1$
+			}
+			
+			try { 
+				DatatypeConverter.parseBase64Binary(parts[1]);
+			}	
+			catch ( IllegalArgumentException e ) {
+				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "SSH key '"+sshKey+"' is invalid", e); //$NON-NLS-1$ //$NON-NLS-2$
+				throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, "validation of SSH key failed!"); //$NON-NLS-1$
+			}
+		}
 		
+		return parts;
 	}
 	
 	private void invalidateSession() {

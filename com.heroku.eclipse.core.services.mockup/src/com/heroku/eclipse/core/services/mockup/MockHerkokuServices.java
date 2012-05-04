@@ -1,6 +1,8 @@
 package com.heroku.eclipse.core.services.mockup;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -50,8 +52,24 @@ public class MockHerkokuServices implements HerokuServices {
 	}
 
 	@Override
-	public HerokuSession getOrCreateHerokuSession() {
-		// TODO Auto-generated method stub
+	public HerokuSession getOrCreateHerokuSession() throws HerokuServiceException {
+		// invalidate session
+		String apiKey = null;
+		try {
+			apiKey = getSecurePreferences().get(PREF_API_KEY, null);
+		}
+		catch (StorageException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		if ( apiKey == null ) {
+			throw new HerokuServiceException(HerokuServiceException.NO_API_KEY, "No API-Key configured", null); //$NON-NLS-1$
+		}
+		else if (herokuSession == null) {
+			herokuSession = new MockupHerokuSessionImpl( apiKey );
+		}
+		
 		return herokuSession;
 	}
 
@@ -76,7 +94,6 @@ public class MockHerkokuServices implements HerokuServices {
 	
 	public void setSSHKey(String sshKey) throws HerokuServiceException {
 		try {
-			//TODO Should we validate the SSH-Key???
 			IEclipsePreferences p = getPreferences();
 			if( sshKey == null ) {
 				p.remove(PREF_SSH_KEY);
@@ -111,6 +128,7 @@ public class MockHerkokuServices implements HerokuServices {
 	}
 	
 	public void validateAPIKey(String apiKey) throws HerokuServiceException {
+		
 		// all fine for now ...
 		
 		//throw new HerokuServiceException(HerokuServiceException.INVALID_API_KEY, e);
