@@ -113,9 +113,10 @@ public class RestHerokuServices implements HerokuServices {
 			IEclipsePreferences p = getPreferences();
 			if( sshKey == null || sshKey.trim().isEmpty() ) {
 				p.remove(PREF_SSH_KEY);
-			} else {
+			} else if ( ! sshKey.equals(getSSHKey())) {
 				validateSSHKey(sshKey);
-				p.put(PREF_SSH_KEY, sshKey);	
+				getOrCreateHerokuSession().addSSHKey(sshKey);
+				p.put(PREF_SSH_KEY, sshKey);
 			}
 			p.flush();
 		} 

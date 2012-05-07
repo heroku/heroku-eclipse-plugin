@@ -53,6 +53,17 @@ import com.heroku.eclipse.ui.Activator;
 public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
 	private static final String HEROKU_PREFERENCE_PAGE_CONTEXT = "com.heroku.eclipse.context"; //$NON-NLS-1$
+	
+	private static final String P_EMAIL = "emailPreference"; //$NON-NLS-1$
+	private static final String P_PASSWORD = "passwordPreference"; //$NON-NLS-1$
+	private static final String P_API_KEY = "apiKeyPreference"; //$NON-NLS-1$
+	private static final String P_SSH_KEY = "sshKeyPreference"; //$NON-NLS-1$
+
+	private static final String B_VALIDATE_API_KEY = "validateAPIKey"; //$NON-NLS-1$
+	private static final String B_ADD_SSH_KEY = "addSSHKey"; //$NON-NLS-1$
+	private static final String B_REMOVE_SSH_KEY = "removeSSHAPIKey"; //$NON-NLS-1$
+	
+
 
 	private Map<String, Object> widgetRegistry = new HashMap<String, Object>();
 	private Map<String, ControlDecoration> decoratorRegistry = new HashMap<String, ControlDecoration>();
@@ -62,6 +73,9 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	@SuppressWarnings({ "deprecation", "restriction" })
 	private org.eclipse.core.runtime.Preferences jschPreferences = JSchCorePlugin.getPlugin().getPluginPreferences();
 
+	/**
+	 * 
+	 */
 	public HerokuPreferencePage() {
 		setPreferenceStore(Activator.getDefault().getPreferenceStore());
 		setDescription(Messages.getString("HerokuPreferencePage_Title")); //$NON-NLS-1$
@@ -107,8 +121,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			c.setDescriptionText(Messages.getString("HerokuPreferencePage_Error_Decorator_EmailMissing")); //$NON-NLS-1$
 			c.hide();
 
-			widgetRegistry.put(PreferenceConstants.P_EMAIL, t);
-			decoratorRegistry.put(PreferenceConstants.P_EMAIL, c);
+			widgetRegistry.put(P_EMAIL, t);
+			decoratorRegistry.put(P_EMAIL, c);
 
 			@SuppressWarnings("unused")
 			Label dummy = new Label(group, SWT.NONE);
@@ -129,10 +143,10 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			c.setDescriptionText(Messages.getString("HerokuPreferencePage_Error_Decorator_PasswordMissing")); //$NON-NLS-1$
 			c.hide();
 
-			widgetRegistry.put(PreferenceConstants.P_PASSWORD, t);
-			decoratorRegistry.put(PreferenceConstants.P_PASSWORD, c);
+			widgetRegistry.put(P_PASSWORD, t);
+			decoratorRegistry.put(P_PASSWORD, c);
 
-			Button b = new Button(group, SWT.NULL);
+			Button b = new Button(group, SWT.PUSH);
 			b.setText(Messages.getString("HerokuPreferencePage_GetAPIKey")); //$NON-NLS-1$
 			b.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
 			b.addSelectionListener(new SelectionAdapter() {
@@ -156,7 +170,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 							setErrorMessage(Messages.getString("HerokuPreferencePage_Error_LoginFailed")); //$NON-NLS-1$
 
 							try {
-								((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(""); //$NON-NLS-1$
+								((Text) widgetRegistry.get(P_API_KEY)).setText(""); //$NON-NLS-1$
 								service.setAPIKey(null);
 							}
 							catch (HerokuServiceException e1) {
@@ -165,14 +179,14 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 							}
 
 							Activator.getDefault().getLogger()
-									.log(LogService.LOG_DEBUG, "login failed for user '" + widgetRegistry.get(PreferenceConstants.P_EMAIL) + "'"); //$NON-NLS-1$ //$NON-NLS-2$
+									.log(LogService.LOG_DEBUG, "login failed for user '" + widgetRegistry.get(P_EMAIL) + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 						}
 						else {
 							try {
 								service.setAPIKey(apiKey);
 
-								((Button) widgetRegistry.get(PreferenceConstants.B_VALIDATE_API_KEY)).setEnabled(true);
-								((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(apiKey);
+								((Button) widgetRegistry.get(B_VALIDATE_API_KEY)).setEnabled(true);
+								((Text) widgetRegistry.get(P_API_KEY)).setText(apiKey);
 
 								setMessage(Messages.getString("HerokuPreferencePage_Info_Login_OK"), IMessageProvider.INFORMATION); //$NON-NLS-1$)
 								Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "successfully logged into Heroku account"); //$NON-NLS-1$
@@ -189,8 +203,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 						}
 					}
 
-					((Button) widgetRegistry.get(PreferenceConstants.B_ADD_SSH_KEY)).setEnabled(isValid);
-					((Button) widgetRegistry.get(PreferenceConstants.B_REMOVE_SSH_KEY)).setEnabled(isValid);
+					((Button) widgetRegistry.get(B_ADD_SSH_KEY)).setEnabled(isValid);
+					((Button) widgetRegistry.get(B_REMOVE_SSH_KEY)).setEnabled(isValid);
 
 				}
 			});
@@ -211,10 +225,10 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			c.setDescriptionText(Messages.getString("HerokuPreferencePage_Error_Decorator_APIKeyMissing")); //$NON-NLS-1$
 			c.hide();
 
-			widgetRegistry.put(PreferenceConstants.P_API_KEY, t);
-			decoratorRegistry.put(PreferenceConstants.P_API_KEY, c);
+			widgetRegistry.put(P_API_KEY, t);
+			decoratorRegistry.put(P_API_KEY, c);
 
-			Button b = new Button(group, SWT.NULL);
+			Button b = new Button(group, SWT.PUSH);
 			b.setText(Messages.getString("HerokuPreferencePage_Validate")); //$NON-NLS-1$
 			b.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
 			b.addSelectionListener(new SelectionAdapter() {
@@ -230,7 +244,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 					}
 					else {
 						// then talk to Heroku
-						String apiKey = ((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).getText().trim();
+						String apiKey = ((Text) widgetRegistry.get(P_API_KEY)).getText().trim();
 
 						try {
 							service.setAPIKey(apiKey);
@@ -238,11 +252,14 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 							setMessage(Messages.getString("HerokuPreferencePage_Info_KeyValidation_OK"), IMessageProvider.INFORMATION); //$NON-NLS-1$)
 							Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "validating API key: successfully listed all apps "); //$NON-NLS-1$
 
+							
 							// // immediately store a possibly existing SSH key
 							// // (explicit request to do so w/o waiting for
 							// // "apply")
-							storeSSHKey();
-
+							String sshKey = ((Text)widgetRegistry.get(P_SSH_KEY)).getText();
+							if ( ! sshKey.trim().isEmpty() ) {
+								service.setSSHKey(sshKey);
+							}
 						}
 						catch (HerokuServiceException e1) {
 							isValid = false;
@@ -259,13 +276,13 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 						}
 					}
 
-					((Button) widgetRegistry.get(PreferenceConstants.B_ADD_SSH_KEY)).setEnabled(isValid);
-					((Button) widgetRegistry.get(PreferenceConstants.B_REMOVE_SSH_KEY)).setEnabled(isValid);
+					((Button) widgetRegistry.get(B_ADD_SSH_KEY)).setEnabled(isValid);
+					((Button) widgetRegistry.get(B_REMOVE_SSH_KEY)).setEnabled(isValid);
 				}
 
 			});
 
-			widgetRegistry.put(PreferenceConstants.B_VALIDATE_API_KEY, b);
+			widgetRegistry.put(B_VALIDATE_API_KEY, b);
 		}
 
 		// SSH Key
@@ -281,7 +298,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			g.widthHint = 300;
 			t.setLayoutData(g);
 
-			widgetRegistry.put(PreferenceConstants.P_SSH_KEY, t);
+			widgetRegistry.put(P_SSH_KEY, t);
 
 		}
 
@@ -301,7 +318,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 			p.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
 
-			Button load = new Button(right, SWT.NULL);
+			Button load = new Button(right, SWT.PUSH);
 			load.setText(Messages.getString("HerokuPreferencePage_LoadKey")); //$NON-NLS-1$
 			load.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
 			load.addSelectionListener(new SelectionAdapter() {
@@ -314,13 +331,13 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 						setErrorMessage(Messages.getString("HerokuPreferencePage_Error_SSHKeyInvalid")); //$NON-NLS-1$
 					}
 					else if ( ! pubKey.trim().isEmpty() ){
-						((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText(pubKey);
+						((Text) widgetRegistry.get(P_SSH_KEY)).setText(pubKey);
 					}
 				}
 
 			});
 
-			Button add = new Button(right, SWT.NULL);
+			Button add = new Button(right, SWT.PUSH);
 			add.setText(Messages.getString("HerokuPreferencePage_Add")); //$NON-NLS-1$
 			add.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
 			add.addSelectionListener(new SelectionAdapter() {
@@ -329,8 +346,11 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				public void widgetSelected(SelectionEvent e) {
 					setErrorMessage(null);
 					try {
-						storeSSHKey();
-						setMessage(Messages.getString("HerokuPreferencePage_Info_SSHKeyAdd_OK"), IMessageProvider.INFORMATION); //$NON-NLS-1$)
+						String sshKey = ((Text)widgetRegistry.get(P_SSH_KEY)).getText();
+						if ( ! sshKey.trim().isEmpty() ) {
+							service.setSSHKey(sshKey);
+							setMessage(Messages.getString("HerokuPreferencePage_Info_SSHKeyAdd_OK"), IMessageProvider.INFORMATION); //$NON-NLS-1$)
+						}
 					}
 					catch (HerokuServiceException e1) {
 						if ( e1.getErrorCode() == HerokuServiceException.SSH_KEY_ALREADY_EXISTS ) {
@@ -343,9 +363,9 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				}
 			});
 
-			widgetRegistry.put(PreferenceConstants.B_ADD_SSH_KEY, add);
+			widgetRegistry.put(B_ADD_SSH_KEY, add);
 			
-			Button remove = new Button(right, SWT.NULL);
+			Button remove = new Button(right, SWT.PUSH);
 			remove.setText(Messages.getString("HerokuPreferencePage_Remove")); //$NON-NLS-1$
 			remove.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
 			remove.addSelectionListener(new SelectionAdapter() {
@@ -353,7 +373,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					setErrorMessage(null);
-					String sshKey = ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText().trim();
+					String sshKey = ((Text) widgetRegistry.get(P_SSH_KEY)).getText().trim();
 					if (!sshKey.isEmpty()) {
 						try {
 							
@@ -387,7 +407,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 			});
 
-			widgetRegistry.put(PreferenceConstants.B_REMOVE_SSH_KEY, remove);
+			widgetRegistry.put(B_REMOVE_SSH_KEY, remove);
 		}
 
 		initialize();
@@ -410,28 +430,28 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	private boolean validateLoginData(boolean decorate) {
 		boolean isValid = true;
 		// validate Email/Password
-		Text email = (Text) widgetRegistry.get(PreferenceConstants.P_EMAIL);
-		Text password = (Text) widgetRegistry.get(PreferenceConstants.P_PASSWORD);
+		Text email = (Text) widgetRegistry.get(P_EMAIL);
+		Text password = (Text) widgetRegistry.get(P_PASSWORD);
 
 		if (email.getText().trim().isEmpty()) {
 			if (decorate) {
-				decoratorRegistry.get(PreferenceConstants.P_EMAIL).show();
+				decoratorRegistry.get(P_EMAIL).show();
 			}
 			isValid = false;
 		}
 		else {
-			decoratorRegistry.get(PreferenceConstants.P_EMAIL).hide();
+			decoratorRegistry.get(P_EMAIL).hide();
 		}
 
 		if (password.getText().trim().isEmpty()) {
 			if (decorate) {
-				decoratorRegistry.get(PreferenceConstants.P_PASSWORD).show();
+				decoratorRegistry.get(P_PASSWORD).show();
 			}
 			isValid = false;
 		}
 		else {
 			if (decorate) {
-				decoratorRegistry.get(PreferenceConstants.P_PASSWORD).hide();
+				decoratorRegistry.get(P_PASSWORD).hide();
 			}
 		}
 		return isValid;
@@ -449,16 +469,16 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		// validate API key
 		boolean isValid = true;
 
-		Text t = (Text) widgetRegistry.get(PreferenceConstants.P_API_KEY);
+		Text t = (Text) widgetRegistry.get(P_API_KEY);
 
 		if (t.getText().trim().isEmpty()) {
 			if (decorate) {
-				decoratorRegistry.get(PreferenceConstants.P_API_KEY).show();
+				decoratorRegistry.get(P_API_KEY).show();
 			}
 			isValid = false;
 		}
 		else {
-			decoratorRegistry.get(PreferenceConstants.P_API_KEY).hide();
+			decoratorRegistry.get(P_API_KEY).hide();
 		}
 		return isValid;
 	}
@@ -471,8 +491,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	private String retrieveAPIKey() {
 		final AtomicReference<String> apiKey = new AtomicReference<String>();
 
-		final String email = ((Text) widgetRegistry.get(PreferenceConstants.P_EMAIL)).getText();
-		final String password = ((Text) widgetRegistry.get(PreferenceConstants.P_PASSWORD)).getText();
+		final String email = ((Text) widgetRegistry.get(P_EMAIL)).getText();
+		final String password = ((Text) widgetRegistry.get(P_PASSWORD)).getText();
 
 		try {
 			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
@@ -564,23 +584,6 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	}
 
 	/**
-	 * If present, stores the SSH key both in the user's Heroku account and in
-	 * the preferences
-	 * 
-	 * @param service
-	 */
-	private void storeSSHKey() throws HerokuServiceException {
-		String sshKey = ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText().trim();
-
-		if (!sshKey.isEmpty()) {
-			// first add to Heroku
-			service.getOrCreateHerokuSession().addSSHKey(sshKey);
-			// then store in prefs
-			service.setSSHKey(sshKey);
-		}
-	}
-
-	/**
 	 * Initializes the page and loads existing preferences
 	 * 
 	 * @throws BackingStoreException
@@ -589,7 +592,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		try {
 			String apiKey = service.getAPIKey();
 
-			((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(ensureNotNull(apiKey));
+			((Text) widgetRegistry.get(P_API_KEY)).setText(ensureNotNull(apiKey));
 
 			// primary source for the SSH key are the preferences
 			String sshKey = service.getSSHKey();
@@ -644,13 +647,13 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				}
 			}
 
-			((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText(ensureNotNull(sshKey));
+			((Text) widgetRegistry.get(P_SSH_KEY)).setText(ensureNotNull(sshKey));
 
 			boolean existingAPIKey = validateAPIKeyData(false);
 
-			((Button) widgetRegistry.get(PreferenceConstants.B_VALIDATE_API_KEY)).setEnabled(existingAPIKey);
-			((Button) widgetRegistry.get(PreferenceConstants.B_ADD_SSH_KEY)).setEnabled(existingAPIKey);
-			((Button) widgetRegistry.get(PreferenceConstants.B_REMOVE_SSH_KEY)).setEnabled(existingAPIKey);
+			((Button) widgetRegistry.get(B_VALIDATE_API_KEY)).setEnabled(existingAPIKey);
+			((Button) widgetRegistry.get(B_ADD_SSH_KEY)).setEnabled(existingAPIKey);
+			((Button) widgetRegistry.get(B_REMOVE_SSH_KEY)).setEnabled(existingAPIKey);
 		}
 		catch (HerokuServiceException e1) {
 			internalError(e1);
@@ -659,12 +662,12 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		if (System.getProperty("heroku.devel") != null && System.getProperty("heroku.devel").equals("true")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			String develUser = System.getProperty("heroku.junit.user") == null ? System.getenv("HEROKU_TEST_USERNAME") : System.getProperty("heroku.junit.user"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			if (develUser != null) {
-				((Text) widgetRegistry.get(PreferenceConstants.P_EMAIL)).setText(develUser);
+				((Text) widgetRegistry.get(P_EMAIL)).setText(develUser);
 			}
 
 			String develPwd = System.getProperty("heroku.junit.pwd") == null ? System.getenv("HEROKU_TEST_PWD") : System.getProperty("heroku.junit.pwd"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			if (develPwd != null) {
-				((Text) widgetRegistry.get(PreferenceConstants.P_PASSWORD)).setText(develPwd);
+				((Text) widgetRegistry.get(P_PASSWORD)).setText(develPwd);
 			}
 		}
 	}
@@ -687,8 +690,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	@Override
 	protected void performApply() {
 		try {
-			service.setAPIKey(((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).getText().trim());
-			service.setSSHKey(((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText().trim());
+			service.setAPIKey(((Text) widgetRegistry.get(P_API_KEY)).getText().trim());
+			service.setSSHKey(((Text) widgetRegistry.get(P_SSH_KEY)).getText().trim());
 		}
 		catch (HerokuServiceException e) {
 			herokuError(e);
