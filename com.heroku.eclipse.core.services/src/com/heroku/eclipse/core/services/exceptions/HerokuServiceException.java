@@ -11,6 +11,10 @@ public class HerokuServiceException extends Exception {
 	public static final int NO_API_KEY = 2;
 	public static final int INVALID_STATE = 3;
 	public static final int INVALID_API_KEY = 4;
+	public static final int REQUEST_FAILED = 5;
+	public static final int NOT_FOUND = 6;
+	public static final int NOT_ALLOWED = 7;
+	public static final int NOT_ACCEPTABLE = 8;
 	
 	private final int errorCode;
 	

@@ -3,6 +3,7 @@ package com.heroku.eclipse.core.services;
 import java.util.List;
 
 import com.heroku.api.App;
+import com.heroku.api.Key;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 
 /**
@@ -35,12 +36,22 @@ public interface HerokuSession {
 	 * Removes the given SSH2 key from the Heroku account
 	 * 
 	 * @param sshKey
-	 *            the SSH-Key to remove from the account
+	 *            the SSH-Key to remove from the account (the description of the key e.g. username@hostname)
 	 * @throws HerokuServiceException
 	 *             if removing the key fails or {@link #isValid()} is false
 	 */
 	public void removeSSHKey(String sshKey) throws HerokuServiceException;
 
+	/**
+	 * lists the added SSH2 keys from the Heroku account
+	 * 
+	 * @return the registered keys
+	 * @throws HerokuServiceException
+	 * 				if {@link #isValid()} is false
+	 */
+	public List<Key> listSSHKeys() throws HerokuServiceException;
+	
+	
 	/**
 	 * @return <code>true</code> if the session is valid
 	 */
@@ -50,4 +61,48 @@ public interface HerokuSession {
 	 * @return the API key attached to this session
 	 */
 	public String getAPIKey();
+	
+	/**
+	 * creates a new App.
+	 * 
+	 * @return the newly created App
+	 * @throws HerokuServiceException
+	 * 				if {@link #isValid()} is false
+	 */
+	public App createApp() throws HerokuServiceException;
+	
+	/**
+	 * creates a new app.
+	 * 
+	 * @param app an {@link App} object with name and or stack filled.
+	 * @return the newly created app
+	 * @throws HerokuServiceException
+	 *              if {@link #isValid()} is false
+	 */
+	public App createApp(App app) throws HerokuServiceException;
+	
+	/**
+	 * renames an app.
+	 * 
+	 * @param currentName the current name of the app
+	 * @param newName the new name of the app
+	 * @throws HerokuServiceException
+	 * 				if {@link #isValid()} is false
+	 * 				if newName is already used
+	 * 				if currentName does not exist
+	 * 				if the request fails
+	 */
+	public String renameApp(String currentName, String newName) throws HerokuServiceException;
+	
+	/**
+	 * destroys an App identified by name.
+	 * 
+	 * @param name the app to destroy.
+	 * @throws HerokuServiceException
+	 * 				if {@link #isValid()} is false
+	 * 				if name is invalid
+	 * 				if the request fails
+	 */
+	public void destroyApp(String name) throws HerokuServiceException;
+	
 }
