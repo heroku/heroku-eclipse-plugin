@@ -1,5 +1,6 @@
 package com.heroku.eclipse.core.services;
 
+import com.heroku.api.Key;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 
 /**
@@ -75,9 +76,11 @@ public interface HerokuServices {
 	/**
 	 * Delivers the Heroku API key stored in the preferences
 	 * 
+	 * @throws HerokuServiceException
+	 *             if we have problems accessing the secure storage 
 	 * @return the Heroku API key
 	 */
-	public String getAPIKey();
+	public String getAPIKey() throws HerokuServiceException;
 
 	/**
 	 * Delivers the SSH key stored in the global eclipse preferences
@@ -121,13 +124,13 @@ public interface HerokuServices {
 	public void validateAPIKey(String apiKey) throws HerokuServiceException;
 
 	/**
-	 * Validates the SSH key
+	 * Validates if the fiven SSH public key well formated
 	 * 
 	 * @param sshKey
-	 *            the SSH key to validate. Set <code>null</code> / empty string
-	 *            to remove it
+	 *            the SSH key to validate
 	 * @throws HerokuServiceException
 	 *             if the key is invalid
+	 * @return a string array consisting of the key parts
 	 */
-	public void validateSSHKey(String sshKey) throws HerokuServiceException;
+	public String[] validateSSHKey(String sshKey) throws HerokuServiceException;
 }

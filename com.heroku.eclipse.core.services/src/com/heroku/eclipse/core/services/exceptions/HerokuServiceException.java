@@ -11,6 +11,9 @@ public class HerokuServiceException extends Exception {
 	public static final int NO_API_KEY = 2;
 	public static final int INVALID_STATE = 3;
 	public static final int INVALID_API_KEY = 4;
+	public static final int SECURE_STORE_ERROR = 5;
+	public static final int INVALID_SSH_KEY = 6;
+	public static final int SSH_KEY_ALREADY_EXISTS = 6;
 	
 	private final int errorCode;
 	
@@ -28,7 +31,7 @@ public class HerokuServiceException extends Exception {
 	}
 	
 	public HerokuServiceException(int errorCode, String message) {
-		this(UNKNOWN_ERROR, message, null);
+		this(errorCode, message, null);
 	}
 	
 	public HerokuServiceException(int errorCode, String message, Throwable t) {
