@@ -14,6 +14,10 @@ public class HerokuServiceException extends Exception {
 	public static final int SECURE_STORE_ERROR = 5;
 	public static final int INVALID_SSH_KEY = 6;
 	public static final int SSH_KEY_ALREADY_EXISTS = 6;
+	public static final int REQUEST_FAILED = 7;
+	public static final int NOT_FOUND = 8;
+	public static final int NOT_ALLOWED = 9;
+	public static final int NOT_ACCEPTABLE = 10;
 	
 	private final int errorCode;
 	

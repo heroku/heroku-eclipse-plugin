@@ -1,8 +1,10 @@
 package com.heroku.eclipse.core.services.mockup;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.heroku.api.App;
+import com.heroku.api.Key;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 
@@ -48,6 +50,37 @@ public class MockupHerokuSessionImpl implements HerokuSession {
 	 */
 	@Override
 	public String getAPIKey() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Key> listSSHKeys() throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		return new ArrayList<Key>();
+	}
+
+	@Override
+	public App createApp() throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void destroyApp(String name) throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public App createApp(App app) throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String renameApp(String currentName, String newName)
+			throws HerokuServiceException {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -2,6 +2,8 @@ package com.heroku.eclipse.core.services.rest;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.heroku.api.App;
 import com.heroku.api.HerokuAPI;
@@ -29,85 +31,65 @@ public class HerokuSessionImpl implements HerokuSession {
 		this.apiKey = apiKey;
 		api = new HerokuAPI(apiKey);
 	}
-
-	@Override
-	public List<App> getAllApps() throws HerokuServiceException {
+	
+	private void checkValid() throws HerokuServiceException {
 		if( ! isValid() ) {
 			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null); //$NON-NLS-1$
 		}
-
+	}
+	
+	private String extractErrorField(String msg) {
+		Pattern p = Pattern.compile(".*\"error\":\"([^\"]*)\".*");
+		Matcher m = p.matcher(msg);
+		if (m.matches()) {
+			return m.group(1);
+		}
+		else {
+			return msg;
+		}
+	}
+	
+	private HerokuServiceException checkException(RequestFailedException e) {
+		switch (e.getStatusCode()) {
+		case 403: return new HerokuServiceException(HerokuServiceException.NOT_ALLOWED, extractErrorField(e.getResponseBody()), e);
+		case 404: return new HerokuServiceException(HerokuServiceException.NOT_FOUND, extractErrorField(e.getResponseBody()), e);
+		case 406: return new HerokuServiceException(HerokuServiceException.NOT_ACCEPTABLE, extractErrorField(e.getResponseBody()), e);
+		case 422: return new HerokuServiceException(HerokuServiceException.REQUEST_FAILED, extractErrorField(e.getResponseBody()), e);
+		default: throw e;
+		}
+	}
+	
+	@Override
+	public List<App> getAllApps() throws HerokuServiceException {
+		checkValid();
 		List<App> apps = api.listApps();
 		return apps;
 	}
 
 	@Override
 	public void addSSHKey(String sshKey) throws HerokuServiceException {
-		if( ! isValid() ) {
-			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null); //$NON-NLS-1$
-		}
+		checkValid();
+		
 		try {
 			api.addKey(sshKey);
 		}
-		catch ( RequestFailedException e ) {
-			// "key already exists"
-			if ( e.getStatusCode() == 422 ) {
-				throw new HerokuServiceException(HerokuServiceException.SSH_KEY_ALREADY_EXISTS, e );
-			}
-			else {
-				throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e );
-			}
-		}
-		catch ( Exception e ) {
-			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e );
+		catch (RequestFailedException e) {
+			throw checkException(e);
 		}
 	}
 
 	@Override
 	public void removeSSHKey(String sshKey) throws HerokuServiceException {
-		if( ! isValid() ) {
-			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null); //$NON-NLS-1$
-		}
+		checkValid();
+		
 		try {
 			api.removeKey(sshKey);
 		}
-		catch ( RequestFailedException e ) {
-			// "key not found"
-			if ( e.getStatusCode() == 404 ) {
-				throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, e );
-			}
-			else {
-				throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e );
-			}
-		}
-		catch ( Exception e ) {
-			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e );
+		catch (RequestFailedException e) {
+			throw checkException(e);
 		}
 	}
 
-	/**
-	 * @throws HerokuServiceException
-	 */
-	private void listSSHKeys() throws HerokuServiceException {
-		if( ! isValid() ) {
-			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null); //$NON-NLS-1$
-		}
-		try {
-			System.err.println("account "+apiKey+" has the following ssh keys:"); //$NON-NLS-1$ //$NON-NLS-2$
-
-			List<Key> keys = api.listKeys();
-			Iterator<Key> keyIt = keys.iterator();
-			
-			while ( keyIt.hasNext() ) {
-				Key oneKey = (Key)keyIt.next();
-				System.err.println("* email: "+oneKey.getEmail()); //$NON-NLS-1$
-				System.err.println("* content: "+oneKey.getContents()); //$NON-NLS-1$
-				System.err.println("----"); //$NON-NLS-1$
-			}
-		}
-		catch ( Exception e ) {
-			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e );
-		}
-	}
 	public void invalidate() {
 		valid = false;
 	}
@@ -121,4 +103,58 @@ public class HerokuSessionImpl implements HerokuSession {
 	public String getAPIKey() {
 		return apiKey;
 	}
+
+	@Override
+	public List<Key> listSSHKeys() throws HerokuServiceException {
+		checkValid();
+		return api.listKeys();
+	}
+
+	@Override
+	public App createApp() throws HerokuServiceException {
+		checkValid();
+		try {
+			return api.createApp();
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	@Override
+	public void destroyApp(String name) throws HerokuServiceException {
+		checkValid();
+		try {
+			api.destroyApp(name);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	@Override
+	public App createApp(App app) throws HerokuServiceException {
+		checkValid();
+		try {
+			return api.createApp(app);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	@Override
+	public String renameApp(String currentName, String newName) throws HerokuServiceException {
+		checkValid();
+		try {
+			return api.renameApp(currentName, newName);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
+	
+
+	
 }
