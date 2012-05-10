@@ -93,5 +93,18 @@
             file="contexts.xml">
       </contexts>
    </extension>
+   <extension
+         point="org.eclipse.ui.importWizards">
+      <category
+            id="com.heroku.eclipse.ui.heroku"
+            name="Heroku">
+      </category>
+      <wizard
+            category="com.heroku.eclipse.ui.heroku"
+            class="com.heroku.eclipse.ui.wizards.HerokuTemplateImport"
+            id="com.heroku.eclipse.ui.herokutemplatewizard"
+            name="Import existing Heroku App">
+      </wizard>
+   </extension>
 
 </plugin>

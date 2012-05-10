@@ -1,5 +1,6 @@
 package com.heroku.eclipse.core.services.mockup;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.heroku.api.App;
@@ -15,13 +16,22 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 public class MockupHerokuSessionImpl implements HerokuSession {
 	final private String apiKey;
 
+	/**
+	 * @param apiKey
+	 */
 	public MockupHerokuSessionImpl(String apiKey) {
 		this.apiKey = apiKey;
 	}
 
 	@Override
 	public List<App> getAllApps() throws HerokuServiceException {
-		return null;
+		App oneApp = new App();
+		
+		oneApp.named("foobar");
+		List<App> apps = new ArrayList<App>();
+		apps.add(oneApp);
+		
+		return apps;
 	}
 
 	@Override
@@ -39,8 +49,7 @@ public class MockupHerokuSessionImpl implements HerokuSession {
 
 	@Override
 	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 	/* (non-Javadoc)

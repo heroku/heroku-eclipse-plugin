@@ -95,13 +95,14 @@ public class MockHerkokuServices implements HerokuServices {
 	public void setSSHKey(String sshKey) throws HerokuServiceException {
 		try {
 			IEclipsePreferences p = getPreferences();
-			if( sshKey == null ) {
+			if( sshKey == null || sshKey.trim().isEmpty() ) {
 				p.remove(PREF_SSH_KEY);
-			} else {
-				p.put(PREF_SSH_KEY, sshKey);	
+			} else if ( ! sshKey.equals(getSSHKey())) {
+				validateSSHKey(sshKey);
+				getOrCreateHerokuSession().addSSHKey(sshKey);
+				p.put(PREF_SSH_KEY, sshKey);
 			}
-			p.flush();
-		} catch (BackingStoreException e) {
+		} catch (Exception e) {
 			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
 		}
 	}
@@ -158,8 +159,15 @@ public class MockHerkokuServices implements HerokuServices {
 	 * @see com.heroku.eclipse.core.services.HerokuServices#validateSSHKey(java.lang.String)
 	 */
 	@Override
-	public void validateSSHKey(String sshKey) throws HerokuServiceException {
-		// TODO Auto-generated method stub
-		
+	public String[] validateSSHKey(String sshKey) throws HerokuServiceException {
+		String[] parts = null;
+		if ( sshKey == null || sshKey.trim().isEmpty() ) {
+			throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, "validation of SSH key failed!"); //$NON-NLS-1$
+		}
+		else {
+			parts = sshKey.split(" "); //$NON-NLS-1$
+		}
+
+		return parts;
 	}
 }
