@@ -10,6 +10,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.resources,
  com.heroku.eclipse.core.services;bundle-version="0.1.0",
  com.heroku.api;bundle-version="0.7.0",
- org.eclipse.jsch.core;bundle-version="1.1.300"
+ org.eclipse.jsch.core;bundle-version="1.1.300",
+ org.eclipse.ui.forms;bundle-version="3.5.101"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy

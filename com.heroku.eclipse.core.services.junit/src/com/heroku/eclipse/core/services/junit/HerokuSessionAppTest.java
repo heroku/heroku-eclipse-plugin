@@ -16,7 +16,7 @@ public class HerokuSessionAppTest extends HerokuSessionTest {
 	private final String VALID_APP2_NAME = "junit-test-app-2-93944";
 	
 	private void destroyAllApps(HerokuSession session) throws HerokuServiceException {
-		for (App app : session.getAllApps()) {
+		for (App app : session.listApps()) {
 			session.destroyApp(app.getName());
 		}
 	}
@@ -43,7 +43,7 @@ public class HerokuSessionAppTest extends HerokuSessionTest {
 	
 	public void testGetAllApps() throws Exception {
 		HerokuSession session = getSession();
-		List<App> apps = session.getAllApps();
+		List<App> apps = session.listApps();
 		assertEquals("app count", 1, apps.size());
 		assertEquals("app name", VALID_APP1_NAME, apps.get(0).getName());
 	}
@@ -51,7 +51,7 @@ public class HerokuSessionAppTest extends HerokuSessionTest {
 	public void testGetAppAppsInvalidSession() {
 		HerokuSession session = getSession();
 		try {
-			session.getAllApps();
+			session.listApps();
 			fail("expected invalid session error");
 		}
 		catch (HerokuServiceException e) {

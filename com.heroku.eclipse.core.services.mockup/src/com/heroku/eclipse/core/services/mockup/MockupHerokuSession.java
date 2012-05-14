@@ -14,16 +14,19 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
  * @author udo.rader@bestsolution.at
  */
 @SuppressWarnings({"nls","unused"})
-public class MockupHerokuSessionImpl implements HerokuSession {
+public class MockupHerokuSession implements HerokuSession {
 	final private String apiKey;
+	private boolean valid = true;
 
-	public MockupHerokuSessionImpl(String apiKey) {
+	public MockupHerokuSession(String apiKey) {
 		this.apiKey = apiKey;
 	}
 
 	@Override
-	public List<App> getAllApps() throws HerokuServiceException {
-		return null;
+	public List<App> listApps() throws HerokuServiceException {
+		ArrayList<App> list = new ArrayList<App>();
+		
+		return list;
 	}
 
 	@Override

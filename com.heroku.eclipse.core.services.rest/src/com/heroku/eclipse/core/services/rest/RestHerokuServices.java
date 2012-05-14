@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
 
-import org.eclipse.core.internal.preferences.Base64;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
@@ -18,7 +17,6 @@ import org.osgi.service.log.LogService;
 import org.osgi.service.prefs.BackingStoreException;
 
 import com.heroku.api.HerokuAPI;
-import com.heroku.api.Key;
 import com.heroku.api.exception.LoginFailedException;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
@@ -31,7 +29,7 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
  * @author udo.rader@bestsolution.at
  */
 public class RestHerokuServices implements HerokuServices {
-	private HerokuSessionImpl herokuSession;
+	private RestHerokuSession herokuSession;
 	private IEclipsePreferences preferences;
 	private ISecurePreferences securePreferences;
 	
@@ -77,7 +75,7 @@ public class RestHerokuServices implements HerokuServices {
 			throw new HerokuServiceException(HerokuServiceException.NO_API_KEY, "No API-Key configured", null); //$NON-NLS-1$
 		}
 		else if (herokuSession == null) {
-			herokuSession = new HerokuSessionImpl( apiKey );
+			herokuSession = new RestHerokuSession( apiKey );
 			if( eventAdmin != null ) {
 				Map<String, Object> map = new HashMap<String, Object>();
 				map.put(KEY_SESSION_INSTANCE, herokuSession);
@@ -97,7 +95,7 @@ public class RestHerokuServices implements HerokuServices {
 			apiKey = getSecurePreferences().get(PREF_API_KEY, null);
 		}
 		catch (StorageException e) {
-			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
+			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR,e);
 		}
 		
 		return apiKey;
@@ -222,5 +220,12 @@ public class RestHerokuServices implements HerokuServices {
 			securePreferences = root.node(Activator.ID);
 		}
 		return securePreferences;
+	}
+
+	@Override
+	public void removeSSHKey(String sshKey) throws HerokuServiceException {
+		String[] keyParts = validateSSHKey(sshKey);
+		getOrCreateHerokuSession().removeSSHKey(keyParts[2]);
+		setSSHKey(null);
 	}
 }

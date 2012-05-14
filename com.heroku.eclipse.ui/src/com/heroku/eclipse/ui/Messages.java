@@ -1,4 +1,4 @@
-package com.heroku.eclipse.ui.preferences;
+package com.heroku.eclipse.ui;
 
 import java.text.MessageFormat;
 import java.util.MissingResourceException;
@@ -13,7 +13,7 @@ import org.eclipse.osgi.util.NLS;
  */
 public class Messages extends NLS {
 	
-	private static final String BUNDLE_NAME = "com.heroku.eclipse.ui.preferences.messages"; //$NON-NLS-1$
+	private static final String BUNDLE_NAME = "com.heroku.eclipse.ui.messages"; //$NON-NLS-1$
 	
 	private static final ResourceBundle	RESOURCE_BUNDLE	= ResourceBundle.getBundle( BUNDLE_NAME );
 
@@ -48,5 +48,4 @@ public class Messages extends NLS {
 			return '!' + key + '!';
 		}
 	}
-
 }

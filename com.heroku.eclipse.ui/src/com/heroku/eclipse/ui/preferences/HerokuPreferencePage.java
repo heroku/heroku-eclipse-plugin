@@ -44,6 +44,7 @@ import org.osgi.service.prefs.BackingStoreException;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
+import com.heroku.eclipse.ui.Messages;
 
 /**
  * The preferences page for the Heroclipse plugin
@@ -62,8 +63,6 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	private static final String B_VALIDATE_API_KEY = "validateAPIKey"; //$NON-NLS-1$
 	private static final String B_ADD_SSH_KEY = "addSSHKey"; //$NON-NLS-1$
 	private static final String B_REMOVE_SSH_KEY = "removeSSHAPIKey"; //$NON-NLS-1$
-	
-
 
 	private Map<String, Object> widgetRegistry = new HashMap<String, Object>();
 	private Map<String, ControlDecoration> decoratorRegistry = new HashMap<String, ControlDecoration>();
@@ -376,32 +375,21 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 					String sshKey = ((Text) widgetRegistry.get(P_SSH_KEY)).getText().trim();
 					if (!sshKey.isEmpty()) {
 						try {
-							
-							String[] keyParts = service.validateSSHKey(sshKey);
-							
-							try {
-								service.getOrCreateHerokuSession().removeSSHKey(keyParts[2]);
-								service.setSSHKey(null);
-								setMessage(Messages.getString("HerokuPreferencePage_Info_SSHKeyRemoval_OK"), IMessageProvider.INFORMATION); //$NON-NLS-1$)
-							}
-							catch (HerokuServiceException e2) {
-								if ( e2.getErrorCode() == HerokuServiceException.INVALID_SSH_KEY ) {
-									setErrorMessage(Messages.getString("HerokuPreferencePage_Error_UnknownSSHKey")); //$NON-NLS-1$
-								}
-								else {
-									herokuError(e2);
-								}
-							}
+							service.removeSSHKey(sshKey);
+							setMessage(Messages.getString("HerokuPreferencePage_Info_SSHKeyRemoval_OK"), IMessageProvider.INFORMATION); //$NON-NLS-1$)
 						}
-						catch ( HerokuServiceException e1 ) {
-							if ( e1.getErrorCode() == HerokuServiceException.INVALID_SSH_KEY ) {
+						catch (HerokuServiceException e1) {
+							if ( e1.getErrorCode() == HerokuServiceException.NOT_FOUND) {
+								setErrorMessage(Messages.getString("HerokuPreferencePage_Error_UnknownSSHKey")); //$NON-NLS-1$
+							}
+							else if ( e1.getErrorCode() == HerokuServiceException.INVALID_SSH_KEY ) {
 								setErrorMessage(Messages.getString("HerokuPreferencePage_Error_SSHKeyInvalid")); //$NON-NLS-1$
+								
 							}
 							else {
 								herokuError(e1);
 							}
 						}
-						
 					}
 				}
 
@@ -656,7 +644,16 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			((Button) widgetRegistry.get(B_REMOVE_SSH_KEY)).setEnabled(existingAPIKey);
 		}
 		catch (HerokuServiceException e1) {
-			internalError(e1);
+			if ( e1.getErrorCode() == HerokuServiceException.SECURE_STORE_ERROR ) {
+				Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid"), e1); //$NON-NLS-1$
+
+				ErrorDialog.openError(getShell(),
+						Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid_Title"), null, status); //$NON-NLS-1$ //$NON-NLS-2$
+				return;
+			}
+			else {
+				internalError(e1);
+			}
 		}
 
 		if (System.getProperty("heroku.devel") != null && System.getProperty("heroku.devel").equals("true")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$

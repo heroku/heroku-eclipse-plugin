@@ -20,7 +20,7 @@ public interface HerokuSession {
 	 *             if fetch applications from the backend fails or
 	 *             {@link #isValid()} is false
 	 */
-	public List<App> getAllApps() throws HerokuServiceException;
+	public List<App> listApps() throws HerokuServiceException;
 
 	/**
 	 * Adds the given SSH2 key to the Heroku account
@@ -86,6 +86,7 @@ public interface HerokuSession {
 	 * 
 	 * @param currentName the current name of the app
 	 * @param newName the new name of the app
+	 * @return the new name of the app
 	 * @throws HerokuServiceException
 	 * 				if {@link #isValid()} is false
 	 * 				if newName is already used

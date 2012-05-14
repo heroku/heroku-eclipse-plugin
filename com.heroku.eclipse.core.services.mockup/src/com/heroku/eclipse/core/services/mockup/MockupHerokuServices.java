@@ -22,7 +22,7 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
  * @author udo.rader@bestsolution.at
  */
 @SuppressWarnings({"nls","unused"})
-public class MockHerkokuServices implements HerokuServices {
+public class MockupHerokuServices implements HerokuServices {
 	private HerokuSession herokuSession;
 	private IEclipsePreferences preferences;
 	private ISecurePreferences securePreferences;
@@ -59,15 +59,14 @@ public class MockHerkokuServices implements HerokuServices {
 			apiKey = getSecurePreferences().get(PREF_API_KEY, null);
 		}
 		catch (StorageException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR, "secure store unavailable", e); //$NON-NLS-1$
 		}
 
 		if ( apiKey == null ) {
 			throw new HerokuServiceException(HerokuServiceException.NO_API_KEY, "No API-Key configured", null); //$NON-NLS-1$
 		}
 		else if (herokuSession == null) {
-			herokuSession = new MockupHerokuSessionImpl( apiKey );
+			herokuSession = new MockupHerokuSession( apiKey );
 		}
 		
 		return herokuSession;
@@ -80,7 +79,7 @@ public class MockHerkokuServices implements HerokuServices {
 			apiKey = getSecurePreferences().get(PREF_API_KEY, null);
 		}
 		catch (StorageException e) {
-			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
+			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR,e);
 		}
 		
 		return apiKey;
@@ -158,7 +157,15 @@ public class MockHerkokuServices implements HerokuServices {
 	 * @see com.heroku.eclipse.core.services.HerokuServices#validateSSHKey(java.lang.String)
 	 */
 	@Override
-	public void validateSSHKey(String sshKey) throws HerokuServiceException {
+	public String[] validateSSHKey(String sshKey) throws HerokuServiceException {
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuServices#removeSSHKey(java.lang.String)
+	 */
+	@Override
+	public void removeSSHKey(String sshKey) throws HerokuServiceException {
 		// TODO Auto-generated method stub
 		
 	}

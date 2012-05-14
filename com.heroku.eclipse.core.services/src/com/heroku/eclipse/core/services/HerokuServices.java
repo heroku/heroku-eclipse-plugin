@@ -133,4 +133,12 @@ public interface HerokuServices {
 	 * @return a string array consisting of the key parts
 	 */
 	public String[] validateSSHKey(String sshKey) throws HerokuServiceException;
+	
+	/**
+	 * Removes the given SSH key from both the active Heroku session and the 
+	 * Eclipse preferences
+	 * @param sshKey
+	 * @throws HerokuServiceException
+	 */
+	public void removeSSHKey(String sshKey) throws HerokuServiceException;
 }
