@@ -1,7 +1,9 @@
 package com.heroku.eclipse.core.services.mockup;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -11,6 +13,7 @@ import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.osgi.service.prefs.BackingStoreException;
 
+import com.heroku.api.App;
 import com.heroku.api.HerokuAPI;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
@@ -168,5 +171,14 @@ public class MockupHerokuServices implements HerokuServices {
 	public void removeSSHKey(String sshKey) throws HerokuServiceException {
 		// TODO Auto-generated method stub
 		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuServices#listApps()
+	 */
+	@Override
+	public List<App> listApps() throws HerokuServiceException {
+		List<App> dummy = new ArrayList<App>();
+		return dummy;
 	}
 }

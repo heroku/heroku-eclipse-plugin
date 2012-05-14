@@ -45,6 +45,7 @@ import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
+import com.heroku.eclipse.ui.utils.HerokuUtils;
 
 /**
  * The preferences page for the Heroclipse plugin
@@ -174,7 +175,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 							}
 							catch (HerokuServiceException e1) {
 								isValid = false;
-								herokuError(e1);
+								HerokuUtils.herokuError(getShell(),e1);
 							}
 
 							Activator.getDefault().getLogger()
@@ -196,7 +197,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 									setErrorMessage(Messages.getString("HerokuPreferencePage_Error_SecureStoreUnvailable")); //$NON-NLS-1$
 								}
 								else {
-									herokuError(e1);
+									HerokuUtils.herokuError(getShell(),e1);
 								}
 							}
 						}
@@ -270,7 +271,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 								isValid = true;
 							}
 							else {
-								internalError(e1);
+								HerokuUtils.internalError(getShell(), e1);
 							}
 						}
 					}
@@ -356,7 +357,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 							setErrorMessage(Messages.getString("HerokuPreferencePage_Error_SSHKeyAlreadyExists")); //$NON-NLS-1$
 						}
 						else {
-							herokuError(e1);
+							HerokuUtils.herokuError(getShell(),e1);
 						}
 					}
 				}
@@ -387,7 +388,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 								
 							}
 							else {
-								herokuError(e1);
+								HerokuUtils.herokuError(getShell(),e1);
 							}
 						}
 					}
@@ -498,11 +499,11 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		}
 		catch (InvocationTargetException e1) {
 			if (!(e1.getCause() instanceof HerokuServiceException)) {
-				internalError(e1);
+				HerokuUtils.internalError(getShell(), e1);
 			}
 		}
 		catch (InterruptedException e1) {
-			internalError(e1);
+			HerokuUtils.internalError(getShell(), e1);
 		}
 
 		return apiKey.get();
@@ -553,18 +554,18 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			}
 			catch (FileNotFoundException e) {
 				publicKey = null;
-				internalError(e);
+				HerokuUtils.internalError(getShell(), e);
 			}
 			catch (IOException e) {
 				publicKey = null;
-				internalError(e);
+				HerokuUtils.internalError(getShell(), e);
 			}
 			catch (HerokuServiceException e) {
 				if ( e.getErrorCode() == HerokuServiceException.INVALID_SSH_KEY ) {
 					publicKey = null;
 				}
 				else {
-					herokuError(e);
+					HerokuUtils.herokuError(getShell(),e);
 				}
 			}
 		}
@@ -645,14 +646,14 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		}
 		catch (HerokuServiceException e1) {
 			if ( e1.getErrorCode() == HerokuServiceException.SECURE_STORE_ERROR ) {
-				Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid"), e1); //$NON-NLS-1$
+				Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("Heroku_Common_Error_SecureStoreInvalid"), e1); //$NON-NLS-1$
 
 				ErrorDialog.openError(getShell(),
-						Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid_Title"), null, status); //$NON-NLS-1$ //$NON-NLS-2$
+						Messages.getString("Heroku_Common_Error_SecureStoreInvalid_Title"), null, status); //$NON-NLS-1$
 				return;
 			}
 			else {
-				internalError(e1);
+				HerokuUtils.internalError(getShell(), e1);
 			}
 		}
 
@@ -679,11 +680,6 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		return super.performOk();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.jface.preference.PreferencePage#performApply()
-	 */
 	@Override
 	protected void performApply() {
 		try {
@@ -691,15 +687,10 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			service.setSSHKey(((Text) widgetRegistry.get(P_SSH_KEY)).getText().trim());
 		}
 		catch (HerokuServiceException e) {
-			herokuError(e);
+			HerokuUtils.herokuError(getShell(),e);
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.jface.preference.PreferencePage#performDefaults()
-	 */
 	@Override
 	protected void performDefaults() {
 		super.performDefaults();
@@ -711,41 +702,10 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			initialize();
 		}
 		catch (HerokuServiceException e) {
-			herokuError(e);
+			HerokuUtils.herokuError(getShell(),e);
 		}
 	}
 
-	/**
-	 * Displays an internal, "really" unexpected error
-	 * 
-	 * @param the
-	 *            exception to show to the user
-	 */
-	private void internalError(Throwable t) {
-		Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuPreferencePage_Error_InternalError"), t); //$NON-NLS-1$
-
-		ErrorDialog.openError(getShell(),
-				Messages.getString("HerokuPreferencePage_Error_InternalError_Title"), Messages.getString("HerokuPreferencePage_Error_InternalError"), status); //$NON-NLS-1$ //$NON-NLS-2$
-	}
-
-	/**
-	 * Displays an error message related to an Heroku service
-	 * 
-	 * @param the
-	 *            exception to show to the user
-	 */
-	private void herokuError(Throwable t) {
-		Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuPreferencePage_Error_HerokuServiceError"), t); //$NON-NLS-1$
-
-		ErrorDialog.openError(getShell(),
-				Messages.getString("HerokuPreferencePage_Error_InternalError_Title"), Messages.getString("HerokuPreferencePage_Error_InternalError"), status); //$NON-NLS-1$ //$NON-NLS-2$
-	}
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.jface.dialogs.DialogPage#setVisible(boolean)
-	 */
 	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);

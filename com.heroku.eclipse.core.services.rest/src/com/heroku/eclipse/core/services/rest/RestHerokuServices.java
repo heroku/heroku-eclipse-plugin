@@ -2,6 +2,7 @@ package com.heroku.eclipse.core.services.rest;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
@@ -16,6 +17,7 @@ import org.osgi.service.event.EventAdmin;
 import org.osgi.service.log.LogService;
 import org.osgi.service.prefs.BackingStoreException;
 
+import com.heroku.api.App;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.exception.LoginFailedException;
 import com.heroku.eclipse.core.services.HerokuServices;
@@ -227,5 +229,10 @@ public class RestHerokuServices implements HerokuServices {
 		String[] keyParts = validateSSHKey(sshKey);
 		getOrCreateHerokuSession().removeSSHKey(keyParts[2]);
 		setSSHKey(null);
+	}
+
+	@Override
+	public List<App> listApps() throws HerokuServiceException {
+		return getOrCreateHerokuSession().listApps();
 	}
 }

@@ -1,5 +1,8 @@
 package com.heroku.eclipse.core.services;
 
+import java.util.List;
+
+import com.heroku.api.App;
 import com.heroku.api.Key;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 
@@ -141,4 +144,11 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public void removeSSHKey(String sshKey) throws HerokuServiceException;
+	
+	/**
+	 * Delivers the list of Apps registered for the currently active API key
+	 * @return the list of Apps
+	 * @throws HerokuServiceException
+	 */
+	public List<App> listApps() throws HerokuServiceException;
 }

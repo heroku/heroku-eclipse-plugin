@@ -3,7 +3,9 @@
  */
 package com.heroku.eclipse.ui.wizards;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -30,11 +32,13 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.ui.forms.widgets.Form;
 import org.eclipse.ui.forms.widgets.FormToolkit;
 
+import com.heroku.api.App;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
+import com.heroku.eclipse.ui.utils.HerokuUtils;
 
 /**
  * 
@@ -57,8 +61,8 @@ public class HerokuAppImportWizardPage extends WizardPage {
 	 */
 	public HerokuAppImportWizardPage() {
 		super("HerokuAppImportWizardPage"); //$NON-NLS-1$
-		setDescription(Messages.getString("HerokuAppImportWizardPage_Title"));
-		setTitle(Messages.getString("HerokuAppImportWizardPage_Description"));
+		setDescription(Messages.getString("HerokuAppImportWizardPage_Title")); //$NON-NLS-1$
+		setTitle(Messages.getString("HerokuAppImportWizardPage_Description")); //$NON-NLS-1$
 		service = Activator.getDefault().getService();
 	}
 
@@ -81,75 +85,116 @@ public class HerokuAppImportWizardPage extends WizardPage {
 
 		setControl(composite);
 
-		String sshKey = null;
+		if (verifyPreferences(composite)) {
+			TableViewer viewer = new TableViewer(composite, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
+			viewer.setContentProvider(ArrayContentProvider.getInstance());
+			
+			List<App> apps = new ArrayList<App>();
+
+			try {
+				apps = service.listApps();
+			}
+			catch (HerokuServiceException e) {
+				e.printStackTrace();
+				HerokuUtils.internalError(parent.getShell(), e);
+			}
+			
+			viewer.setInput(apps);
+
+			Table table = viewer.getTable();
+			GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
+
+			table.setLayoutData(gd_table);
+			table.setHeaderVisible(true);
+
+			{
+				TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
+				TableColumn tc = vc.getColumn();
+				tc.setWidth(100);
+				tc.setText(Messages.getString("HerokuAppImportWizardPage_Name")); //$NON-NLS-1$
+
+				vc.setLabelProvider(new ColumnLabelProvider() {
+					@Override
+					public String getText(Object element) {
+						App app = (App) element;
+						return app.getName();
+					}
+				});
+			}
+
+			{
+				TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
+				TableColumn tc = vc.getColumn();
+				tc.setWidth(100);
+				tc.setText(Messages.getString("HerokuAppImportWizardPage_GitUrl")); //$NON-NLS-1$
+
+				vc.setLabelProvider(new ColumnLabelProvider() {
+					@Override
+					public String getText(Object element) {
+						App app = (App) element;
+						return app.getGitUrl();
+					}
+				});
+			}
+
+			{
+				TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
+				TableColumn tc = vc.getColumn();
+				tc.setWidth(100);
+				tc.setText(Messages.getString("HerokuAppImportWizardPage_AppUrl")); //$NON-NLS-1$
+				
+				vc.setLabelProvider(new ColumnLabelProvider() {
+					@Override
+					public String getText(Object element) {
+						App app = (App) element;
+						return app.getWebUrl();
+					}
+				});
+			}
+		}
+
+	}
+
+	/**
+	 * @param parent
+	 */
+	private boolean verifyPreferences(Composite parent) {
+		boolean isOk = true;
 
 		// ensure that we have valid prefs
+		String sshKey = null;
 		try {
-			session = service.getOrCreateHerokuSession();
+			service.getOrCreateHerokuSession();
 			sshKey = service.getSSHKey();
+
 			if (sshKey == null || sshKey.trim().isEmpty()) {
-				Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing")); //$NON-NLS-1$
-				ErrorDialog.openError(parent.getShell(), Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing_Title"), null, status); //$NON-NLS-1$
-				return;
+				HerokuUtils
+						.userError(
+								parent.getShell(),
+								Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing_Title"), Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
+				return false;
 			}
 		}
 		catch (HerokuServiceException e) {
 			if (e.getErrorCode() == HerokuServiceException.SECURE_STORE_ERROR) {
-				Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$
-				ErrorDialog.openError(parent.getShell(), Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid_Title"), null, status); //$NON-NLS-1$
+				HerokuUtils.userError(parent.getShell(),
+						Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid_Title"), Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$ //$NON-NLS-2$
+				return false;
 			}
 			else if (e.getErrorCode() == HerokuServiceException.NO_API_KEY) {
-				Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing")); //$NON-NLS-1$
-				ErrorDialog.openError(parent.getShell(), Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing_Title"), null, status); //$NON-NLS-1$
+				HerokuUtils
+						.userError(
+								parent.getShell(),
+								Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing_Title"), Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
+				return false;
 			}
 			else {
 				e.printStackTrace();
+				HerokuUtils.internalError(parent.getShell(), e);
+				return false;
 			}
 		}
 
-		TableViewer viewer = new TableViewer(composite, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
-		viewer.setContentProvider(ArrayContentProvider.getInstance());
-		
-		ArrayList<String> dummy = new ArrayList<String>();
-		
-		Table table = viewer.getTable();
-		GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
-
-		table.setLayoutData(gd_table);
-		table.setHeaderVisible(true);
-
-		{
-			TableViewerColumn tableViewerColumn = new TableViewerColumn(viewer, SWT.NONE);
-			TableColumn tc = tableViewerColumn.getColumn();
-			tc.setWidth(100);
-			tc.setText("Name");
-			//		tableViewerColumn.setLabelProvider( new GenericMapCellLabelProvider( "{0}", prop.observeDetail( cp.getKnownElements() ) ) ); //$NON-NLS-1$
-			// tableViewer.getTable().setSortDirection( SWT.DOWN );
-
-			// widgetRegistry.put( TABLE_COLUMNS.SERVICE_REQUEST_NUMBER, tc );
-		}
-
-		{
-			TableViewerColumn tableViewerColumn = new TableViewerColumn(viewer, SWT.NONE);
-			TableColumn tc = tableViewerColumn.getColumn();
-			tc.setWidth(100);
-			tc.setText("Git Url");
-			//		tableViewerColumn.setLabelProvider( new GenericMapCellLabelProvider( "{0}", prop.observeDetail( cp.getKnownElements() ) ) ); //$NON-NLS-1$
-			// tableViewer.getTable().setSortDirection( SWT.DOWN );
-
-			// widgetRegistry.put( TABLE_COLUMNS.SERVICE_REQUEST_NUMBER, tc );
-		}
-
-		{
-			TableViewerColumn tableViewerColumn = new TableViewerColumn(viewer, SWT.NONE);
-			TableColumn tc = tableViewerColumn.getColumn();
-			tc.setWidth(100);
-			tc.setText("App Url");
-			// tableViewerColumn.setLabelProvider( new GenericMapCellLabelProvider( "{0}", prop.observeDetail( cp.getKnownElements() ) ) ); //$NON-NLS-1$
-			// tableViewer.getTable().setSortDirection( SWT.DOWN );
-
-			// widgetRegistry.put( TABLE_COLUMNS.SERVICE_REQUEST_NUMBER, tc );
-		}
-
+		return isOk;
 	}
 }
