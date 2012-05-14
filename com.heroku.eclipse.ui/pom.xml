@@ -5,12 +5,31 @@
 	<groupId>com.heroku.eclipse.ui</groupId>
 	<artifactId>com.heroku.eclipse.ui</artifactId>
 	<packaging>eclipse-plugin</packaging>
-	
+
 	<parent>
 		<groupId>com.heroku</groupId>
 		<artifactId>eclipse</artifactId>
 		<relativePath>../releng/pom.xml</relativePath>
 		<version>0.1.0-SNAPSHOT</version>
 	</parent>
+
+	<build>
+		<resources>
+			<!-- to ensure that the feature lookup of the ui test works -->
+			<resource>
+				<directory>.</directory>
+				<includes>
+					<include>META-INF/</include>
+					<include>plugin.xml</include>
+				</includes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.eclipse.tycho</groupId>
+				<artifactId>tycho-source-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>
