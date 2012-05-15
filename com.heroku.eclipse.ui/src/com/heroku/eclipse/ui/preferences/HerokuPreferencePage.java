@@ -73,6 +73,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	@SuppressWarnings({ "deprecation", "restriction" })
 	private org.eclipse.core.runtime.Preferences jschPreferences = JSchCorePlugin.getPlugin().getPluginPreferences();
 
+	private Composite group;
+
 	/**
 	 * 
 	 */
@@ -95,7 +97,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	protected Control createContents(final Composite parent) {
 		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening Heroku preferences"); //$NON-NLS-1$
 
-		final Composite group = new Composite(parent, SWT.NULL);
+		group = new Composite(parent, SWT.NULL);
 
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 3;
@@ -579,6 +581,9 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	 */
 	private void initialize() {
 		try {
+			setErrorMessage(null);
+			group.setEnabled( true );
+			
 			String apiKey = service.getAPIKey();
 
 			((Text) widgetRegistry.get(P_API_KEY)).setText(ensureNotNull(apiKey));
@@ -650,6 +655,11 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 				ErrorDialog.openError(getShell(),
 						Messages.getString("Heroku_Common_Error_SecureStoreInvalid_Title"), null, status); //$NON-NLS-1$
+				
+				setErrorMessage("sonit");
+				
+				group.setEnabled( false );
+				
 				return;
 			}
 			else {
@@ -714,5 +724,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			initialize();
 		}
 	}
+	
+	
 
 }
