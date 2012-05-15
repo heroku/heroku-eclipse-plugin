@@ -669,7 +669,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				ErrorDialog.openError(getShell(),
 						Messages.getString("Heroku_Common_Error_SecureStoreInvalid_Title"), null, status); //$NON-NLS-1$
 				
-				setErrorMessage("sonit");
+				setErrorMessage(Messages.getString("Heroku_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$
 				
 				group.setEnabled( false );
 				
