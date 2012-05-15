@@ -55,13 +55,17 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
 public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
 
 	private static final String HEROKU_PREFERENCE_PAGE_CONTEXT = "com.heroku.eclipse.context"; //$NON-NLS-1$
-	
+
+
+	private static final String ID_KEY = "heroku.id"; //$NON-NLS-1$
 	private static final String P_EMAIL = "emailPreference"; //$NON-NLS-1$
 	private static final String P_PASSWORD = "passwordPreference"; //$NON-NLS-1$
 	private static final String P_API_KEY = "apiKeyPreference"; //$NON-NLS-1$
 	private static final String P_SSH_KEY = "sshKeyPreference"; //$NON-NLS-1$
 
+	private static final String B_FETCH_API_KEY = "fetchAPIKey"; //$NON-NLS-1$
 	private static final String B_VALIDATE_API_KEY = "validateAPIKey"; //$NON-NLS-1$
+	private static final String B_LOAD_SSH_KEY = "loadSSHKey"; //$NON-NLS-1$
 	private static final String B_ADD_SSH_KEY = "addSSHKey"; //$NON-NLS-1$
 	private static final String B_REMOVE_SSH_KEY = "removeSSHAPIKey"; //$NON-NLS-1$
 
@@ -116,6 +120,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 			Text t = new Text(group, SWT.SINGLE | SWT.BORDER);
 			t.setFont(group.getFont());
+			t.setData(ID_KEY, P_EMAIL);
 			t.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
 
 			ControlDecoration c = new ControlDecoration(t, SWT.BOTTOM | SWT.LEFT);
@@ -139,6 +144,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			Text t = new Text(group, SWT.PASSWORD | SWT.BORDER);
 			t.setFont(group.getFont());
 			t.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
+			t.setData(ID_KEY, P_PASSWORD);
 
 			ControlDecoration c = new ControlDecoration(t, SWT.BOTTOM | SWT.LEFT);
 			c.setImage(FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage());
@@ -151,6 +157,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			Button b = new Button(group, SWT.PUSH);
 			b.setText(Messages.getString("HerokuPreferencePage_GetAPIKey")); //$NON-NLS-1$
 			b.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
+			b.setData(ID_KEY, B_FETCH_API_KEY);
 			b.addSelectionListener(new SelectionAdapter() {
 
 				@Override
@@ -221,6 +228,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			Text t = new Text(group, SWT.SINGLE | SWT.BORDER);
 			t.setFont(group.getFont());
 			t.setLayoutData(new GridData(SWT.FILL, SWT.NONE, true, false, 1, 1));
+			t.setData(ID_KEY, P_API_KEY);
 
 			ControlDecoration c = new ControlDecoration(t, SWT.BOTTOM | SWT.LEFT);
 			c.setImage(FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage());
@@ -233,6 +241,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			Button b = new Button(group, SWT.PUSH);
 			b.setText(Messages.getString("HerokuPreferencePage_Validate")); //$NON-NLS-1$
 			b.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
+			b.setData(ID_KEY, B_VALIDATE_API_KEY);
 			b.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
@@ -299,6 +308,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			g.heightHint = 100;
 			g.widthHint = 300;
 			t.setLayoutData(g);
+			t.setData(ID_KEY, P_SSH_KEY);
 
 			widgetRegistry.put(P_SSH_KEY, t);
 
@@ -323,6 +333,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			Button load = new Button(right, SWT.PUSH);
 			load.setText(Messages.getString("HerokuPreferencePage_LoadKey")); //$NON-NLS-1$
 			load.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
+			load.setData(ID_KEY, B_LOAD_SSH_KEY);
 			load.addSelectionListener(new SelectionAdapter() {
 
 				@Override
@@ -342,6 +353,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			Button add = new Button(right, SWT.PUSH);
 			add.setText(Messages.getString("HerokuPreferencePage_Add")); //$NON-NLS-1$
 			add.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
+			add.setData(ID_KEY, B_ADD_SSH_KEY);
 			add.addSelectionListener(new SelectionAdapter() {
 
 				@Override
@@ -370,6 +382,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			Button remove = new Button(right, SWT.PUSH);
 			remove.setText(Messages.getString("HerokuPreferencePage_Remove")); //$NON-NLS-1$
 			remove.setLayoutData(new GridData(SWT.FILL, SWT.NONE, false, false, 1, 1));
+			remove.setData(ID_KEY, B_REMOVE_SSH_KEY);
 			remove.addSelectionListener(new SelectionAdapter() {
 
 				@Override
