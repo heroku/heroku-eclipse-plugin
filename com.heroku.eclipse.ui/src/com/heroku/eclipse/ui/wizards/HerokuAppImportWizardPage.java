@@ -3,38 +3,28 @@
  */
 package com.heroku.eclipse.ui.wizards;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
-import org.eclipse.jface.viewers.OpenEvent;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.ui.forms.widgets.Form;
-import org.eclipse.ui.forms.widgets.FormToolkit;
+import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
 import com.heroku.eclipse.core.services.HerokuServices;
-import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
@@ -47,7 +37,7 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
  */
 public class HerokuAppImportWizardPage extends WizardPage {
 	private HerokuServices service;
-
+	
 	/**
 	 * @param pageName
 	 */
@@ -66,41 +56,28 @@ public class HerokuAppImportWizardPage extends WizardPage {
 		service = Activator.getDefault().getService();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets
-	 * .Composite)
-	 */
 	@Override
 	public void createControl(Composite parent) {
-		HerokuSession session = null;
-		// META:
-		// #1: ensure valid prefs
-		// #2: step1 listAllApps, single select
-		// #3: import
-		Composite composite = new Composite(parent, SWT.NONE);
-		composite.setLayout(new GridLayout(1, false));
+		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening app import wizard"); //$NON-NLS-1$
+		
+		Composite group = new Composite(parent, SWT.NONE);
+		group.setLayout(new GridLayout(1, false));
+		setControl(group);
+		
+		group.setEnabled(true);
+		setErrorMessage(null);
+		setPageComplete(false);
 
-		setControl(composite);
-
-		if (verifyPreferences(composite)) {
-			TableViewer viewer = new TableViewer(composite, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
+		// ensure valid prefs
+		if (!verifyPreferences(group)) {
+			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "preferences are missing/invalid"); //$NON-NLS-1$
+			group.setEnabled(false);
+			setErrorMessage(Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$
+		}
+		else {
+			TableViewer viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
 			viewer.setContentProvider(ArrayContentProvider.getInstance());
 			
-			List<App> apps = new ArrayList<App>();
-
-			try {
-				apps = service.listApps();
-			}
-			catch (HerokuServiceException e) {
-				e.printStackTrace();
-				HerokuUtils.internalError(parent.getShell(), e);
-			}
-			
-			viewer.setInput(apps);
-
 			Table table = viewer.getTable();
 			GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
 
@@ -110,7 +87,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 			{
 				TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
 				TableColumn tc = vc.getColumn();
-				tc.setWidth(100);
+				tc.setWidth(150);
 				tc.setText(Messages.getString("HerokuAppImportWizardPage_Name")); //$NON-NLS-1$
 
 				vc.setLabelProvider(new ColumnLabelProvider() {
@@ -125,7 +102,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 			{
 				TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
 				TableColumn tc = vc.getColumn();
-				tc.setWidth(100);
+				tc.setWidth(150);
 				tc.setText(Messages.getString("HerokuAppImportWizardPage_GitUrl")); //$NON-NLS-1$
 
 				vc.setLabelProvider(new ColumnLabelProvider() {
@@ -151,12 +128,41 @@ public class HerokuAppImportWizardPage extends WizardPage {
 					}
 				});
 			}
+			
+			List<App> apps = new ArrayList<App>();
+			try {
+				apps = service.listApps();
+			}
+			catch (HerokuServiceException e) {
+				e.printStackTrace();
+				HerokuUtils.internalError(parent.getShell(), e);
+			}
+			
+			if ( apps.size() == 0 ) {
+				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no applications found"); //$NON-NLS-1$
+				setPageComplete(false);
+			}
+			else {
+				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "found "+apps.size()+" applications, displaying"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			
+			viewer.setInput(apps);
+			viewer.addSelectionChangedListener(new ISelectionChangedListener() {
+				
+				@Override
+				public void selectionChanged(SelectionChangedEvent event) {
+					setPageComplete(true);
+				}
+			});
+			
 		}
 
 	}
 
 	/**
+	 * Ensures that the preferences are setup
 	 * @param parent
+	 * @return true, if the prefs are OK, false if not
 	 */
 	private boolean verifyPreferences(Composite parent) {
 		boolean isOk = true;
@@ -171,7 +177,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 				HerokuUtils
 						.userError(
 								parent.getShell(),
-								Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing_Title"), Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
+								Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
 				return false;
 			}
 		}
@@ -185,7 +191,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 				HerokuUtils
 						.userError(
 								parent.getShell(),
-								Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing_Title"), Messages.getString("HerokuAppImportWizardPage_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
+								Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
 				return false;
 			}
 			else {

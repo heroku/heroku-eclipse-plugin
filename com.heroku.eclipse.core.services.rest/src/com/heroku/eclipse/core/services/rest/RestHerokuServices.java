@@ -1,6 +1,7 @@
 package com.heroku.eclipse.core.services.rest;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,10 +41,16 @@ public class RestHerokuServices implements HerokuServices {
 	
 	private EventAdmin eventAdmin;
 	
+	/**
+	 * @param eventAdmin
+	 */
 	public void setEventAdmin(EventAdmin eventAdmin) {
 		this.eventAdmin = eventAdmin;
 	}
 
+	/**
+	 * @param eventAdmin
+	 */
 	public void unsetEventAdmin(EventAdmin eventAdmin) {
 		this.eventAdmin = null;
 	}
@@ -163,8 +170,7 @@ public class RestHerokuServices implements HerokuServices {
 			HerokuAPI api = new HerokuAPI(apiKey);
 			api.listApps();
 		} catch (Throwable e) {
-			//TODO We should check for the exception type and HTTP-Error code to findout which problem
-			// we have here
+			//TODO We should analyze for the exception type and HTTP-Error code to investigate the problem
 			throw new HerokuServiceException(HerokuServiceException.INVALID_API_KEY, e);
 		}
 	}
@@ -233,6 +239,8 @@ public class RestHerokuServices implements HerokuServices {
 
 	@Override
 	public List<App> listApps() throws HerokuServiceException {
-		return getOrCreateHerokuSession().listApps();
+		List<App> apps = new ArrayList<App>();
+		apps = getOrCreateHerokuSession().listApps();
+		return apps;
 	}
 }

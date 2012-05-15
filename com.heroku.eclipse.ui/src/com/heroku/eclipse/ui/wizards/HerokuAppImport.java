@@ -1,5 +1,6 @@
 package com.heroku.eclipse.ui.wizards;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.IImportWizard;
@@ -32,13 +33,10 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.wizard.Wizard#performFinish()
-	 */
 	@Override
 	public boolean performFinish() {
-		// TODO Auto-generated method stub
-		return false;
+		MessageDialog.openInformation(getShell(), "hmm", "who cares about the spanish inquisition?");
+		return true;
 	}
 
 }

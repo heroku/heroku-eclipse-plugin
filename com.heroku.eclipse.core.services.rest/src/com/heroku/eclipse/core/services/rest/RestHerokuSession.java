@@ -65,8 +65,7 @@ public class RestHerokuSession implements HerokuSession {
 	@Override
 	public List<App> listApps() throws HerokuServiceException {
 		checkValid();
-		List<App> apps = api.listApps();
-		return apps;
+		return api.listApps();
 	}
 
 	@Override
