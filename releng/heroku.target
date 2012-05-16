@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.6"?><target name="heroku" sequenceNumber="24">
+<?pde version="3.6"?>
+
+<target name="heroku" sequenceNumber="37">
 <locations>
 <location includeAllPlatforms="false" includeMode="slicer" includeSource="false" type="InstallableUnit">
 <unit id="org.eclipse.swtbot.forms.feature.group" version="2.0.5.20111003_1754-3676ac8-dev-e36"/>
