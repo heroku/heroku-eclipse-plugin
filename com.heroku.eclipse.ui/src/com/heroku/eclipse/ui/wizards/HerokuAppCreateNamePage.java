@@ -31,32 +31,34 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
 /**
  * 
  * @author udo.rader@bestsolution.at
- * 
+ *
  */
-public class HerokuAppImportWizardPage extends WizardPage {
+public class HerokuAppCreateNamePage extends WizardPage {
 	private HerokuServices service;
 	
 	/**
 	 * @param pageName
 	 */
-	protected HerokuAppImportWizardPage(String pageName) {
+	protected HerokuAppCreateNamePage(String pageName) {
 		super(pageName);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
 	 * 
 	 */
-	public HerokuAppImportWizardPage() {
-		super("HerokuAppImportWizardPage"); //$NON-NLS-1$
-		setDescription(Messages.getString("HerokuAppImportWizardPage_Title")); //$NON-NLS-1$
-		setTitle(Messages.getString("HerokuAppImportWizardPage_Description")); //$NON-NLS-1$
+	public HerokuAppCreateNamePage() {
+		super("HerokuAppCreateTemplatePage"); //$NON-NLS-1$
+		setDescription(Messages.getString("HerokuAppCreateWizardPage_Title")); //$NON-NLS-1$
+		setTitle(Messages.getString("HerokuAppCreateWizardPage_Description")); //$NON-NLS-1$
 		service = Activator.getDefault().getService();
 	}
-
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
+	 */
 	@Override
 	public void createControl(Composite parent) {
-		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening app import wizard"); //$NON-NLS-1$
+		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening app create wizard, app name page"); //$NON-NLS-1$
 		
 		Composite group = new Composite(parent, SWT.NONE);
 		group.setLayout(new GridLayout(1, false));

@@ -181,4 +181,13 @@ public class MockupHerokuServices implements HerokuServices {
 		List<App> dummy = new ArrayList<App>();
 		return dummy;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuServices#isReady()
+	 */
+	@Override
+	public boolean isReady() throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

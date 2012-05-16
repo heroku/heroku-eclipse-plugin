@@ -32,7 +32,7 @@ public class RestHerokuSession implements HerokuSession {
 
 	private void checkValid() throws HerokuServiceException {
 		if (!isValid()) {
-			throw new HerokuServiceException(HerokuServiceException.INVALID_STATE, "The session is invalid", null); //$NON-NLS-1$
+			throw new HerokuServiceException(HerokuServiceException.INVALID_SESSION, "The session is invalid", null); //$NON-NLS-1$
 		}
 	}
 

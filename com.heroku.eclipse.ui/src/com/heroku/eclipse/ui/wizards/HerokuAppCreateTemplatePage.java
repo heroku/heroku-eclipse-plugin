@@ -31,29 +31,31 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
 /**
  * 
  * @author udo.rader@bestsolution.at
- * 
+ *
  */
-public class HerokuAppImportWizardPage extends WizardPage {
+public class HerokuAppCreateTemplatePage extends WizardPage {
 	private HerokuServices service;
 	
 	/**
 	 * @param pageName
 	 */
-	protected HerokuAppImportWizardPage(String pageName) {
+	protected HerokuAppCreateTemplatePage(String pageName) {
 		super(pageName);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**
 	 * 
 	 */
-	public HerokuAppImportWizardPage() {
-		super("HerokuAppImportWizardPage"); //$NON-NLS-1$
-		setDescription(Messages.getString("HerokuAppImportWizardPage_Title")); //$NON-NLS-1$
-		setTitle(Messages.getString("HerokuAppImportWizardPage_Description")); //$NON-NLS-1$
+	public HerokuAppCreateTemplatePage() {
+		super("HerokuAppCreateTemplatePage"); //$NON-NLS-1$
+		setDescription(Messages.getString("HerokuAppCreateWizardPage_Title")); //$NON-NLS-1$
+		setTitle(Messages.getString("HerokuAppCreateWizardPage_Description")); //$NON-NLS-1$
 		service = Activator.getDefault().getService();
 	}
-
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.IDialogPage#createControl(org.eclipse.swt.widgets.Composite)
+	 */
 	@Override
 	public void createControl(Composite parent) {
 		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening app import wizard"); //$NON-NLS-1$

@@ -55,7 +55,7 @@ public class HerokuSessionAppTest extends HerokuSessionTest {
 			fail("expected invalid session error");
 		}
 		catch (HerokuServiceException e) {
-			assertEquals("expected invalid session", HerokuServiceException.INVALID_STATE, e.getErrorCode());
+			assertEquals("expected invalid session", HerokuServiceException.INVALID_SESSION, e.getErrorCode());
 		}
 	}
 	

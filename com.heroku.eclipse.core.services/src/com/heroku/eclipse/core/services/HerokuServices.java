@@ -151,4 +151,13 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public List<App> listApps() throws HerokuServiceException;
+	
+	/**
+	 * Determines if "everything" is ready to communicate with Heroku,
+	 * eg. all the required preferences have been set up
+	 * @return true of false
+	 * @throws HerokuServiceException
+	 */
+	public boolean isReady() throws HerokuServiceException;
+
 }

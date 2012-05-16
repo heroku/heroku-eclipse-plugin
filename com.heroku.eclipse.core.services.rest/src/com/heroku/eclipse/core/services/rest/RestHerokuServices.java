@@ -63,7 +63,7 @@ public class RestHerokuServices implements HerokuServices {
 		}
 		catch (LoginFailedException e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "Unable to log in to account", e); //$NON-NLS-1$
-			throw new HerokuServiceException(HerokuServiceException.LOGIN_FAILED_ERROR_CODE, e);
+			throw new HerokuServiceException(HerokuServiceException.LOGIN_FAILED, e);
 		}
 		catch (Exception e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to fetch API key", e); //$NON-NLS-1$
@@ -242,5 +242,32 @@ public class RestHerokuServices implements HerokuServices {
 		List<App> apps = new ArrayList<App>();
 		apps = getOrCreateHerokuSession().listApps();
 		return apps;
+	}
+
+	@Override
+	public boolean isReady() throws HerokuServiceException {
+		boolean isReady = true;
+		
+		// ensure that we have valid prefs
+		String sshKey = null;
+		try {
+			getOrCreateHerokuSession();
+			sshKey = getSSHKey();
+
+			if (sshKey == null || sshKey.trim().isEmpty()) {
+				throw new HerokuServiceException(HerokuServiceException.INVALID_PREFERENCES, "Heroku preferences missing or invalid!"); //$NON-NLS-1$
+			}
+		}
+		catch (HerokuServiceException e) {
+			// hide "no api key" behind "invalid preferences"
+			if (e.getErrorCode() == HerokuServiceException.NO_API_KEY) {
+				throw new HerokuServiceException(HerokuServiceException.INVALID_PREFERENCES, "Heroku preferences missing or invalid!", e); //$NON-NLS-1$
+			}
+			else {
+				throw e;
+			}
+		}
+
+		return isReady;
 	}
 }

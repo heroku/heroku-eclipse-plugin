@@ -43,7 +43,7 @@ public class HerokuServicesTest extends TestCase {
 			h.obtainAPIKey("nouser@noaddres.com", "nopassword"); //$NON-NLS-1$ //$NON-NLS-2$
 			fail("The login with nouser@noaddres.com/nopassword has to fail"); //$NON-NLS-1$
 		} catch (HerokuServiceException e) {
-			assertEquals(HerokuServiceException.LOGIN_FAILED_ERROR_CODE, e.getErrorCode());
+			assertEquals(HerokuServiceException.LOGIN_FAILED, e.getErrorCode());
 			assertNotNull(e.getCause());
 		}
 		
@@ -51,7 +51,7 @@ public class HerokuServicesTest extends TestCase {
 			h.obtainAPIKey(VALID_JUNIT_USER, "nopassword"); //$NON-NLS-1$ //$NON-NLS-2$
 			fail("The login has to fail because the password for eclipse-junit@bestsolution.at is different to 'nopassword'"); //$NON-NLS-1$
 		} catch (HerokuServiceException e) {
-			assertEquals(HerokuServiceException.LOGIN_FAILED_ERROR_CODE, e.getErrorCode());
+			assertEquals(HerokuServiceException.LOGIN_FAILED, e.getErrorCode());
 			assertNotNull(e.getCause());
 		}
 		
