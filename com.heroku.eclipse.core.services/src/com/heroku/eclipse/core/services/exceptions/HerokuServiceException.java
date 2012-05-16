@@ -2,12 +2,8 @@ package com.heroku.eclipse.core.services.exceptions;
 
 /**
  * @author udo.rader@bestsolution.at
- * 
  */
 public class HerokuServiceException extends Exception {
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 
 	/**

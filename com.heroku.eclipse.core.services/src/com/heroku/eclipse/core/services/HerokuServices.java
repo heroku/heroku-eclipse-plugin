@@ -159,5 +159,4 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public boolean isReady() throws HerokuServiceException;
-
 }
