@@ -39,12 +39,12 @@
 		<repository>
 			<id>platform</id>
 			<layout>p2</layout>
-			<url>${env.HEROKU_TARGET}platform-37</url>
+			<url>/var/lib/jenkins/eclipse/targets/heroku/platform-37</url>
 		</repository>
 		<repository>
 			<id>jdt</id>
 			<layout>p2</layout>
-			<url>${env.HEROKU_TARGET}jdt-37</url>
+			<url>/var/lib/jenkins/eclipse/targets/heroku/jdt-37</url>
 		</repository>
 		<repository>
 			<id>swtbot</id>
