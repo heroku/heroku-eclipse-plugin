@@ -31,7 +31,7 @@
 		<module>../com.heroku.eclipse.feature</module>
 		<module>../com.heroku.eclipse.updatesite</module>
 		
-		<module>../com.heroku.eclipse.core.services.junit</module>
+		<!--<module>../com.heroku.eclipse.core.services.junit</module>-->
 		<!--<module>../com.heroku.eclipse.ui.junit</module> -->
 	</modules>
 
