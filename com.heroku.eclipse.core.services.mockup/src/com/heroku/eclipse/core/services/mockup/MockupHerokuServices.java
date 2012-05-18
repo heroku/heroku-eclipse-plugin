@@ -18,6 +18,7 @@ import com.heroku.api.HerokuAPI;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.AppTemplate;
 
 /**
  * Pure mockup, development time service fake for the various heroku API calls
@@ -187,7 +188,45 @@ public class MockupHerokuServices implements HerokuServices {
 	 */
 	@Override
 	public boolean isReady() throws HerokuServiceException {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuServices#listTemplates()
+	 */
+	@Override
+	public List<AppTemplate> listTemplates() throws HerokuServiceException {
+		List<AppTemplate> templates = new ArrayList<AppTemplate>();
+		
+		AppTemplate a = new AppTemplate();
+		a.setDisplayName("Web app with Spring and Tomcat");
+		a.setTemplateName("template-java-spring-hibernate");
+		a.setLanguage("Java");
+		a.setId(1);
+		
+		AppTemplate b = new AppTemplate();
+		b.setDisplayName("Containerless web app with Embedded Jetty");
+		b.setTemplateName("template-java-embedded-jetty");
+		b.setLanguage("Java");
+		b.setId(2);
+		
+		AppTemplate c = new AppTemplate();
+		c.setDisplayName("Web app with Play! Framework");
+		c.setTemplateName("tempalte-java-play");
+		c.setLanguage("Java");
+		c.setId(3);
+		
+		AppTemplate d = new AppTemplate();
+		d.setDisplayName("RESTful API with JAX-RS");
+		d.setTemplateName("template-java-jaxrs");
+		d.setLanguage("Java");
+		d.setId(4);
+		
+		templates.add( a );
+		templates.add( b );
+		templates.add( c );
+		templates.add( d );
+		
+		return templates;
 	}
 }

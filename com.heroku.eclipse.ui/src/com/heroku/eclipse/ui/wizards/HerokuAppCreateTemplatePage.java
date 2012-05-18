@@ -9,15 +9,21 @@ import java.util.List;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -27,9 +33,9 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.osgi.service.log.LogService;
 
-import com.heroku.api.App;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
@@ -41,6 +47,12 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
  */
 public class HerokuAppCreateTemplatePage extends WizardPage {
 	private HerokuServices service;
+	private TableViewer viewer;
+	private Label lTemplateName;
+	private Text tAppsListing;
+	private Text tFrameworks;
+	private Text tDescription;
+	private Text tSearch;
 	
 	/**
 	 * @param pageName
@@ -86,19 +98,29 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				Label lSearch = new Label(group, SWT.NONE);
 				lSearch.setText(Messages.getString("HerokuAppCreateTemplatePage_Search")); //$NON-NLS-1$
 				
-				final Text tSearch = new Text(group, SWT.BORDER);
-				tSearch.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, false, 1, 1 ) );
-				tSearch.setTextLimit( 100 );
+				tSearch = new Text(group, SWT.BORDER | SWT.SEARCH | SWT.ICON_SEARCH );
+				GridData gd = new GridData( SWT.FILL, SWT.FILL, true, false, 1, 1 );
+				tSearch.setLayoutData( gd );
 				tSearch.addModifyListener(new ModifyListener() {
 					@Override
 					public void modifyText(ModifyEvent e) {
-						setErrorMessage(null);
-						setPageComplete(true);
-						if ( tSearch.getText() != null || ! tSearch.getText().trim().isEmpty() ) {
-							// TODO search ...
+						viewer.refresh();
+						Object o = viewer.getElementAt(0);
+						if ( o != null ) {
+							viewer.setSelection(new StructuredSelection(o));
 						}
 					}
 				});
+				
+				tSearch.addKeyListener(new KeyAdapter() {
+					@Override
+					public void keyPressed(KeyEvent e) {
+						if ( e.keyCode == SWT.ARROW_DOWN ) {
+							viewer.getControl().setFocus();
+						}
+					}
+				});
+				
 			}
 			
 			// template info
@@ -106,75 +128,59 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				Label lTemplate = new Label(group, SWT.NONE);
 				lTemplate.setText(Messages.getString("HerokuAppCreateTemplatePage_Template")); //$NON-NLS-1$
 				
-				Label lTemplateName = new Label( group, SWT.BOLD);
-				lTemplateName.setText("foobar Template");
+				lTemplateName = new Label( group, SWT.NONE);
+				FontData[] fd = lTemplateName.getFont().getFontData();
+				fd[0].setStyle(SWT.BOLD);
+				lTemplateName.setFont( new Font( lTemplateName.getDisplay(), fd[0] ) );
+				GridData gd = new GridData(SWT.LEFT);
+				gd.widthHint = 200;
+				lTemplateName.setLayoutData(gd);
 			}
 
 			// template listing
 			{
-				TableViewer viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
+				viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
 				viewer.setContentProvider(ArrayContentProvider.getInstance());
+				viewer.addFilter(new ViewerFilter() {
+					
+					@Override
+					public boolean select(Viewer viewer, Object parentElement, Object element) {
+						if ( tSearch.getText().isEmpty() ) {
+							return true;
+						}
+						else {
+							if ( ((AppTemplate)element).getDisplayName().toLowerCase().contains(tSearch.getText().toLowerCase() ) ) {
+								return true;
+							}
+						}
+						return false;
+					}
+				});
 				
 				Table table = viewer.getTable();
-				table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 6));
+				GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 6);
+				table.setLayoutData(gd);
 				table.setHeaderVisible(false);
+
 				{
 					TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
 					vc.setLabelProvider(new ColumnLabelProvider() {
 						@Override
 						public String getText(Object element) {
-							App app = (App) element;
-							return app.getName();
+							AppTemplate template = (AppTemplate) element;
+							return template.getDisplayName();
 						}
 					});
 					TableColumn tc = vc.getColumn();
-					tc.addSelectionListener(new SelectionListener() {
-						
-						@Override
-						public void widgetSelected(SelectionEvent e) {
-							System.err.println("selected");
-						}
-						
-						@Override
-						public void widgetDefaultSelected(SelectionEvent e) {
-							System.err.println("DEFAULT selected");
-						}
-					});
+					tc.setWidth(200);
 				}
-				
-				List<App> apps = new ArrayList<App>();
-				try {
-					apps = service.listApps();
-				}
-				catch (HerokuServiceException e) {
-					e.printStackTrace();
-					HerokuUtils.internalError(parent.getShell(), e);
-				}
-				
-				if ( apps.size() == 0 ) {
-					Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no application templates found"); //$NON-NLS-1$
-					setPageComplete(false);
-				}
-				else {
-					Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "displaying "+apps.size()+" templates"); //$NON-NLS-1$ //$NON-NLS-2$
-				}
-				
-				viewer.setInput(apps);
-				viewer.addSelectionChangedListener(new ISelectionChangedListener() {
-					
-					@Override
-					public void selectionChanged(SelectionChangedEvent event) {
-						setPageComplete(true);
-					}
-				});
 			}
 			
 			// template description
 			{
-				Text t = new Text( group, SWT.BORDER );
-				t.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 1));
-				t.setText("Template description");
-				t.setEnabled(false);
+				tDescription = new Text( group, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL );
+				tDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
+				tDescription.setEnabled(false);
 			}
 			
 			// frameworks
@@ -183,10 +189,9 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				lTemplate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 				lTemplate.setText(Messages.getString("HerokuAppCreateTemplatePage_TemplateFrameworksUsed")); //$NON-NLS-1$
 				
-				Text t = new Text( group, SWT.BORDER );
-				t.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
-				t.setText("frameworks listing");
-				t.setEnabled(false);
+				tFrameworks = new Text( group, SWT.BORDER );
+				tFrameworks.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+				tFrameworks.setEnabled(false);
 			}
 			
 			// addons
@@ -195,12 +200,38 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				lTemplate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 				lTemplate.setText(Messages.getString("HerokuAppCreateTemplatePage_TemplateAddons")); //$NON-NLS-1$
 				
-				Text t = new Text( group, SWT.BORDER);
-				t.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
-				t.setText("addon listing");
-				t.setEnabled(false);
+				tAppsListing = new Text( group, SWT.BORDER);
+				tAppsListing.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+				tAppsListing.setEnabled(false);
 			}
 			
+			List<AppTemplate> templates = new ArrayList<AppTemplate>();
+			try {
+				templates = service.listTemplates();
+			}
+			catch (HerokuServiceException e) {
+				e.printStackTrace();
+				HerokuUtils.internalError(parent.getShell(), e);
+			}
+			
+			if ( templates != null && templates.size() == 0 ) {
+				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no application templates found"); //$NON-NLS-1$
+				setPageComplete(false);
+			}
+			else {
+				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "displaying "+templates.size()+" templates"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			
+			viewer.setInput(templates);
+			viewer.addSelectionChangedListener(new ISelectionChangedListener() {
+				@Override
+				public void selectionChanged(SelectionChangedEvent event) {
+					final IStructuredSelection s = (IStructuredSelection) event.getSelection();
+					displayTemplateDetails((AppTemplate) s.getFirstElement());
+					
+					setPageComplete(true);
+				}
+			});
 		}
 
 	}
@@ -238,5 +269,33 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 		}
 
 		return isOk;
+	}
+
+	/**
+	 * @param template
+	 */
+	private void displayTemplateDetails(AppTemplate template) {
+		if ( template == null ) {
+			lTemplateName.setText(""); //$NON-NLS-1$
+			tDescription.setText(""); //$NON-NLS-1$
+			tFrameworks.setText(""); //$NON-NLS-1$
+		}
+		else {
+			lTemplateName.setText( template.getDisplayName());
+			tDescription.setText(template.getDisplayName());
+			tFrameworks.setText(template.getLanguage());
+		}
+		lTemplateName.getParent().layout();
+	}
+	
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.dialogs.DialogPage#setVisible(boolean)
+	 */
+	@Override
+	public void setVisible(boolean visible) {
+		super.setVisible(visible);
+		if ( visible ) {
+			tSearch.setFocus();
+		}
 	}
 }
