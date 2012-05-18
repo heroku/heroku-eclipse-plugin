@@ -21,11 +21,6 @@
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
 </listAttribute>
-<mapAttribute key="org.eclipse.debug.core.environmentVariables">
-<mapEntry key="HEROKU_TEST_APIKEY" value="26ffd03af21ed9822e9cd490ff6e7bdcf9bfa820"/>
-<mapEntry key="HEROKU_TEST_PWD" value="Iphoo5ei%"/>
-<mapEntry key="HEROKU_TEST_USERNAME" value="heroku.junit@bestsolution.at"/>
-</mapAttribute>
 <stringAttribute key="org.eclipse.jdt.junit.CONTAINER" value=""/>
 <booleanAttribute key="org.eclipse.jdt.junit.KEEPRUNNING_ATTR" value="false"/>
 <stringAttribute key="org.eclipse.jdt.junit.TESTNAME" value=""/>
