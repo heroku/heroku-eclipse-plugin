@@ -24,6 +24,7 @@ import com.heroku.api.exception.LoginFailedException;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.AppTemplate;
 
 /**
  * Services class for the Heroclipse plugin, providing access to essential
@@ -269,5 +270,13 @@ public class RestHerokuServices implements HerokuServices {
 		}
 
 		return isReady;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuServices#listTemplates()
+	 */
+	@Override
+	public List<AppTemplate> listTemplates() throws HerokuServiceException {
+		return null;
 	}
 }

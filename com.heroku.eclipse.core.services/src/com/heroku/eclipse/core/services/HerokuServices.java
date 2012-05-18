@@ -3,8 +3,8 @@ package com.heroku.eclipse.core.services;
 import java.util.List;
 
 import com.heroku.api.App;
-import com.heroku.api.Key;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.AppTemplate;
 
 /**
  * Interface defining how Heroclipse talks with the com.heroku.api.HerokuAPI API
@@ -16,12 +16,12 @@ public interface HerokuServices {
 	/**
 	 * Root topic of all heroku events
 	 */
-	public static final String ROOT_TOPIC = "com/heroku/eclipse/";
+	public static final String ROOT_TOPIC = "com/heroku/eclipse/"; //$NON-NLS-1$
 
 	/**
 	 * Root topic of all heroku core events
 	 */
-	public static final String ROOT_CORE_TOPIC = ROOT_TOPIC + "core/";
+	public static final String ROOT_CORE_TOPIC = ROOT_TOPIC + "core/"; //$NON-NLS-1$
 
 	/**
 	 * Event topic fired if a session is invalidated
@@ -29,14 +29,14 @@ public interface HerokuServices {
 	 * @see #KEY_SESSION_INSTANCE
 	 */
 	public static final String TOPIC_SESSION_INVALID = ROOT_CORE_TOPIC
-			+ "session/invalid";
+			+ "session/invalid"; //$NON-NLS-1$
 	/**
 	 * Event topic fired if a session a new session is created
 	 * 
 	 * @see #KEY_SESSION_INSTANCE
 	 */
 	public static final String TOPIC_SESSION_CREATED = ROOT_CORE_TOPIC
-			+ "session/created";
+			+ "session/created"; //$NON-NLS-1$
 
 	/**
 	 * Event key holding the session modified
@@ -44,13 +44,12 @@ public interface HerokuServices {
 	 * @see #TOPIC_SESSION_INVALID
 	 * @see #TOPIC_SESSION_CREATED
 	 */
-	public static final String KEY_SESSION_INSTANCE = "session";
+	public static final String KEY_SESSION_INSTANCE = "session"; //$NON-NLS-1$
 
 	/**
 	 * Logs into the Heroku account and if successful, returns the user's
 	 * associated API key. Invokes HerokuAPI.obtainApiKey
 	 * 
-	 * @see {@link com.heroku.api.HerokuAPI#obtainApiKey}
 	 * @param username
 	 * @param password
 	 * @return the Heroku API key
@@ -127,7 +126,7 @@ public interface HerokuServices {
 	public void validateAPIKey(String apiKey) throws HerokuServiceException;
 
 	/**
-	 * Validates if the fiven SSH public key well formated
+	 * Validates if the given SSH public key is well formated
 	 * 
 	 * @param sshKey
 	 *            the SSH key to validate
@@ -159,4 +158,11 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public boolean isReady() throws HerokuServiceException;
+	
+	/**
+	 * Delivers the available Heroku App templates 
+	 * @return the list of found application templates
+	 * @throws HerokuServiceException
+	 */
+	public List<AppTemplate> listTemplates() throws HerokuServiceException;
 }

@@ -16,6 +16,8 @@ import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -125,6 +127,19 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 							return app.getName();
 						}
 					});
+					TableColumn tc = vc.getColumn();
+					tc.addSelectionListener(new SelectionListener() {
+						
+						@Override
+						public void widgetSelected(SelectionEvent e) {
+							System.err.println("selected");
+						}
+						
+						@Override
+						public void widgetDefaultSelected(SelectionEvent e) {
+							System.err.println("DEFAULT selected");
+						}
+					});
 				}
 				
 				List<App> apps = new ArrayList<App>();
@@ -137,11 +152,11 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				}
 				
 				if ( apps.size() == 0 ) {
-					Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no applications found"); //$NON-NLS-1$
+					Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no application templates found"); //$NON-NLS-1$
 					setPageComplete(false);
 				}
 				else {
-					Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "found "+apps.size()+" applications, displaying"); //$NON-NLS-1$ //$NON-NLS-2$
+					Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "displaying "+apps.size()+" templates"); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				
 				viewer.setInput(apps);
