@@ -1,6 +1,7 @@
 package com.heroku.eclipse.core.services.rest;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +22,7 @@ import org.osgi.service.prefs.BackingStoreException;
 import com.heroku.api.App;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.exception.LoginFailedException;
+import com.heroku.api.exception.RequestFailedException;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
@@ -171,8 +173,13 @@ public class RestHerokuServices implements HerokuServices {
 			HerokuAPI api = new HerokuAPI(apiKey);
 			api.listApps();
 		} catch (Throwable e) {
-			//TODO We should analyze for the exception type and HTTP-Error code to investigate the problem
-			throw new HerokuServiceException(HerokuServiceException.INVALID_API_KEY, e);
+			// 401 = invalid API key
+			if ( e.getClass().equals( RequestFailedException.class ) && ((RequestFailedException) e).getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED ) {
+				throw new HerokuServiceException(HerokuServiceException.INVALID_API_KEY, e);
+			}
+			else {
+				throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e);
+			}
 		}
 	}
 

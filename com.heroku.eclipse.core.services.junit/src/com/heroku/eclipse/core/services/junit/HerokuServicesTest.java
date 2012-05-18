@@ -123,11 +123,19 @@ public class HerokuServicesTest extends TestCase {
 		HerokuServices h = getService();
 		assertNull(h.getSSHKey());
 		try {
-			h.setSSHKey("TBD");
+			h.setSSHKey(Credentials.VALID_PUBLIC_SSH_KEY1);
+		} catch (HerokuServiceException e) {
+			assertEquals("SSH key must not be settable w/o API key", HerokuServiceException.NO_API_KEY, e.getErrorCode());
+		}
+		
+		try {
+			h.setAPIKey(VALID_JUNIT_APIKEY);
+			h.setSSHKey(Credentials.VALID_PUBLIC_SSH_KEY1);
 		} catch (HerokuServiceException e) {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
+		
 		assertNotNull(h.getSSHKey());
 		
 		try {

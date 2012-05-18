@@ -92,7 +92,8 @@ public interface HerokuServices {
 	public String getSSHKey();
 
 	/**
-	 * Store the SSH key in the global eclipse preferences
+	 * Stores the SSH key both in the global eclipse preferences and in
+	 * the user's account
 	 * 
 	 * @param sshKey
 	 *            the SSH key, might be <code>null</code> to reset it

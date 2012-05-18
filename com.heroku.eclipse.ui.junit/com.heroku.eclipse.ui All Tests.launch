@@ -36,7 +36,7 @@
 <booleanAttribute key="run_in_ui_thread" value="true"/>
 <setAttribute key="selected_features">
 <setEntry value="com.heroku.eclipse.feature:default"/>
-<setEntry value="org.eclipse.equinox.executable:default"/>
+<setEntry value="org.eclipse.sdk:default"/>
 <setEntry value="org.eclipse.swtbot.eclipse.test.junit4:default"/>
 <setEntry value="org.eclipse.swtbot.eclipse:default"/>
 <setEntry value="org.eclipse.swtbot.forms:default"/>

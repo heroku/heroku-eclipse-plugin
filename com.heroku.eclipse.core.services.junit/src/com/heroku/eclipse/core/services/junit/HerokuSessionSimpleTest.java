@@ -17,10 +17,12 @@ public class HerokuSessionSimpleTest extends HerokuSessionTest {
 	}
 	
 	public void testIsNotValid() throws HerokuServiceException {
-		getService().setAPIKey("bla");
-		HerokuSession session = getSession();
-		
-		assertEquals("The session is expected to be invalid", false, session.isValid());
+		try {
+			getService().setAPIKey("bla");
+		}
+		catch ( HerokuServiceException e ) {
+			assertEquals("Setting an invalid API key must fail", HerokuServiceException.INVALID_API_KEY, e.getErrorCode() );
+		}
 	}
 	
 }
