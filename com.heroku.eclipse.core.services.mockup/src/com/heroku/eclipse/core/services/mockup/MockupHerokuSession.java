@@ -24,9 +24,13 @@ public class MockupHerokuSession implements HerokuSession {
 
 	@Override
 	public List<App> listApps() throws HerokuServiceException {
-		ArrayList<App> list = new ArrayList<App>();
+		App oneApp = new App();
 		
-		return list;
+		oneApp.named("foobar");
+		List<App> apps = new ArrayList<App>();
+		apps.add(oneApp);
+		
+		return apps;
 	}
 
 	@Override
