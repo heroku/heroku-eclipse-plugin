@@ -3,9 +3,12 @@
  */
 package com.heroku.eclipse.ui.wizards;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -31,6 +34,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PlatformUI;
 import org.osgi.service.log.LogService;
 
 import com.heroku.eclipse.core.constants.AppCreateConstants;
@@ -79,7 +83,7 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 	public void createControl(Composite parent) {
 		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening app create wizard, templates listing page"); //$NON-NLS-1$
 		
-		Composite group = new Composite(parent, SWT.NONE);
+		final Composite group = new Composite(parent, SWT.NONE);
 		group.setLayout(new GridLayout(4, false));
 		setControl(group);
 		
@@ -211,28 +215,52 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				tAddons.setEnabled(false);
 			}
 			
-			List<AppTemplate> templates = new ArrayList<AppTemplate>();
 			try {
-				templates = service.listTemplates();
+				PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
+					
+					@Override
+					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						group.getDisplay().asyncExec(new Runnable() {
+							
+							@Override
+							public void run() {
+								try {
+									List<AppTemplate> templates = service.listTemplates();
+									
+									if ( templates != null && templates.size() == 0 ) {
+										Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no application templates found"); //$NON-NLS-1$
+										setPageComplete(false);
+									}
+									else {
+										Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "displaying "+templates.size()+" templates"); //$NON-NLS-1$ //$NON-NLS-2$
+									}
+									
+									viewer.setInput(templates);
+								}
+								catch (HerokuServiceException e) {
+									if ( e.getErrorCode() == HerokuServiceException.REQUEST_FAILED ) {
+										HerokuUtils.herokuError(group.getShell(), e);
+									}
+									else {
+										HerokuUtils.internalError(group.getShell(), e);
+									}
+								}
+							}
+						});
+					}
+				});
 			}
-			catch (HerokuServiceException e) {
-				if ( e.getErrorCode() == HerokuServiceException.REQUEST_FAILED ) {
-					HerokuUtils.herokuError(parent.getShell(), e);
-				}
-				else {
-					HerokuUtils.internalError(parent.getShell(), e);
-				}
+			catch (InvocationTargetException e1) {
+				e1.printStackTrace();
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unable to fetch templates due to unknown internal error!" );
+				HerokuUtils.internalError(parent.getShell(), e1);
+			}
+			catch (InterruptedException e1) {
+				e1.printStackTrace();
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unable to fetch templates due to unknown internal error!" );
+				HerokuUtils.internalError(parent.getShell(), e1);
 			}
 			
-			if ( templates != null && templates.size() == 0 ) {
-				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no application templates found"); //$NON-NLS-1$
-				setPageComplete(false);
-			}
-			else {
-				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "displaying "+templates.size()+" templates"); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			
-			viewer.setInput(templates);
 			viewer.addSelectionChangedListener(new ISelectionChangedListener() {
 				@Override
 				public void selectionChanged(SelectionChangedEvent event) {
