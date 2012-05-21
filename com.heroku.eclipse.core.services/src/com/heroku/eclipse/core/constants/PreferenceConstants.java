@@ -1,7 +1,8 @@
 package com.heroku.eclipse.core.constants;
 
 /**
- * Constants representing keys of preferences and GUI widgets 
+ * Constants representing keys of preferences and GUI widgets, used
+ * for service, GUI and testing purposes 
  * @author udo.rader@bestsolution.at
  */
 public class PreferenceConstants {
