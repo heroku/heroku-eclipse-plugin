@@ -252,12 +252,12 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 			}
 			catch (InvocationTargetException e1) {
 				e1.printStackTrace();
-				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unable to fetch templates due to unknown internal error!" );
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unable to fetch templates due to unknown internal error!" ); //$NON-NLS-1$
 				HerokuUtils.internalError(parent.getShell(), e1);
 			}
 			catch (InterruptedException e1) {
 				e1.printStackTrace();
-				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unable to fetch templates due to unknown internal error!" );
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unable to fetch templates due to unknown internal error!" ); //$NON-NLS-1$
 				HerokuUtils.internalError(parent.getShell(), e1);
 			}
 			
