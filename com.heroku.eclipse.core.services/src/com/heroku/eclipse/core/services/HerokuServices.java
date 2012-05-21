@@ -37,6 +37,11 @@ public interface HerokuServices {
 	 */
 	public static final String TOPIC_SESSION_CREATED = ROOT_CORE_TOPIC
 			+ "session/created"; //$NON-NLS-1$
+	
+	/**
+	 * Key used for all widgets of the project
+	 */
+	public static final String ROOT_WIDGET_ID = "com.heroku.eclipse.identifier";
 
 	/**
 	 * Event key holding the session modified

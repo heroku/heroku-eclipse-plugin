@@ -5,6 +5,7 @@ import junit.framework.Assert;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.junit.SWTBotJunit4ClassRunner;
+import org.eclipse.swtbot.swt.finder.utils.SWTBotPreferences;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
@@ -15,12 +16,19 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.ui.junit.util.Eclipse;
+
+import constants.PreferenceConstants;
 
 @RunWith(SWTBotJunit4ClassRunner.class)
 public class Preferences {
 
 	private static final SWTWorkbenchBot bot = new SWTWorkbenchBot();
+	
+	{
+		SWTBotPreferences.DEFAULT_KEY = HerokuServices.ROOT_WIDGET_ID;
+	}
 	
 	private SWTBotShell preferencePage;
 	
@@ -30,24 +38,22 @@ public class Preferences {
 		preferencePage = new Eclipse().openPreferencePage(preferencePage);
 		SWTBotTreeItem herokuItem = preferencePage.bot().tree().getTreeItem("Heroku");
 		herokuItem.select();
-		
-		
 	}
 	
 	private SWTBotText textApiKey() {
-		return preferencePage.bot().text(3);
+		return preferencePage.bot().textWithId(PreferenceConstants.P_API_KEY);
 	}
 	
 	private SWTBotText textUsername() {
-		return preferencePage.bot().text(1);
+		return preferencePage.bot().text(PreferenceConstants.P_EMAIL);
 	}
 	
 	private SWTBotText textPassword() {
-		return preferencePage.bot().text(2);
+		return preferencePage.bot().text(PreferenceConstants.P_PASSWORD);
 	}
 	
 	private SWTBotButton buttonGetApiKey() {
-		return preferencePage.bot().button("Get API Key");
+		return preferencePage.bot().button(PreferenceConstants.B_FETCH_API_KEY);
 	}
 	
 	private static class TextChangeCondition implements ICondition {
@@ -79,10 +85,10 @@ public class Preferences {
 	
 	@Test
 	public void testInvalidLogin() throws InterruptedException {
-		textApiKey().setText(""); // first remove the api key
+		textApiKey().setText("blabla"); // first remove the api key
 		
-		textUsername().typeText("bli");
-		textPassword().typeText("bla");
+		textUsername().setText("bli");
+		textPassword().setText("bla");
 		buttonGetApiKey().click();
 		
 		bot.waitUntil(new TextChangeCondition(textApiKey()), 5000); // wait for the response
@@ -94,8 +100,8 @@ public class Preferences {
 	public void testValidLogin() throws InterruptedException {
 		textApiKey().setText(""); // first remove the api key
 		
-		textUsername().typeText(Credentials.VALID_JUNIT_USER);
-		textPassword().typeText(Credentials.VALID_JUNIT_PWD);
+		textUsername().setText(Credentials.VALID_JUNIT_USER);
+		textPassword().setText(Credentials.VALID_JUNIT_PWD);
 		buttonGetApiKey().click();
 		
 		bot.waitUntil(new TextChangeCondition(textApiKey()), 5000); // wait for the response

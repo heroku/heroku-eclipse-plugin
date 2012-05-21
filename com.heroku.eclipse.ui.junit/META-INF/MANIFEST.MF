@@ -6,6 +6,7 @@ Bundle-Version: 0.1.0.qualifier
 Bundle-Vendor: HEROKU
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Require-Bundle: org.eclipse.swtbot.go,
- com.heroku.eclipse.ui;bundle-version="0.1.0"
+ com.heroku.eclipse.ui;bundle-version="0.1.0",
+ com.heroku.eclipse.core.services;bundle-version="0.1.0"
 Eclipse-RegisterBuddy: org.apache.log4j
 Bundle-ActivationPolicy: lazy

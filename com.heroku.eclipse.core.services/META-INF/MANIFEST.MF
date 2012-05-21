@@ -7,5 +7,6 @@ Bundle-Vendor: HEROKU
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Export-Package: com.heroku.eclipse.core.services,
  com.heroku.eclipse.core.services.exceptions,
- com.heroku.eclipse.core.services.model
+ com.heroku.eclipse.core.services.model,
+ constants
 Require-Bundle: com.heroku.api;bundle-version="0.7.0"
