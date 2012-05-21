@@ -30,13 +30,6 @@ public class HerokuAppCreateNamePage extends WizardPage {
 	private HerokuServices service;
 	
 	/**
-	 * @param pageName
-	 */
-	protected HerokuAppCreateNamePage(String pageName) {
-		super(pageName);
-	}
-
-	/**
 	 * 
 	 */
 	public HerokuAppCreateNamePage() {

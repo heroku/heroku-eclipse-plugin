@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="heroku-api-0.8.jar"/>
+	<classpathentry exported="true" kind="lib" path="heroku-api-0.8.jar" sourcepath="/home/udo/.m2/repository/com/heroku/api/heroku-api/0.8/heroku-api-0.8-sources.jar"/>
 	<classpathentry exported="true" kind="lib" path="heroku-http-apache-0.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="heroku-json-jackson-0.8.jar"/>
 	<classpathentry exported="true" kind="lib" path="commons-codec-1.4.jar"/>

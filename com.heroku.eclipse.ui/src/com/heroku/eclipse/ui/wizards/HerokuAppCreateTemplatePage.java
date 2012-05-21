@@ -60,13 +60,6 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 	private Text tSearch;
 	
 	/**
-	 * @param pageName
-	 */
-	protected HerokuAppCreateTemplatePage(String pageName) {
-		super(pageName);
-	}
-
-	/**
 	 * 
 	 */
 	public HerokuAppCreateTemplatePage() {
@@ -215,6 +208,7 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				tAddons.setEnabled(false);
 			}
 			
+			// async fetching of templates
 			try {
 				PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
 					

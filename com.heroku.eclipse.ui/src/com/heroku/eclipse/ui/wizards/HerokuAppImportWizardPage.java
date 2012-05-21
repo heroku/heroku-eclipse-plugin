@@ -38,14 +38,6 @@ public class HerokuAppImportWizardPage extends WizardPage {
 	private HerokuServices service;
 	
 	/**
-	 * @param pageName
-	 */
-	protected HerokuAppImportWizardPage(String pageName) {
-		super(pageName);
-		// TODO Auto-generated constructor stub
-	}
-
-	/**
 	 * 
 	 */
 	public HerokuAppImportWizardPage() {
