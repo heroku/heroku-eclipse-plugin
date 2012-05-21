@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.osgi.service.log.LogService;
 
+import com.heroku.eclipse.core.constants.AppCreateConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
@@ -49,7 +50,7 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 	private HerokuServices service;
 	private TableViewer viewer;
 	private Label lTemplateName;
-	private Text tAppsListing;
+	private Text tAddons;
 	private Text tFrameworks;
 	private Text tDescription;
 	private Text tSearch;
@@ -101,6 +102,7 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				tSearch = new Text(group, SWT.BORDER | SWT.SEARCH | SWT.ICON_SEARCH );
 				GridData gd = new GridData( SWT.FILL, SWT.FILL, true, false, 1, 1 );
 				tSearch.setLayoutData( gd );
+				tSearch.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.T_SEARCH);
 				tSearch.addModifyListener(new ModifyListener() {
 					@Override
 					public void modifyText(ModifyEvent e) {
@@ -141,6 +143,7 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 			{
 				viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
 				viewer.setContentProvider(ArrayContentProvider.getInstance());
+				viewer.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.V_TEMPLATES_LIST);
 				viewer.addFilter(new ViewerFilter() {
 					
 					@Override
@@ -180,6 +183,7 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 			{
 				tDescription = new Text( group, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL );
 				tDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
+				tDescription.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.T_DESCRIPTION);
 				tDescription.setEnabled(false);
 			}
 			
@@ -191,6 +195,7 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				
 				tFrameworks = new Text( group, SWT.BORDER );
 				tFrameworks.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+				tFrameworks.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.T_FRAMEWORKS);
 				tFrameworks.setEnabled(false);
 			}
 			
@@ -200,9 +205,10 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				lTemplate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 				lTemplate.setText(Messages.getString("HerokuAppCreateTemplatePage_TemplateAddons")); //$NON-NLS-1$
 				
-				tAppsListing = new Text( group, SWT.BORDER);
-				tAppsListing.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
-				tAppsListing.setEnabled(false);
+				tAddons = new Text( group, SWT.BORDER);
+				tAddons.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+				tAddons.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.T_ADDONS);
+				tAddons.setEnabled(false);
 			}
 			
 			List<AppTemplate> templates = new ArrayList<AppTemplate>();

@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.osgi.service.log.LogService;
 
+import com.heroku.eclipse.core.constants.AppCreateConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
@@ -73,6 +74,7 @@ public class HerokuAppCreateNamePage extends WizardPage {
 			final Text t = new Text(group, SWT.BORDER);
 			t.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, false, 1, 1 ) );
 			t.setTextLimit( 100 );
+			t.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.C_APP_NAME);
 			t.addModifyListener(new ModifyListener() {
 				
 				@Override

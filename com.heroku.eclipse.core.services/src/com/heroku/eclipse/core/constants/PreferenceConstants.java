@@ -1,10 +1,11 @@
 package com.heroku.eclipse.core.constants;
 
 /**
- * Constants representing keys of preferences and GUI widgets, used
+ * Constants representing IDs of preferences and GUI widgets, used
  * for service, GUI and testing purposes 
  * @author udo.rader@bestsolution.at
  */
+@SuppressWarnings("javadoc")
 public class PreferenceConstants {
 	public static final String P_EMAIL = "emailPreference"; //$NON-NLS-1$
 	public static final String P_PASSWORD = "passwordPreference"; //$NON-NLS-1$

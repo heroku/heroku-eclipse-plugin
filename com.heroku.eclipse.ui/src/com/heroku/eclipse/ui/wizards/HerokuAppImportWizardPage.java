@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
+import com.heroku.eclipse.core.constants.AppImportConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
@@ -75,6 +76,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 		else {
 			TableViewer viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
 			viewer.setContentProvider(ArrayContentProvider.getInstance());
+			viewer.setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.V_APPS_LIST);
 			
 			Table table = viewer.getTable();
 			GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
