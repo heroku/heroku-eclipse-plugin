@@ -16,10 +16,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.heroku.eclipse.core.constants.PreferenceConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.ui.junit.util.Eclipse;
-
-import constants.PreferenceConstants;
 
 @RunWith(SWTBotJunit4ClassRunner.class)
 public class Preferences {

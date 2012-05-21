@@ -41,13 +41,13 @@ import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 import org.osgi.service.log.LogService;
 import org.osgi.service.prefs.BackingStoreException;
 
+import com.heroku.eclipse.core.constants.PreferenceConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 
-import constants.PreferenceConstants;
 
 /**
  * The preferences page for the Heroclipse plugin

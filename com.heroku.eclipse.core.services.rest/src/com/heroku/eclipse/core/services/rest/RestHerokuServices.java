@@ -23,12 +23,12 @@ import com.heroku.api.App;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.exception.LoginFailedException;
 import com.heroku.api.exception.RequestFailedException;
+import com.heroku.eclipse.core.constants.PreferenceConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 
-import constants.PreferenceConstants;
 
 /**
  * Services class for the Heroclipse plugin, providing access to essential

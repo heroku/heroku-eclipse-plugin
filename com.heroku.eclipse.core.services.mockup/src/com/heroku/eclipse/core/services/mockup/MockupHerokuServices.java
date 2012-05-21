@@ -15,10 +15,12 @@ import org.osgi.service.prefs.BackingStoreException;
 
 import com.heroku.api.App;
 import com.heroku.api.HerokuAPI;
+import com.heroku.eclipse.core.constants.PreferenceConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
+
 
 /**
  * Pure mockup, development time service fake for the various heroku API calls
@@ -33,9 +35,6 @@ public class MockupHerokuServices implements HerokuServices {
 	
 	private String apiKey;
 	
-	private static final String PREF_API_KEY = "apiKey"; //$NON-NLS-1$
-	private static final String PREF_SSH_KEY = "sshKey"; //$NON-NLS-1$
-
 	private void sleep() {
 		try {
 			Thread.sleep(5000);
@@ -60,7 +59,7 @@ public class MockupHerokuServices implements HerokuServices {
 		// invalidate session
 		String apiKey = null;
 		try {
-			apiKey = getSecurePreferences().get(PREF_API_KEY, null);
+			apiKey = getSecurePreferences().get(PreferenceConstants.P_API_KEY, null);
 		}
 		catch (StorageException e) {
 			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR, "secure store unavailable", e); //$NON-NLS-1$
@@ -80,7 +79,7 @@ public class MockupHerokuServices implements HerokuServices {
 	public String getAPIKey() throws HerokuServiceException {
 		String apiKey = null;
 		try {
-			apiKey = getSecurePreferences().get(PREF_API_KEY, null);
+			apiKey = getSecurePreferences().get(PreferenceConstants.P_API_KEY, null);
 		}
 		catch (StorageException e) {
 			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR,e);
@@ -91,7 +90,7 @@ public class MockupHerokuServices implements HerokuServices {
 
 	@Override
 	public String getSSHKey() {
-		return getPreferences().get(PREF_SSH_KEY, null);
+		return getPreferences().get(PreferenceConstants.P_SSH_KEY, null);
 	}
 	
 	
@@ -99,9 +98,9 @@ public class MockupHerokuServices implements HerokuServices {
 		try {
 			IEclipsePreferences p = getPreferences();
 			if( sshKey == null ) {
-				p.remove(PREF_SSH_KEY);
+				p.remove(PreferenceConstants.P_SSH_KEY);
 			} else {
-				p.put(PREF_SSH_KEY, sshKey);	
+				p.put(PreferenceConstants.P_SSH_KEY, sshKey);	
 			}
 			p.flush();
 		} catch (BackingStoreException e) {
@@ -114,10 +113,10 @@ public class MockupHerokuServices implements HerokuServices {
 		try {
 			ISecurePreferences s = getSecurePreferences();
 			if( apiKey == null ) {
-				s.remove(PREF_API_KEY);
+				s.remove(PreferenceConstants.P_API_KEY);
 			} else {
 				validateAPIKey(apiKey);
-				s.put(PREF_API_KEY, apiKey.trim(), true);
+				s.put(PreferenceConstants.P_API_KEY, apiKey.trim(), true);
 			}
 			s.flush();
 			invalidateSession();

@@ -1,4 +1,4 @@
-package constants;
+package com.heroku.eclipse.core.constants;
 
 /**
  * Constants representing keys of preferences and GUI widgets 
