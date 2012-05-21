@@ -2,16 +2,16 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Api
 Bundle-SymbolicName: com.heroku.api
-Bundle-Version: 0.7.0
+Bundle-Version: 0.8.0
 Bundle-ClassPath: commons-codec-1.4.jar,
  commons-logging-1.1.1.jar,
- heroku-api-0.7.jar,
- heroku-http-apache-0.7.jar,
- heroku-json-jackson-0.7.jar,
  httpclient-4.1.2.jar,
  httpcore-4.1.2.jar,
  jackson-core-asl-1.9.2.jar,
- jackson-mapper-asl-1.9.2.jar
+ jackson-mapper-asl-1.9.2.jar,
+ heroku-api-0.8.jar,
+ heroku-http-apache-0.8.jar,
+ heroku-json-jackson-0.8.jar
 Export-Package: com.heroku.api,
  com.heroku.api.connection,
  com.heroku.api.exception,
@@ -30,5 +30,31 @@ Export-Package: com.heroku.api,
  com.heroku.api.request.sharing,
  com.heroku.api.request.stack,
  com.heroku.api.request.user,
- com.heroku.api.response
+ com.heroku.api.response,
+ org.codehaus.jackson,
+ org.codehaus.jackson.annotate,
+ org.codehaus.jackson.format,
+ org.codehaus.jackson.impl,
+ org.codehaus.jackson.io,
+ org.codehaus.jackson.map,
+ org.codehaus.jackson.map.annotate,
+ org.codehaus.jackson.map.deser,
+ org.codehaus.jackson.map.deser.impl,
+ org.codehaus.jackson.map.deser.std,
+ org.codehaus.jackson.map.exc,
+ org.codehaus.jackson.map.ext,
+ org.codehaus.jackson.map.introspect,
+ org.codehaus.jackson.map.jsontype,
+ org.codehaus.jackson.map.jsontype.impl,
+ org.codehaus.jackson.map.module,
+ org.codehaus.jackson.map.ser,
+ org.codehaus.jackson.map.ser.impl,
+ org.codehaus.jackson.map.ser.std,
+ org.codehaus.jackson.map.type,
+ org.codehaus.jackson.map.util,
+ org.codehaus.jackson.node,
+ org.codehaus.jackson.schema,
+ org.codehaus.jackson.sym,
+ org.codehaus.jackson.type,
+ org.codehaus.jackson.util
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
