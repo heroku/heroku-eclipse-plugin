@@ -45,15 +45,15 @@ public class Preferences {
 	}
 	
 	private SWTBotText textUsername() {
-		return preferencePage.bot().text(PreferenceConstants.P_EMAIL);
+		return preferencePage.bot().textWithId(PreferenceConstants.P_EMAIL);
 	}
 	
 	private SWTBotText textPassword() {
-		return preferencePage.bot().text(PreferenceConstants.P_PASSWORD);
+		return preferencePage.bot().textWithId(PreferenceConstants.P_PASSWORD);
 	}
 	
 	private SWTBotButton buttonGetApiKey() {
-		return preferencePage.bot().button(PreferenceConstants.B_FETCH_API_KEY);
+		return preferencePage.bot().buttonWithId(PreferenceConstants.B_FETCH_API_KEY);
 	}
 	
 	private static class TextChangeCondition implements ICondition {

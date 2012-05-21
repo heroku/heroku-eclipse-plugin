@@ -28,6 +28,8 @@ import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 
+import constants.PreferenceConstants;
+
 /**
  * Services class for the Heroclipse plugin, providing access to essential
  * methods of the com.heroku.api.HerokuAPI class
@@ -39,9 +41,9 @@ public class RestHerokuServices implements HerokuServices {
 	private IEclipsePreferences preferences;
 	private ISecurePreferences securePreferences;
 	
-	private static final String PREF_API_KEY = "apiKey"; //$NON-NLS-1$
-	private static final String PREF_SSH_KEY = "sshKey"; //$NON-NLS-1$
-	
+//	private static final String PREF_API_KEY = "apiKey"; //$NON-NLS-1$
+//	private static final String PREF_SSH_KEY = "sshKey"; //$NON-NLS-1$
+//	
 	private EventAdmin eventAdmin;
 	
 	/**
@@ -77,7 +79,7 @@ public class RestHerokuServices implements HerokuServices {
 	public HerokuSession getOrCreateHerokuSession() throws HerokuServiceException {
 		String apiKey = null;
 		try {
-			apiKey = getSecurePreferences().get(PREF_API_KEY, null);
+			apiKey = getSecurePreferences().get(PreferenceConstants.P_API_KEY, null);
 		}
 		catch (StorageException e) {
 			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR, "unable to access secure store", null); //$NON-NLS-1$
@@ -104,7 +106,7 @@ public class RestHerokuServices implements HerokuServices {
 	public String getAPIKey() throws HerokuServiceException {
 		String apiKey = null;
 		try {
-			apiKey = getSecurePreferences().get(PREF_API_KEY, null);
+			apiKey = getSecurePreferences().get(PreferenceConstants.P_SSH_KEY, null);
 		}
 		catch (StorageException e) {
 			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR,e);
@@ -115,18 +117,18 @@ public class RestHerokuServices implements HerokuServices {
 
 	@Override
 	public String getSSHKey() {
-		return getPreferences().get(PREF_SSH_KEY, null);
+		return getPreferences().get(PreferenceConstants.P_SSH_KEY, null);
 	}
 	
 	public void setSSHKey(String sshKey) throws HerokuServiceException {
 		try {
 			IEclipsePreferences p = getPreferences();
 			if( sshKey == null || sshKey.trim().isEmpty() ) {
-				p.remove(PREF_SSH_KEY);
+				p.remove(PreferenceConstants.P_SSH_KEY);
 			} else if ( ! sshKey.equals(getSSHKey())) {
 				validateSSHKey(sshKey);
 				getOrCreateHerokuSession().addSSHKey(sshKey);
-				p.put(PREF_SSH_KEY, sshKey);
+				p.put(PreferenceConstants.P_SSH_KEY, sshKey);
 			}
 			p.flush();
 		} 
@@ -142,13 +144,13 @@ public class RestHerokuServices implements HerokuServices {
 			boolean modified = false;
 			ISecurePreferences p = getSecurePreferences();
 			if( apiKey == null || apiKey.trim().isEmpty() ) {
-				p.remove(PREF_API_KEY);
+				p.remove(PreferenceConstants.P_API_KEY);
 				modified = true;
 			} else {
 				apiKey = apiKey.trim();
 				if( ! apiKey.equals(getAPIKey()) ) {
 					validateAPIKey(apiKey);
-					p.put(PREF_API_KEY, apiKey, true);
+					p.put(PreferenceConstants.P_API_KEY, apiKey, true);
 					modified = true;
 				}
 			}
