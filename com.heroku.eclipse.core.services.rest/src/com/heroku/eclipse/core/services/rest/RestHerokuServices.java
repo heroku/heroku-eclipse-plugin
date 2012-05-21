@@ -106,7 +106,7 @@ public class RestHerokuServices implements HerokuServices {
 	public String getAPIKey() throws HerokuServiceException {
 		String apiKey = null;
 		try {
-			apiKey = getSecurePreferences().get(PreferenceConstants.P_SSH_KEY, null);
+			apiKey = getSecurePreferences().get(PreferenceConstants.P_API_KEY, null);
 		}
 		catch (StorageException e) {
 			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR,e);
