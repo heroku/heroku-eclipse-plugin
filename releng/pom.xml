@@ -24,27 +24,27 @@
 	<modules>
 		<module>../com.heroku.api</module>
 		<module>../com.heroku.eclipse.core.services</module>
-		<!-- >module>../com.heroku.eclipse.core.services.mockup</module -->
+		<!-- module>../com.heroku.eclipse.core.services.mockup</module -->
 		<module>../com.heroku.eclipse.core.services.rest</module>
 		<module>../com.heroku.eclipse.ui</module>
 		
 		<module>../com.heroku.eclipse.feature</module>
 		<module>../com.heroku.eclipse.updatesite</module>
 		
-		<!--<module>../com.heroku.eclipse.core.services.junit</module>-->
-		<!--<module>../com.heroku.eclipse.ui.junit</module> -->
+		<module>../com.heroku.eclipse.core.services.junit</module>
+		<module>../com.heroku.eclipse.ui.junit</module>
 	</modules>
 
 	<repositories>
 		<repository>
 			<id>platform</id>
 			<layout>p2</layout>
-			<url>file:///var/lib/jenkins/eclipse/targets/heroku/platform-37</url>
+			<url>${env.HEROKU_TARGET}platform-37</url>
 		</repository>
 		<repository>
 			<id>jdt</id>
 			<layout>p2</layout>
-			<url>file:///var/lib/jenkins/eclipse/targets/heroku/jdt-37</url>
+			<url>${env.HEROKU_TARGET}jdt-37</url>
 		</repository>
 		<repository>
 			<id>swtbot</id>
