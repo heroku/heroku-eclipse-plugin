@@ -33,16 +33,16 @@ public class HerokuSessionSshKeyTest extends HerokuSessionTest {
 		removeAllKeys(session);
 	}
 	
-//	public void testAddInvalidKey() {
-//		HerokuSession session = getSession();
-//		try {
-//			session.addSSHKey(Credentials.INVALID_PUBLIC_SSH_KEY1);
-//			fail("Invalid SSH Key should not be accepted");
-//		}
-//		catch (HerokuServiceException e) {
-//			assertEquals("expecting request failed", HerokuServiceException.REQUEST_FAILED, e.getErrorCode());
-//		}
-//	}
+	public void testAddInvalidKey() {
+		HerokuSession session = getSession();
+		try {
+			session.addSSHKey(Credentials.INVALID_PUBLIC_SSH_KEY1);
+			fail("Invalid SSH Key should not be accepted");
+		}
+		catch (HerokuServiceException e) {
+			assertEquals("expecting request failed", HerokuServiceException.REQUEST_FAILED, e.getErrorCode());
+		}
+	}
 	
 	public void testAddValidKey() {
 		HerokuSession session = getSession();
@@ -64,16 +64,16 @@ public class HerokuSessionSshKeyTest extends HerokuSessionTest {
 		}
 	}
 	
-//	public void testRemoveInvalidKey() {
-//		HerokuSession session = getSession();
-//		try {
-//			session.removeSSHKey(Credentials.VALID_PUBLIC_SSH_KEY2_DESCRIPTION);
-//			fail("expected remove request to fail");
-//		}
-//		catch (HerokuServiceException e) {
-//			assertEquals("expected not found error", HerokuServiceException.NOT_FOUND, e.getErrorCode());
-//		}
-//	}
+	public void testRemoveInvalidKey() {
+		HerokuSession session = getSession();
+		try {
+			session.removeSSHKey(Credentials.VALID_PUBLIC_SSH_KEY2_DESCRIPTION);
+			fail("expected remove request to fail");
+		}
+		catch (HerokuServiceException e) {
+			assertEquals("expected not found error", HerokuServiceException.NOT_FOUND, e.getErrorCode());
+		}
+	}
 	
 	public void testListKeys() {
 		HerokuSession session = getSession();
