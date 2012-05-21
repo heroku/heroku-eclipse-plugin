@@ -216,8 +216,12 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				templates = service.listTemplates();
 			}
 			catch (HerokuServiceException e) {
-				e.printStackTrace();
-				HerokuUtils.internalError(parent.getShell(), e);
+				if ( e.getErrorCode() == HerokuServiceException.REQUEST_FAILED ) {
+					HerokuUtils.herokuError(parent.getShell(), e);
+				}
+				else {
+					HerokuUtils.internalError(parent.getShell(), e);
+				}
 			}
 			
 			if ( templates != null && templates.size() == 0 ) {

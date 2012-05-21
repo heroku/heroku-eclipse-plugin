@@ -2,6 +2,8 @@ package com.heroku.eclipse.core.services.rest;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +11,10 @@ import java.util.Map;
 
 import javax.xml.bind.DatatypeConverter;
 
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.type.TypeReference;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
@@ -24,11 +30,11 @@ import com.heroku.api.HerokuAPI;
 import com.heroku.api.exception.LoginFailedException;
 import com.heroku.api.exception.RequestFailedException;
 import com.heroku.eclipse.core.constants.PreferenceConstants;
+import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
-
 
 /**
  * Services class for the Heroclipse plugin, providing access to essential
@@ -40,12 +46,12 @@ public class RestHerokuServices implements HerokuServices {
 	private RestHerokuSession herokuSession;
 	private IEclipsePreferences preferences;
 	private ISecurePreferences securePreferences;
-	
-//	private static final String PREF_API_KEY = "apiKey"; //$NON-NLS-1$
-//	private static final String PREF_SSH_KEY = "sshKey"; //$NON-NLS-1$
-//	
+
+	//	private static final String PREF_API_KEY = "apiKey"; //$NON-NLS-1$
+	//	private static final String PREF_SSH_KEY = "sshKey"; //$NON-NLS-1$
+	//
 	private EventAdmin eventAdmin;
-	
+
 	/**
 	 * @param eventAdmin
 	 */
@@ -59,7 +65,7 @@ public class RestHerokuServices implements HerokuServices {
 	public void unsetEventAdmin(EventAdmin eventAdmin) {
 		this.eventAdmin = null;
 	}
-	
+
 	@Override
 	public String obtainAPIKey(String username, String password) throws HerokuServiceException {
 		try {
@@ -84,21 +90,21 @@ public class RestHerokuServices implements HerokuServices {
 		catch (StorageException e) {
 			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR, "unable to access secure store", null); //$NON-NLS-1$
 		}
-		
-		if ( apiKey == null ) {
+
+		if (apiKey == null) {
 			throw new HerokuServiceException(HerokuServiceException.NO_API_KEY, "No API-Key configured", null); //$NON-NLS-1$
 		}
 		else if (herokuSession == null) {
-			herokuSession = new RestHerokuSession( apiKey );
-			if( eventAdmin != null ) {
+			herokuSession = new RestHerokuSession(apiKey);
+			if (eventAdmin != null) {
 				Map<String, Object> map = new HashMap<String, Object>();
 				map.put(KEY_SESSION_INSTANCE, herokuSession);
-				
+
 				Event event = new Event(TOPIC_SESSION_CREATED, map);
 				eventAdmin.postEvent(event);
 			}
 		}
-		
+
 		return herokuSession;
 	}
 
@@ -109,9 +115,9 @@ public class RestHerokuServices implements HerokuServices {
 			apiKey = getSecurePreferences().get(PreferenceConstants.P_API_KEY, null);
 		}
 		catch (StorageException e) {
-			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR,e);
+			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR, e);
 		}
-		
+
 		return apiKey;
 	}
 
@@ -119,22 +125,23 @@ public class RestHerokuServices implements HerokuServices {
 	public String getSSHKey() {
 		return getPreferences().get(PreferenceConstants.P_SSH_KEY, null);
 	}
-	
+
 	public void setSSHKey(String sshKey) throws HerokuServiceException {
 		try {
 			IEclipsePreferences p = getPreferences();
-			if( sshKey == null || sshKey.trim().isEmpty() ) {
+			if (sshKey == null || sshKey.trim().isEmpty()) {
 				p.remove(PreferenceConstants.P_SSH_KEY);
-			} else if ( ! sshKey.equals(getSSHKey())) {
+			}
+			else if (!sshKey.equals(getSSHKey())) {
 				validateSSHKey(sshKey);
 				getOrCreateHerokuSession().addSSHKey(sshKey);
 				p.put(PreferenceConstants.P_SSH_KEY, sshKey);
 			}
 			p.flush();
-		} 
+		}
 		catch (BackingStoreException e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to persist preferences", e); //$NON-NLS-1$
-			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
+			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e);
 		}
 	}
 
@@ -143,40 +150,42 @@ public class RestHerokuServices implements HerokuServices {
 		try {
 			boolean modified = false;
 			ISecurePreferences p = getSecurePreferences();
-			if( apiKey == null || apiKey.trim().isEmpty() ) {
+			if (apiKey == null || apiKey.trim().isEmpty()) {
 				p.remove(PreferenceConstants.P_API_KEY);
 				modified = true;
-			} else {
+			}
+			else {
 				apiKey = apiKey.trim();
-				if( ! apiKey.equals(getAPIKey()) ) {
+				if (!apiKey.equals(getAPIKey())) {
 					validateAPIKey(apiKey);
 					p.put(PreferenceConstants.P_API_KEY, apiKey, true);
 					modified = true;
 				}
 			}
-			
-			if( modified ) {
+
+			if (modified) {
 				p.flush();
-				invalidateSession();	
+				invalidateSession();
 			}
 		}
 		catch (StorageException e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to access secure preferences", e); //$NON-NLS-1$
-			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR,e);
+			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR, e);
 		}
 		catch (IOException e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to persist secure preferences", e); //$NON-NLS-1$
-			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR,e);
+			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e);
 		}
 	}
-	
+
 	public void validateAPIKey(String apiKey) throws HerokuServiceException {
 		try {
 			HerokuAPI api = new HerokuAPI(apiKey);
 			api.listApps();
-		} catch (Throwable e) {
+		}
+		catch (Throwable e) {
 			// 401 = invalid API key
-			if ( e.getClass().equals( RequestFailedException.class ) && ((RequestFailedException) e).getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED ) {
+			if (e.getClass().equals(RequestFailedException.class) && ((RequestFailedException) e).getStatusCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
 				throw new HerokuServiceException(HerokuServiceException.INVALID_API_KEY, e);
 			}
 			else {
@@ -188,52 +197,52 @@ public class RestHerokuServices implements HerokuServices {
 	@Override
 	public String[] validateSSHKey(String sshKey) throws HerokuServiceException {
 		String[] parts = null;
-		if ( sshKey == null || sshKey.trim().isEmpty() ) {
+		if (sshKey == null || sshKey.trim().isEmpty()) {
 			throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, "validation of SSH key failed!"); //$NON-NLS-1$
 		}
 		else {
 			parts = sshKey.split(" "); //$NON-NLS-1$
-			
-			if ( parts.length != 3 ) {
-				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "SSH key '"+sshKey+"' is invalid" ); //$NON-NLS-1$ //$NON-NLS-2$
+
+			if (parts.length != 3) {
+				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "SSH key '" + sshKey + "' is invalid"); //$NON-NLS-1$ //$NON-NLS-2$
 				throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, "validation of SSH key failed!"); //$NON-NLS-1$
 			}
-			
-			try { 
+
+			try {
 				DatatypeConverter.parseBase64Binary(parts[1]);
-			}	
-			catch ( IllegalArgumentException e ) {
-				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "SSH key '"+sshKey+"' is invalid", e); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			catch (IllegalArgumentException e) {
+				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "SSH key '" + sshKey + "' is invalid", e); //$NON-NLS-1$ //$NON-NLS-2$
 				throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, "validation of SSH key failed!"); //$NON-NLS-1$
 			}
 		}
-		
+
 		return parts;
 	}
-	
+
 	private void invalidateSession() {
-		if( herokuSession != null ) {
+		if (herokuSession != null) {
 			herokuSession.invalidate();
-			if( eventAdmin != null ) {
+			if (eventAdmin != null) {
 				Map<String, Object> map = new HashMap<String, Object>();
 				map.put(KEY_SESSION_INSTANCE, herokuSession);
-				
+
 				Event event = new Event(TOPIC_SESSION_INVALID, map);
 				eventAdmin.postEvent(event);
 			}
 		}
 		herokuSession = null;
 	}
-	
+
 	private IEclipsePreferences getPreferences() {
-		if( preferences == null ) {
+		if (preferences == null) {
 			preferences = InstanceScope.INSTANCE.getNode(Activator.ID);
 		}
 		return preferences;
 	}
-	
+
 	private ISecurePreferences getSecurePreferences() {
-		if( securePreferences == null ) {
+		if (securePreferences == null) {
 			ISecurePreferences root = SecurePreferencesFactory.getDefault();
 			securePreferences = root.node(Activator.ID);
 		}
@@ -257,7 +266,7 @@ public class RestHerokuServices implements HerokuServices {
 	@Override
 	public boolean isReady() throws HerokuServiceException {
 		boolean isReady = true;
-		
+
 		// ensure that we have valid prefs
 		String sshKey = null;
 		try {
@@ -281,11 +290,44 @@ public class RestHerokuServices implements HerokuServices {
 		return isReady;
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.heroku.eclipse.core.services.HerokuServices#listTemplates()
 	 */
 	@Override
 	public List<AppTemplate> listTemplates() throws HerokuServiceException {
-		return null;
+		List<AppTemplate> templates = new ArrayList<AppTemplate>();
+
+		String templateURI = HerokuProperties.getString("heroku.eclipse.templates.URI"); //$NON-NLS-1$
+
+		if (templateURI == null || templateURI.trim().isEmpty()) {
+			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, "URI for templates listing is not configured!"); //$NON-NLS-1$
+		}
+		else {
+			ObjectMapper mapper = new ObjectMapper();
+			try {
+				templates = mapper.readValue(new URL(templateURI), new TypeReference<List<AppTemplate>>() {
+				});
+			}
+			catch (JsonParseException e) {
+				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "unable to parse JSON for templates list", e); //$NON-NLS-1$
+				throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, "unable to parse JSON templates list", e); //$NON-NLS-1$
+			}
+			catch (JsonMappingException e) {
+				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "unable to map JSON data from templates list", e); //$NON-NLS-1$
+				throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, "unable to map JSON data from templates list", e); //$NON-NLS-1$
+			}
+			catch (MalformedURLException e) {
+				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "malformed URL '"+templateURI+"'for templates listing ", e); //$NON-NLS-1$ //$NON-NLS-2$
+				throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, "malformed URL '"+templateURI+"'for templates listing ", e); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			catch (IOException e) {
+				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "network error when retrieving templates listing from "+templateURI, e); //$NON-NLS-1$
+				throw new HerokuServiceException(HerokuServiceException.REQUEST_FAILED, "network error when retrieving templates listing from "+templateURI, e); //$NON-NLS-1$
+			}
+		}
+
+		return templates;
 	}
 }

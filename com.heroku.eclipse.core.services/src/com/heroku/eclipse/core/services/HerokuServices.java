@@ -167,7 +167,7 @@ public interface HerokuServices {
 	
 	/**
 	 * Delivers the available Heroku App templates 
-	 * @return the list of found application templates
+	 * @return the list of found application templates, may be empty, if none were found
 	 * @throws HerokuServiceException
 	 */
 	public List<AppTemplate> listTemplates() throws HerokuServiceException;
