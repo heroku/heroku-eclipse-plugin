@@ -223,7 +223,7 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 								try {
 									List<AppTemplate> templates = service.listTemplates();
 									
-									if ( templates != null && templates.size() == 0 ) {
+									if ( templates == null || templates.size() == 0 ) {
 										Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no application templates found"); //$NON-NLS-1$
 										setPageComplete(false);
 									}
