@@ -56,11 +56,6 @@
 			<layout>p2</layout>
 			<url>http://download.eclipse.org/egit/updates</url>
 		</repository>
-		<repository>
-			<id>jgit</id>
-			<layout>p2</layout>
-			<url>http://download.eclipse.org/jgit/maven</url>
-		</repository>
 	</repositories>
 
 	<pluginRepositories>
