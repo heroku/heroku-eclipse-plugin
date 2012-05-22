@@ -3,46 +3,6 @@
 <plugin>
 
    <extension
-         id="herokuBuilder"
-         name="Heroku Project Biulder"
-         point="org.eclipse.core.resources.builders">
-      <builder
-            hasNature="true">
-         <run
-               class="com.heroku.eclipse.ui.builder.HerokuBuilder">
-         </run>
-      </builder>
-   </extension>
-   <extension
-         id="herokuNature"
-         name="Heroku Project Nature"
-         point="org.eclipse.core.resources.natures">
-      <runtime>
-         <run
-               class="com.heroku.eclipse.ui.builder.HerokuNature">
-         </run>
-      </runtime>
-      <builder
-            id="com.heroku.eclipse.ui.herokuBuilder">
-      </builder>
-   </extension>
-   <extension
-         point="org.eclipse.ui.popupMenus">
-      <objectContribution
-            adaptable="true"
-            objectClass="org.eclipse.core.resources.IProject"
-            nameFilter="*"
-            id="com.heroku.eclipse.ui.contribution1">
-         <action
-               label="Add/Remove Sample Nature"
-               class="com.heroku.eclipse.ui.builder.ToggleNatureAction"
-               menubarPath="additions"
-               enablesFor="+"
-               id="com.heroku.eclipse.ui.addRemoveNatureAction">
-         </action>
-      </objectContribution>
-   </extension>
-   <extension
          id="xmlProblem"
          name="XML Problem"
          point="org.eclipse.core.resources.markers">
@@ -64,34 +24,16 @@
    <extension
          point="org.eclipse.ui.views">
       <category
-            name="Heroku Category"
+            name="Heroku"
             id="com.heroku.eclipse.ui">
       </category>
       <view
-            name="Heroku View"
+            name="My Heroku Applications"
             icon="icons/sample.gif"
             category="com.heroku.eclipse.ui"
-            class="com.heroku.eclipse.ui.views.HerokuView"
-            id="com.heroku.eclipse.ui.views.HerokuView">
+            class="com.heroku.eclipse.ui.views.HerokuApplicationManager"
+            id="com.heroku.eclipse.ui.views.HerokuApplicationManager">
       </view>
-   </extension>
-   <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="org.eclipse.jdt.ui.JavaPerspective">
-         <view
-               ratio="0.5"
-               relative="org.eclipse.ui.views.TaskList"
-               relationship="right"
-               id="com.heroku.eclipse.ui.views.HerokuView">
-         </view>
-      </perspectiveExtension>
-   </extension>
-   <extension
-         point="org.eclipse.help.contexts">
-      <contexts
-            file="contexts.xml">
-      </contexts>
    </extension>
    <extension
          point="org.eclipse.ui.importWizards">

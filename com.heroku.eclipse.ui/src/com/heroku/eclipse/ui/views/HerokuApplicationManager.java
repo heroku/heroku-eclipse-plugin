@@ -17,7 +17,7 @@ import org.eclipse.swt.SWT;
  * 
  * @author udo.rader@bestsolution.at
  */
-public class HerokuView extends ViewPart {
+public class HerokuApplicationManager extends ViewPart {
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -66,7 +66,7 @@ public class HerokuView extends ViewPart {
 	/**
 	 * The constructor.
 	 */
-	public HerokuView() {
+	public HerokuApplicationManager() {
 	}
 
 	/**
@@ -93,7 +93,7 @@ public class HerokuView extends ViewPart {
 		menuMgr.setRemoveAllWhenShown(true);
 		menuMgr.addMenuListener(new IMenuListener() {
 			public void menuAboutToShow(IMenuManager manager) {
-				HerokuView.this.fillContextMenu(manager);
+				HerokuApplicationManager.this.fillContextMenu(manager);
 			}
 		});
 		Menu menu = menuMgr.createContextMenu(viewer.getControl());
