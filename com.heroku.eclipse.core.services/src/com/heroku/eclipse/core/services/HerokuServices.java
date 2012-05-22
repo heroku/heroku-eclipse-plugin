@@ -41,7 +41,7 @@ public interface HerokuServices {
 	/**
 	 * Key used for all widgets of the project
 	 */
-	public static final String ROOT_WIDGET_ID = "com.heroku.eclipse.identifier";
+	public static final String ROOT_WIDGET_ID = "com.heroku.eclipse.identifier"; //$NON-NLS-1$
 
 	/**
 	 * Event key holding the session modified
@@ -171,4 +171,27 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public List<AppTemplate> listTemplates() throws HerokuServiceException;
+	
+	/**
+	 * Creates the named app from the given template. It does so by first cloning the
+	 * template and then renaming the newly created, randomly named App to its wanted
+	 * name.
+	 * @param appName
+	 * @param templateName
+	 * @return the newly created App
+	 * @throws HerokuServiceException
+	 * 				if an app with the same name already exists in the user's account
+	 * 				if the template name is invalid
+	 * 				if there are network problems
+	 */
+	public App createAppFromTemplate( String appName, String templateName ) throws HerokuServiceException;
+	
+	/**
+	 * Materializes the given app in the user's local git repository 
+	 * @param app
+	 * 			the App instance to materialize
+	 * @return the materialized App
+	 * @throws HerokuServiceException
+	 */
+	public App materializeGitApp( App app ) throws HerokuServiceException;
 }

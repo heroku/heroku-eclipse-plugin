@@ -18,6 +18,9 @@ public class MockupHerokuSession implements HerokuSession {
 	final private String apiKey;
 	private boolean valid = true;
 
+	/**
+	 * @param apiKey
+	 */
 	public MockupHerokuSession(String apiKey) {
 		this.apiKey = apiKey;
 	}
@@ -88,6 +91,15 @@ public class MockupHerokuSession implements HerokuSession {
 	@Override
 	public String renameApp(String currentName, String newName)
 			throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuSession#cloneApp(java.lang.String)
+	 */
+	@Override
+	public App cloneApp(String templateName) throws HerokuServiceException {
 		// TODO Auto-generated method stub
 		return null;
 	}

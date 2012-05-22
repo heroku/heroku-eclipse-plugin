@@ -106,4 +106,14 @@ public interface HerokuSession {
 	 */
 	public void destroyApp(String name) throws HerokuServiceException;
 	
+	/**
+	 * Clones the given template and delivers it as a ready to use Heroku App
+	 * @param templateName
+	 * @return the newly created App
+	 * @throws HerokuServiceException
+	 * 				if {@link #isValid()} is false
+	 * 				if name is invalid
+	 * 				if the request fails
+	 */
+	public App cloneApp( String templateName ) throws HerokuServiceException;
 }

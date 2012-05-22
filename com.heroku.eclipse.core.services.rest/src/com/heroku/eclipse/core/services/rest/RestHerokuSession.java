@@ -158,4 +158,15 @@ public class RestHerokuSession implements HerokuSession {
 			throw checkException(e);
 		}
 	}
+
+	@Override
+	public App cloneApp(String templateName) throws HerokuServiceException {
+		checkValid();
+		try {
+			return api.cloneApp(templateName);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
 }

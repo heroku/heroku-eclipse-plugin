@@ -28,6 +28,7 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
  */
 public class HerokuAppCreateNamePage extends WizardPage {
 	private HerokuServices service;
+	private Text tAppName;
 	
 	/**
 	 * 
@@ -64,17 +65,17 @@ public class HerokuAppCreateNamePage extends WizardPage {
 			Label l = new Label(group, SWT.NONE);
 			l.setText(Messages.getString("HerokuAppCreateNamePage_Name")); //$NON-NLS-1$
 			
-			final Text t = new Text(group, SWT.BORDER);
-			t.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, false, 1, 1 ) );
-			t.setTextLimit( 100 );
-			t.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.C_APP_NAME);
-			t.addModifyListener(new ModifyListener() {
+			tAppName = new Text(group, SWT.BORDER);
+			tAppName.setLayoutData( new GridData( SWT.FILL, SWT.FILL, true, false, 1, 1 ) );
+			tAppName.setTextLimit( 100 );
+			tAppName.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.C_APP_NAME);
+			tAppName.addModifyListener(new ModifyListener() {
 				
 				@Override
 				public void modifyText(ModifyEvent e) {
 					setErrorMessage(null);
 					setPageComplete(true);
-					if ( t.getText() == null || t.getText().trim().isEmpty() ) {
+					if ( tAppName.getText() == null || tAppName.getText().trim().isEmpty() ) {
 						setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameEmpty")); //$NON-NLS-1$
 						setPageComplete(false);
 					}
@@ -116,5 +117,13 @@ public class HerokuAppCreateNamePage extends WizardPage {
 		}
 
 		return isOk;
+	}
+	
+	/**
+	 * The name of the App to create
+	 * @return the name of the App to create
+	 */
+	public String getAppName() {
+		return tAppName.getText();
 	}
 }

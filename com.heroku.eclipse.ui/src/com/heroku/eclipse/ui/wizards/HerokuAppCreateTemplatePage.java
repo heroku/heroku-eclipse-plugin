@@ -59,6 +59,8 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 	private Text tDescription;
 	private Text tSearch;
 	
+	private AppTemplate appTemplate;
+	
 	/**
 	 * 
 	 */
@@ -208,7 +210,7 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				tAddons.setEnabled(false);
 			}
 			
-			// async fetching of templates
+			// async templates fetching
 			try {
 				PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
 					
@@ -320,14 +322,19 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 		lTemplateName.getParent().layout();
 	}
 	
-	/* (non-Javadoc)
-	 * @see org.eclipse.jface.dialogs.DialogPage#setVisible(boolean)
-	 */
 	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		if ( visible ) {
 			tSearch.setFocus();
 		}
+	}
+	
+	/**
+	 * Delivers the AppTemplate instance of the chosen template
+	 * @return the AppTemplate instance of the chosen template
+	 */
+	public AppTemplate getAppTemplate() {
+		return appTemplate;
 	}
 }

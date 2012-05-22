@@ -228,4 +228,22 @@ public class MockupHerokuServices implements HerokuServices {
 		
 		return templates;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuServices#createAppFromTemplate(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public App createAppFromTemplate(String appName, String templateName) throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuServices#materializeGitApp(com.heroku.api.App)
+	 */
+	@Override
+	public App materializeGitApp(App app) throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

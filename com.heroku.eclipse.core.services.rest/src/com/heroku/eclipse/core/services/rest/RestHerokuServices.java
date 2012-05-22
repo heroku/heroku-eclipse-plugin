@@ -330,4 +330,27 @@ public class RestHerokuServices implements HerokuServices {
 
 		return templates;
 	}
+
+	@Override
+	public App createAppFromTemplate(String appName, String templateName) throws HerokuServiceException {
+		App app = null;
+		try {
+			app = getOrCreateHerokuSession().cloneApp(templateName);
+			getOrCreateHerokuSession().renameApp(app.getName(), appName);
+		}
+		catch (HerokuServiceException e) {
+			e.printStackTrace();
+		}
+		
+		return app;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuServices#materializeGitApp(com.heroku.api.App)
+	 */
+	@Override
+	public App materializeGitApp(App app) throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
