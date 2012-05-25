@@ -36,7 +36,7 @@
 	</modules>
 
 	<repositories>
-		<repository>
+		<!--  repository>
 			<id>platform</id>
 			<layout>p2</layout>
 			<url>${env.HEROKU_TARGET}platform-37</url>
@@ -45,7 +45,13 @@
 			<id>jdt</id>
 			<layout>p2</layout>
 			<url>${env.HEROKU_TARGET}jdt-37</url>
+		</repository-->
+		<repository>
+			<id>indigo</id>
+			<layout>p2</layout>
+			<url>http://download.eclipse.org/releases/indigo</url>
 		</repository>
+		
 		<repository>
 			<id>swtbot</id>
 			<layout>p2</layout>
