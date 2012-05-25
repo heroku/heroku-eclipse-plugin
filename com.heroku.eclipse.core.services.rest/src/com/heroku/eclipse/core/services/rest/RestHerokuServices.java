@@ -439,7 +439,18 @@ public class RestHerokuServices implements HerokuServices {
 		if( ! notremove.isEmpty() ) {
 			//TODO Throw exception with 
 		}
+	}
+	
+	@Override
+	public void transferApplication(App app, String newOwner)
+			throws HerokuServiceException {
+		getOrCreateHerokuSession().transferApplication(app, newOwner);
 		
-		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put(KEY_APPLICATION_ID, app.getId());
+		map.put(KEY_APPLICATION_OWNER, newOwner);
+
+		Event event = new Event(TOPIC_APPLICATION_TRANSFERED, map);
+		eventAdmin.postEvent(event);
 	}
 }

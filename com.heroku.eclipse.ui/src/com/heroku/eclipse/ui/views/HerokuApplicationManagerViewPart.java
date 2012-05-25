@@ -23,8 +23,6 @@ import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CTabFolder;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -312,6 +310,14 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 				refreshApplications();
 			}
 		};
+		
+		EventHandler transferApplicationHandler = new EventHandler() {
+			
+			@Override
+			public void handleEvent(Event event) {
+				refreshApplications();
+			}
+		};
 
 		handlerRegistrations = new ArrayList<ServiceRegistration<EventHandler>>();
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
@@ -322,6 +328,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
 				renameApplicationHandler,
 				HerokuServices.TOPIC_APPLICATION_RENAMED));
+		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
+				transferApplicationHandler,
+				HerokuServices.TOPIC_APPLICATION_TRANSFERED));
 	}
 
 	private void refreshApplications() {

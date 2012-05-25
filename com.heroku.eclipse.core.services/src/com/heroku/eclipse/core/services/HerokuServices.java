@@ -62,6 +62,11 @@ public interface HerokuServices {
 	public static final String TOPIC_APPLICATION_RENAMED = TOPIC_APPLICATION + "renamed";
 
 	/**
+	 * Event topic fired if an application is transfered to another user
+	 */
+	public static final String TOPIC_APPLICATION_TRANSFERED = TOPIC_APPLICATION + "transfered";
+	
+	/**
 	 * Base topic fired if a collaborators of an applications are changed
 	 */
 	public static final String TOPIC_APPLICATION_COLLABORATORS = TOPIC_APPLICATION + "collaborators/";
@@ -91,6 +96,8 @@ public interface HerokuServices {
 	public static final String KEY_SESSION_INSTANCE = "session"; //$NON-NLS-1$
 
 	public static final String KEY_APPLICATION_ID = "applicationId";
+	
+	public static final String KEY_APPLICATION_OWNER = "applicationOwner";
 	
 	public static final String KEY_COLLABORATORS_LIST = "collaborators";
 	
@@ -288,4 +295,6 @@ public interface HerokuServices {
 	public void addCollaborator(App app, String email) throws HerokuServiceException;
 
 	public void removeCollaborators(App app, String... email) throws HerokuServiceException;
+	
+	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
 }

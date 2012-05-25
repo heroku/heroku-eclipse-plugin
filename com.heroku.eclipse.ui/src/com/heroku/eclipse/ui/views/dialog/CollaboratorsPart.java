@@ -120,6 +120,26 @@ public class CollaboratorsPart {
 				makeOwner = new Button(controls, SWT.PUSH);
 				makeOwner.setText("Make Owner");
 				makeOwner.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				makeOwner.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
+						if( s.size() == 1 ) {
+							Collaborator c = (Collaborator) s.getFirstElement();
+							if( c != currentOwner ) {
+								if( MessageDialog.openQuestion(makeOwner.getShell(), "Transfer application?", "Would you really like to transfer the application to '"+c.getEmail()+"'") ) {
+									try {
+										Activator.getDefault().getService().transferApplication(domainObject, c.getEmail());
+									} catch (HerokuServiceException e1) {
+										// TODO Auto-generated catch block
+										e1.printStackTrace();
+									}
+								}
+							}									
+						}
+						
+					}
+				});
 			}
 
 			// {

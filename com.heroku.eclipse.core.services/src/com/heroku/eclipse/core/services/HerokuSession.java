@@ -128,4 +128,6 @@ public interface HerokuSession {
 	
 	public void removeCollaborator(App app, String email)
 			throws HerokuServiceException;
+	
+	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
 }

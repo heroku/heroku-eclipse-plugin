@@ -219,4 +219,15 @@ public class RestHerokuSession implements HerokuSession {
 			throw checkException(e);
 		}
 	}
+	
+	@Override
+	public void transferApplication(App app, String newOwner)
+			throws HerokuServiceException {
+		checkValid();
+		try {
+			api.transferApp(app.getName(), newOwner);
+		} catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
 }
