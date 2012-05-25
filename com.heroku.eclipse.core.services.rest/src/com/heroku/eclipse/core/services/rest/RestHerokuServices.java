@@ -378,4 +378,10 @@ public class RestHerokuServices implements HerokuServices {
 	public void destroyApplication(App app) throws HerokuServiceException {
 		getOrCreateHerokuSession().destroyApp(app);
 	}
+	
+	@Override
+	public void renameApp(App application, String newName)
+			throws HerokuServiceException {
+		getOrCreateHerokuSession().renameApp(application.getName(), newName);
+	}
 }

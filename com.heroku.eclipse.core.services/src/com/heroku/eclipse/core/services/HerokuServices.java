@@ -244,4 +244,16 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public void destroyApplication(App app) throws HerokuServiceException;
+
+	/**
+	 * Rename an application
+	 * 
+	 * @param application
+	 *            the application
+	 * @param newName
+	 *            the new name
+	 * @throws HerokuServiceException
+	 */
+	public void renameApp(App application, String newName)
+			throws HerokuServiceException;
 }
