@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.heroku.api.App;
+import com.heroku.api.Collaborator;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.Key;
 import com.heroku.api.exception.RequestFailedException;
@@ -188,4 +189,16 @@ public class RestHerokuSession implements HerokuSession {
 			throw checkException(e);
 		}
 	}
+	
+	@Override
+	public List<Collaborator> getCollaborators(App app)
+			throws HerokuServiceException {
+		checkValid();
+		try {
+			return api.listCollaborators(app.getName());
+		} catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
 }

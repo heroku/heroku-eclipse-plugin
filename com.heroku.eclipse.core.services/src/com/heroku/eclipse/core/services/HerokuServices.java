@@ -3,6 +3,7 @@ package com.heroku.eclipse.core.services;
 import java.util.List;
 
 import com.heroku.api.App;
+import com.heroku.api.Collaborator;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 
@@ -263,4 +264,6 @@ public interface HerokuServices {
 	 */
 	public void renameApp(App application, String newName)
 			throws HerokuServiceException;
+	
+	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException;
 }

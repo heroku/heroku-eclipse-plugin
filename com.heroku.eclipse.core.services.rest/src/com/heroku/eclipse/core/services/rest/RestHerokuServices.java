@@ -26,6 +26,7 @@ import org.osgi.service.log.LogService;
 import org.osgi.service.prefs.BackingStoreException;
 
 import com.heroku.api.App;
+import com.heroku.api.Collaborator;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.exception.LoginFailedException;
 import com.heroku.api.exception.RequestFailedException;
@@ -389,5 +390,9 @@ public class RestHerokuServices implements HerokuServices {
 
 		Event event = new Event(TOPIC_APPLICATION_RENAMED, map);
 		eventAdmin.postEvent(event);
+	}
+	
+	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException {
+		return getOrCreateHerokuSession().getCollaborators(app);
 	}
 }
