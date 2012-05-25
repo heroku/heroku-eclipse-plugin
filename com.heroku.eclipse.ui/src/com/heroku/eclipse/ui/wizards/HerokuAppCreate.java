@@ -133,9 +133,8 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 				}
 				catch (HerokuServiceException e) {
 					if ( e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE ) {
-						templatePage.setVisible(false);
-						
-						namePage.setVisible(true);
+						getContainer().showPage(namePage);
+						Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "Application '"+app.getName()+"' already exists, denying creation", e); //$NON-NLS-1$ //$NON-NLS-2$
 						namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
 					}
 					else {

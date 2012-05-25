@@ -126,4 +126,10 @@ public class HerokuAppCreateNamePage extends WizardPage {
 	public String getAppName() {
 		return tAppName.getText();
 	}
+	
+	@Override
+	public void setVisible(boolean visible) {
+		super.setVisible(visible);
+		
+	}
 }

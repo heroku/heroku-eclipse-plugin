@@ -40,10 +40,8 @@ import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.URIish;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.internal.IMavenConstants;
 import org.eclipse.m2e.core.project.IProjectConfigurationManager;
@@ -367,11 +365,12 @@ public class RestHerokuServices implements HerokuServices {
 
 	@Override
 	public App createAppFromTemplate(String appName, String templateName, IProgressMonitor pm) throws HerokuServiceException {
+		App app = null;
 		try {
 			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new Heroku App '"+appName+"' from template '"+templateName+"'" ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			App randomApp = getOrCreateHerokuSession().cloneTemplate(templateName);
-			getOrCreateHerokuSession().renameApp(randomApp.getName(), appName);
-			App app = getOrCreateHerokuSession().getApp(appName);
+			app = getOrCreateHerokuSession().cloneTemplate(templateName);
+			getOrCreateHerokuSession().renameApp(app.getName(), appName);
+			app = getOrCreateHerokuSession().getApp(appName);
 			
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put(KEY_APPLICATION_ID, app.getId());
@@ -382,9 +381,17 @@ public class RestHerokuServices implements HerokuServices {
 			return app;
 		}
 		catch (HerokuServiceException e) {
-			e.printStackTrace();
-			throw e;
+			// remove dead cloned template
+			if ( e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE && app != null ) {
+				destroyApplication(app);
+			}
+			else {
+				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "unknown error when creating '"+app.getName()+"', dying ..." ); //$NON-NLS-1$ //$NON-NLS-2$
+				throw e;
+			}
 		}
+		
+		return app;
 	}
 
 	@Override
@@ -409,7 +416,6 @@ public class RestHerokuServices implements HerokuServices {
 			CloneOperation cloneOp = new CloneOperation(uri, true, null, workdir,
 					HerokuProperties.getString("heroku.eclipse.git.defaultRefs"), HerokuProperties.getString("heroku.eclipse.git.defaultOrigin"), timeout); //$NON-NLS-1$ //$NON-NLS-2$
 			
-//			UsernamePasswordCredentialsProvider user = new UsernamePasswordCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
 			cloneOp.setCredentialsProvider(cred);
 			cloneOp.setCloneSubmodules(true);
 			runAsJob(uri, cloneOp, app, dialogTitle);
@@ -541,6 +547,12 @@ public class RestHerokuServices implements HerokuServices {
 	@Override
 	public void destroyApplication(App app) throws HerokuServiceException {
 		getOrCreateHerokuSession().destroyApp(app);
+
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put(KEY_APPLICATION_ID, app.getId());
+
+		Event event = new Event(TOPIC_APPLICATION_NEW, map);
+		eventAdmin.postEvent(event);
 	}
 	
 	@Override
