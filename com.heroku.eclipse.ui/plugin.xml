@@ -31,7 +31,7 @@
             name="My Heroku Applications"
             icon="icons/sample.gif"
             category="com.heroku.eclipse.ui"
-            class="com.heroku.eclipse.ui.views.HerokuApplicationManager"
+            class="com.heroku.eclipse.ui.views.HerokuApplicationManagerViewPart"
             id="com.heroku.eclipse.ui.views.HerokuApplicationManager">
       </view>
    </extension>

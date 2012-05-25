@@ -18,7 +18,7 @@ import org.eclipse.ui.part.ViewPart;
  * 
  * @author udo.rader@bestsolution.at
  */
-public class HerokuApplicationManager extends ViewPart {
+public class HerokuApplicationManagerViewPart extends ViewPart {
 
 	/**
 	 * The ID of the view as specified by the extension.
