@@ -1,4 +1,6 @@
 /*******************************************************************************
+ * derived from EGitCredentialsProvider.java
+ * 
  * Copyright (C) 2010, Jens Baumgart <jens.baumgart@sap.com>
  * Copyright (C) 2010, Edwin Kempin <edwin.kempin@sap.com>
  *
@@ -11,7 +13,6 @@ package com.heroku.eclipse.ui.git;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.egit.core.Activator;
 import org.eclipse.egit.core.securestorage.UserPasswordCredentials;

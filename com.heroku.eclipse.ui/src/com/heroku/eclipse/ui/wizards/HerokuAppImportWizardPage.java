@@ -9,6 +9,7 @@ import java.util.List;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -25,6 +26,7 @@ import com.heroku.api.App;
 import com.heroku.eclipse.core.constants.AppImportConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
@@ -36,6 +38,7 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
  */
 public class HerokuAppImportWizardPage extends WizardPage {
 	private HerokuServices service;
+	private App app = null;
 	
 	/**
 	 * 
@@ -143,6 +146,8 @@ public class HerokuAppImportWizardPage extends WizardPage {
 				
 				@Override
 				public void selectionChanged(SelectionChangedEvent event) {
+					final IStructuredSelection s = (IStructuredSelection) event.getSelection();
+					app = (App) s.getFirstElement();
 					setPageComplete(true);
 				}
 			});
@@ -184,5 +189,13 @@ public class HerokuAppImportWizardPage extends WizardPage {
 		}
 
 		return isOk;
+	}
+	
+	/**
+	 * Return the selected app
+	 * @return
+	 */
+	public App getSelectedApp() {
+		return app;
 	}
 }

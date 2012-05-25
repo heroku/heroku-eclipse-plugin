@@ -63,13 +63,13 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 	public boolean performFinish() {
 		boolean rv = false;
 
-		final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
-		final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
-
 		final String appName = namePage.getAppName();
 		final AppTemplate template = templatePage.getAppTemplate();
 
+		final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
+		final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 		final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
+
 		try {
 			getContainer().run(true, false, new IRunnableWithProgress() {
 				@Override
@@ -91,7 +91,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 							else {
 								e.printStackTrace();
 								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
-								HerokuUtils.internalError(getShell(), e);
+//								HerokuUtils.internalError(getShell(), e);
 							}
 
 						}
@@ -110,20 +110,6 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 
 		return true;
 	}
-
-	// catch (InvocationTargetException e1) {
-	// e1.printStackTrace();
-	//			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e1); //$NON-NLS-1$
-	// HerokuUtils.internalError(getShell(), e1);
-	// }
-	// catch (InterruptedException e1) {
-	// e1.printStackTrace();
-	//			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e1); //$NON-NLS-1$
-	// HerokuUtils.internalError(getShell(), e1);
-	// }
-	//
-	// return rv;
-	// }
 
 	/**
 	 * Creates the app on the Heroku side
@@ -148,7 +134,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 					else {
 						e.printStackTrace();
 						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
-//						HerokuUtils.internalError(getShell(), e);
+						// HerokuUtils.internalError(getShell(), e);
 					}
 
 				}
