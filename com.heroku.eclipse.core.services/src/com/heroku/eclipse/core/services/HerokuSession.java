@@ -128,7 +128,7 @@ public interface HerokuSession {
 	 * 				if the request fails
 	 */
 	public App getApp( String appName ) throws HerokuServiceException;
-
+	
 	public void restart(App app) throws HerokuServiceException;
 
 	public void destroyApp(App app) throws HerokuServiceException;

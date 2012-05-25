@@ -160,7 +160,7 @@ public class RestHerokuServices implements HerokuServices {
 			if (sshKey == null || sshKey.trim().isEmpty()) {
 				p.remove(PreferenceConstants.P_SSH_KEY);
 			}
-			else if (!sshKey.equals(getSSHKey())) {
+			else if (true || !sshKey.equals(getSSHKey())) {
 				validateSSHKey(sshKey);
 				getOrCreateHerokuSession().addSSHKey(sshKey);
 				p.put(PreferenceConstants.P_SSH_KEY, sshKey);
@@ -364,7 +364,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public App createAppFromTemplate(String appName, String templateName) throws HerokuServiceException {
+	public App createAppFromTemplate(String appName, String templateName, IProgressMonitor pm) throws HerokuServiceException {
 		try {
 			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new Heroku App '"+appName+"' from template '"+templateName+"'" ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			App randomApp = getOrCreateHerokuSession().cloneTemplate(templateName);
@@ -378,7 +378,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public boolean materializeGitApp(App app, IProgressMonitor pm) throws HerokuServiceException {
+	public boolean materializeGitApp(App app, String dialogTitle, IProgressMonitor pm) throws HerokuServiceException {
 		boolean rv = false;
 
 		// TODO fetch from egit prefs
@@ -401,6 +401,7 @@ public class RestHerokuServices implements HerokuServices {
 
 			// TODO: timeout from egit prefs
 			int timeout = 5000;
+			
 			// int timeout = Activator.getDefault().getPreferenceStore()
 			// .getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 
@@ -409,7 +410,7 @@ public class RestHerokuServices implements HerokuServices {
 			UsernamePasswordCredentialsProvider user = new UsernamePasswordCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
 			cloneOp.setCredentialsProvider(user);
 			cloneOp.setCloneSubmodules(true);
-			runAsJob(uri, cloneOp, app);
+			runAsJob(uri, cloneOp, app, dialogTitle);
 
 			rv = true;
 		}
@@ -423,8 +424,8 @@ public class RestHerokuServices implements HerokuServices {
 		return rv;
 	}
 
-	private void runAsJob(final URIish uri, final CloneOperation op, final App app) {
-		final Job job = new Job("KASPERL TALKING!") {
+	private void runAsJob(final URIish uri, final CloneOperation op, final App app, String dialogTitle ) {
+		final Job job = new Job(dialogTitle) {
 			@Override
 			protected IStatus run(final IProgressMonitor monitor) {
 				try {

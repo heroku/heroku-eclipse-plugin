@@ -36,30 +36,26 @@ public interface HerokuServices {
 	/**
 	 * Base topic for all session related events
 	 */
-	public static final String TOPIC_APPLICATION = ROOT_CORE_TOPIC
-			+ "application/";
+	public static final String TOPIC_APPLICATION = ROOT_CORE_TOPIC + "application/";
 
 	/**
 	 * Event topic fired if a session is invalidated
 	 * 
 	 * @see #KEY_SESSION_INSTANCE
 	 */
-	public static final String TOPIC_SESSION_INVALID = TOPIC_SESSION
-			+ "invalid"; //$NON-NLS-1$
+	public static final String TOPIC_SESSION_INVALID = TOPIC_SESSION + "invalid"; //$NON-NLS-1$
 	/**
 	 * Event topic fired if a session a new session is created
 	 * 
 	 * @see #KEY_SESSION_INSTANCE
 	 */
-	public static final String TOPIC_SESSION_CREATED = TOPIC_SESSION
-			+ "created"; //$NON-NLS-1$
+	public static final String TOPIC_SESSION_CREATED = TOPIC_SESSION + "created"; //$NON-NLS-1$
 
 	/**
 	 * Event topic fired if a new application is successfully created
 	 */
-	public static final String TOPIC_APPLICATION_NEW = TOPIC_APPLICATION
-			+ "new";
-	
+	public static final String TOPIC_APPLICATION_NEW = TOPIC_APPLICATION + "new";
+
 	/**
 	 * Event topic fired if an existing application is renamed
 	 */
@@ -69,23 +65,22 @@ public interface HerokuServices {
 	 * Event topic fired if an application is transfered to another user
 	 */
 	public static final String TOPIC_APPLICATION_TRANSFERED = TOPIC_APPLICATION + "transfered";
-	
+
 	/**
 	 * Base topic fired if a collaborators of an applications are changed
 	 */
 	public static final String TOPIC_APPLICATION_COLLABORATORS = TOPIC_APPLICATION + "collaborators/";
-	
+
 	/**
 	 * Event topic fired after collaborators are added to an application
 	 */
 	public static final String TOPIC_APPLICATION_COLLABORATORS_ADDED = TOPIC_APPLICATION_COLLABORATORS + "added";
-	
+
 	/**
 	 * Event topic fired after collaborators are removed from an application
 	 */
 	public static final String TOPIC_APPLICATION_COLLABORATORS_REMOVED = TOPIC_APPLICATION_COLLABORATORS + "removed";
-	
-	
+
 	/**
 	 * Key used for all widgets of the project
 	 */
@@ -100,11 +95,11 @@ public interface HerokuServices {
 	public static final String KEY_SESSION_INSTANCE = "session"; //$NON-NLS-1$
 
 	public static final String KEY_APPLICATION_ID = "applicationId";
-	
+
 	public static final String KEY_APPLICATION_OWNER = "applicationOwner";
-	
+
 	public static final String KEY_COLLABORATORS_LIST = "collaborators";
-	
+
 	/**
 	 * Logs into the Heroku account and if successful, returns the user's
 	 * associated API key. Invokes HerokuAPI.obtainApiKey
@@ -114,8 +109,7 @@ public interface HerokuServices {
 	 * @return the Heroku API key
 	 * @throws HerokuServiceException
 	 */
-	public String obtainAPIKey(String username, String password)
-			throws HerokuServiceException;
+	public String obtainAPIKey(String username, String password) throws HerokuServiceException;
 
 	/**
 	 * Sets the Heroku API key to use for further service calls and stores it in
@@ -171,8 +165,7 @@ public interface HerokuServices {
 	 *             missing API key)
 	 * @see HerokuServices#TOPIC_SESSION_CREATED
 	 */
-	public HerokuSession getOrCreateHerokuSession()
-			throws HerokuServiceException;
+	public HerokuSession getOrCreateHerokuSession() throws HerokuServiceException;
 
 	/**
 	 * Validates the API key
@@ -244,33 +237,39 @@ public interface HerokuServices {
 	 *             account if the template name is invalid if there are network
 	 *             problems
 	 */
-	public App createAppFromTemplate(String appName, String templateName)
-			throws HerokuServiceException;
+	public App createAppFromTemplate(String appName, String templateName, IProgressMonitor pm) throws HerokuServiceException;
 
 	/**
-	 * Materializes the given app in the user's local git repository
+	 * Materializes the given app in the user's local git repository and in the
+	 * workspace
 	 * 
 	 * @param app
-	 * 			the App instance to materialize
-	 * @param pm 
-	 * 			the progress monitor to use
-	 * @return true, if the materialization was successful, otherwise false
-	 *            the App instance to materialize
+	 *            	the App instance to materialize
+	 * @param progressTitle 
+	 * 				the dialog title to display during the materialization process
+	 * @param pm
+	 *            	the progress monitor to use
+	 * @return true, if the materialization was successful, otherwise false the
+	 *         App instance to materialize
 	 * @return the materialized App
 	 * @throws HerokuServiceException
 	 */
-	public boolean materializeGitApp( App app, IProgressMonitor pm ) throws HerokuServiceException;
-	
+	public boolean materializeGitApp(App app, String progressTitle, IProgressMonitor pm) throws HerokuServiceException;
+
 	/**
-	 * Materializes the given app in the user's local git repository 
+	 * Materializes the given app in the user's local git repository
+	 * @param projectName 
+	 * @param projectPath 
+	 * @param repoDir 
+	 * 
 	 * @param app
-	 * 			the App instance to materialize
-	 * @param pm 
-	 * 			the progress monitor to use
+	 *            the App instance to materialize
+	 * @param pm
+	 *            the progress monitor to use
 	 * @return true, if the materialization was successful, otherwise false
 	 * @throws HerokuServiceException
 	 */
-	public IStatus createProject( final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm ) throws HerokuServiceException;
+	public IStatus createProject(final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm) throws HerokuServiceException;
 
 	/**
 	 * Checks if the service is configured so that a session can be created
@@ -306,14 +305,13 @@ public interface HerokuServices {
 	 *            the new name
 	 * @throws HerokuServiceException
 	 */
-	public void renameApp(App application, String newName)
-			throws HerokuServiceException;
-	
+	public void renameApp(App application, String newName) throws HerokuServiceException;
+
 	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException;
 
 	public void addCollaborator(App app, String email) throws HerokuServiceException;
 
 	public void removeCollaborators(App app, String... email) throws HerokuServiceException;
-	
+
 	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
 }
