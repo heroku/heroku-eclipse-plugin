@@ -92,10 +92,10 @@ public class ApplicationInfoPart {
 
 			@Override
 			public void run(App argument) {
-				appName.setText(HerokuUtils.notNull(argument.getName()));
-				appUrl.setText("<a>" + HerokuUtils.notNull(argument.getWebUrl())+"</a>");
-				appGitUrl.setText(HerokuUtils.notNull(argument.getGitUrl()));
-				appDomainName.setText(argument.getDomain() == null ? "" : HerokuUtils.notNull(argument.getDomain().getDomain()));
+				appName.setText(HerokuUtils.ensureNotNull(argument.getName()));
+				appUrl.setText("<a>" + HerokuUtils.ensureNotNull(argument.getWebUrl())+"</a>");
+				appGitUrl.setText(HerokuUtils.ensureNotNull(argument.getGitUrl()));
+				appDomainName.setText(argument.getDomain() == null ? "" : HerokuUtils.ensureNotNull(argument.getDomain().getDomain()));
 			}
 		});
 		

@@ -148,8 +148,4 @@ public class HerokuUtils {
 			}
 		}
 	}
-	
-	public static String notNull(String value) {
-		return value == null ? "" : value;
-	}
 }
