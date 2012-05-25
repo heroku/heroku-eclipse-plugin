@@ -1,11 +1,17 @@
 package com.heroku.eclipse.ui;
 
+import java.util.Dictionary;
+import java.util.Hashtable;
+
 import org.eclipse.equinox.log.ExtendedLogService;
 import org.eclipse.equinox.log.Logger;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
+import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.event.EventConstants;
+import org.osgi.service.event.EventHandler;
 import org.osgi.util.tracker.ServiceTracker;
 
 import com.heroku.eclipse.core.services.HerokuServices;
@@ -74,6 +80,23 @@ public class Activator extends AbstractUIPlugin {
 		ServiceReference<HerokuServices> ref = btx.getServiceReference(HerokuServices.class);
 		
 		return btx.getService( ref );
+	}
+	
+	public <S> S acquireOSGiService(Class<S> serviceClass) {
+		BundleContext btx = this.getBundle().getBundleContext();
+		ServiceReference<S> ref = btx.getServiceReference(serviceClass);
+		return btx.getService(ref);
+	}
+	
+	public <S> ServiceRegistration<S> registerOSGiService(Class<S> serviceClass, S service, Dictionary<String,String> properties) {
+		BundleContext btx = this.getBundle().getBundleContext();
+		return btx.registerService(serviceClass, service, properties);
+	}
+	
+	public ServiceRegistration<EventHandler> registerEvenHandler(EventHandler handler, String topic) {
+		Dictionary<String,String> properties = new Hashtable<String, String>();
+		properties.put(EventConstants.EVENT_TOPIC, HerokuServices.TOPIC_SESSION + "*");
+		return registerOSGiService(EventHandler.class, handler, properties);
 	}
 	
 	/**
