@@ -95,7 +95,7 @@ public class Activator extends AbstractUIPlugin {
 	
 	public ServiceRegistration<EventHandler> registerEvenHandler(EventHandler handler, String topic) {
 		Dictionary<String,String> properties = new Hashtable<String, String>();
-		properties.put(EventConstants.EVENT_TOPIC, HerokuServices.TOPIC_SESSION + "*");
+		properties.put(EventConstants.EVENT_TOPIC, topic);
 		return registerOSGiService(EventHandler.class, handler, properties);
 	}
 	

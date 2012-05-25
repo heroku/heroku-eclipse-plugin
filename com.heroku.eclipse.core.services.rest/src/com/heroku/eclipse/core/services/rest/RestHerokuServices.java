@@ -383,5 +383,11 @@ public class RestHerokuServices implements HerokuServices {
 	public void renameApp(App application, String newName)
 			throws HerokuServiceException {
 		getOrCreateHerokuSession().renameApp(application.getName(), newName);
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put(KEY_APPLICATION_ID, application.getId());
+
+		Event event = new Event(TOPIC_APPLICATION_RENAMED, map);
+		eventAdmin.postEvent(event);
 	}
 }

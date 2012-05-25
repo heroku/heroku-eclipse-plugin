@@ -54,6 +54,11 @@ public interface HerokuServices {
 	 */
 	public static final String TOPIC_APPLICATION_NEW = TOPIC_APPLICATION
 			+ "new";
+	
+	/**
+	 * Event topic fired if an existing application is renamed
+	 */
+	public static final String TOPIC_APPLICATION_RENAMED = TOPIC_APPLICATION + "renamed";
 
 	/**
 	 * Key used for all widgets of the project
@@ -68,6 +73,8 @@ public interface HerokuServices {
 	 */
 	public static final String KEY_SESSION_INSTANCE = "session"; //$NON-NLS-1$
 
+	public static final String KEY_APPLICATION_ID = "applicationId";
+	
 	/**
 	 * Logs into the Heroku account and if successful, returns the user's
 	 * associated API key. Invokes HerokuAPI.obtainApiKey

@@ -11,12 +11,14 @@ import org.eclipse.swt.widgets.Composite;
 import com.heroku.api.App;
 
 public class CollaboratorsPart {
+	private TableViewer viewer;
+
 	public Composite createUI(Composite parent) {
 		Composite container = new Composite(parent, SWT.NONE);
 		container.setLayout(new GridLayout(2,false));
 		
 		{
-			TableViewer viewer = new TableViewer(container);
+			viewer = new TableViewer(container);
 			viewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
 			viewer.getTable().setHeaderVisible(true);
 			viewer.getTable().setLinesVisible(true);

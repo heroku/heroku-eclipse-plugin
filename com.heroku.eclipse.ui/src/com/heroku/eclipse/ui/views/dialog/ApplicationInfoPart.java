@@ -16,6 +16,7 @@ import com.heroku.api.App;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
+import com.heroku.eclipse.ui.utils.RunnableWithParameter;
 
 public class ApplicationInfoPart {
 	private App domainObject;
@@ -48,8 +49,8 @@ public class ApplicationInfoPart {
 					try {
 						Activator.getDefault().getService().renameApp(domainObject, appName.getText());
 					} catch (HerokuServiceException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						//TODO We need to show more specific errors e.g. name already exists, ...
+						HerokuUtils.herokuError(renameApp.getShell(), e1);
 					}
 				}
 			});
@@ -87,9 +88,16 @@ public class ApplicationInfoPart {
 	
 	public void setDomainObject(App domainObject) {
 		this.domainObject = domainObject;
-		appName.setText(HerokuUtils.notNull(domainObject.getName()));
-		appUrl.setText("<a>" + HerokuUtils.notNull(domainObject.getWebUrl())+"</a>");
-		appGitUrl.setText(HerokuUtils.notNull(domainObject.getGitUrl()));
-		appDomainName.setText(domainObject.getDomain() == null ? "" : HerokuUtils.notNull(domainObject.getDomain().getDomain()));
+		HerokuUtils.runOnDisplay(true, appUrl, domainObject, new RunnableWithParameter<App>() {
+
+			@Override
+			public void run(App argument) {
+				appName.setText(HerokuUtils.notNull(argument.getName()));
+				appUrl.setText("<a>" + HerokuUtils.notNull(argument.getWebUrl())+"</a>");
+				appGitUrl.setText(HerokuUtils.notNull(argument.getGitUrl()));
+				appDomainName.setText(argument.getDomain() == null ? "" : HerokuUtils.notNull(argument.getDomain().getDomain()));
+			}
+		});
+		
 	}
 }

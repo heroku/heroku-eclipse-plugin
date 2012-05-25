@@ -4,6 +4,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -45,6 +46,7 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
+import com.heroku.eclipse.ui.utils.RunnableWithParameter;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
 import com.heroku.eclipse.ui.views.dialog.ApplicationInfoPart;
 import com.heroku.eclipse.ui.views.dialog.CollaboratorsPart;
@@ -56,7 +58,8 @@ import com.heroku.eclipse.ui.views.dialog.WebsiteOpener;
  * 
  * @author udo.rader@bestsolution.at
  */
-public class HerokuApplicationManagerViewPart extends ViewPart implements WebsiteOpener { 
+public class HerokuApplicationManagerViewPart extends ViewPart implements
+		WebsiteOpener {
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -68,9 +71,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private HerokuServices herokuService;
 
 	private List<ServiceRegistration<EventHandler>> handlerRegistrations;
-	
+
 	private Set<DialogImpl> openDialogs = new HashSet<HerokuApplicationManagerViewPart.DialogImpl>();
-	
+
 	private boolean inDispose;
 
 	@Override
@@ -126,12 +129,13 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			@Override
 			public void open(OpenEvent event) {
 				App app = getSelectedApp();
-				if( app != null ) {
+				if (app != null) {
 					DialogImpl d = getDialogForApp(app);
-					if( d == null ) {
-						DialogImpl dialog = new DialogImpl(getShell(), app, HerokuApplicationManagerViewPart.this);
+					if (d == null) {
+						DialogImpl dialog = new DialogImpl(getShell(), app,
+								HerokuApplicationManagerViewPart.this);
 						dialog.setBlockOnOpen(false);
-						dialog.open();	
+						dialog.open();
 					} else {
 						d.getShell().setActive();
 					}
@@ -261,17 +265,16 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		return mgr;
 	}
-	
+
 	@Override
 	public void openInternal(App application) {
 		try {
-			IWorkbenchBrowserSupport wbb = getSite()
-					.getWorkbenchWindow().getWorkbench()
-					.getBrowserSupport();
+			IWorkbenchBrowserSupport wbb = getSite().getWorkbenchWindow()
+					.getWorkbench().getBrowserSupport();
 			IWebBrowser browser = wbb.createBrowser(
-					IWorkbenchBrowserSupport.AS_EDITOR,
-					application.getName(), application.getName(),
-					"Heroku application - " + application.getName());
+					IWorkbenchBrowserSupport.AS_EDITOR, application.getName(),
+					application.getName(), "Heroku application - "
+							+ application.getName());
 			browser.openURL(new URL(application.getWebUrl()));
 		} catch (PartInitException e) {
 			// TODO Auto-generated catch block
@@ -283,7 +286,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	}
 
 	private void subscribeToEvents() {
-		handlerRegistrations = new ArrayList<ServiceRegistration<EventHandler>>();
+
 		EventHandler sessionInvalidationHandler = new EventHandler() {
 
 			@Override
@@ -291,9 +294,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				refreshApplications();
 			}
 		};
-		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
-				sessionInvalidationHandler,
-				HerokuServices.TOPIC_SESSION_INVALID));
 
 		EventHandler newApplicationHandler = new EventHandler() {
 
@@ -302,16 +302,54 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				refreshApplications();
 			}
 		};
+
+		EventHandler renameApplicationHandler = new EventHandler() {
+
+			@Override
+			public void handleEvent(Event event) {
+				refreshApplications();
+			}
+		};
+
+		handlerRegistrations = new ArrayList<ServiceRegistration<EventHandler>>();
+		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
+				sessionInvalidationHandler,
+				HerokuServices.TOPIC_SESSION_INVALID));
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
 				newApplicationHandler, HerokuServices.TOPIC_APPLICATION_NEW));
+		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
+				renameApplicationHandler,
+				HerokuServices.TOPIC_APPLICATION_RENAMED));
 	}
 
 	private void refreshApplications() {
 		try {
 			if (herokuService.canObtainHerokuSession()) {
-				HerokuUtils.runOnDisplay(true, viewer,
-						herokuService.listApps(),
+				List<App> applications = herokuService.listApps();
+				HerokuUtils.runOnDisplay(true, viewer, applications,
 						ViewerOperations.input(viewer));
+
+				// Update the open dialogs
+				HashSet<DialogImpl> copy = new HashSet<DialogImpl>(openDialogs);
+				Iterator<DialogImpl> it = copy.iterator();
+
+				while (it.hasNext()) {
+					DialogImpl d = it.next();
+					for (App app : applications) {
+						if (app.getId().equals(d.getApp().getId())) {
+							d.setApp(app);
+							it.remove();
+							d = null;
+							break;
+						}
+					}
+				}
+				
+				// Close dialogs for remain apps because they don't seem to exist anymore
+				for( DialogImpl d : copy ) {
+					d.close();
+				}
+				
 			} else {
 				HerokuUtils.runOnDisplay(true, viewer, new Object[0],
 						ViewerOperations.input(viewer));
@@ -333,29 +371,29 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				r.unregister();
 			}
 		}
-		
+
 		// Close all open dialogs and avoid CCM by setting flag
 		inDispose = true;
-		for( DialogImpl d : openDialogs ) {
+		for (DialogImpl d : openDialogs) {
 			d.close();
 		}
-		
+
 		super.dispose();
 	}
-	
+
 	void dialogClosed(DialogImpl dialog) {
-		if( ! inDispose ) {
+		if (!inDispose) {
 			openDialogs.remove(dialog);
 		}
 	}
-	
+
 	void dialogOpened(DialogImpl dialog) {
 		openDialogs.add(dialog);
 	}
-	
+
 	DialogImpl getDialogForApp(App app) {
-		for( DialogImpl d : openDialogs ) {
-			if( d.getApp().getId().equals(app.getId()) ) {
+		for (DialogImpl d : openDialogs) {
+			if (d.getApp().getId().equals(app.getId())) {
 				return d;
 			}
 		}
@@ -368,8 +406,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		private CollaboratorsPart collabpart;
 		private EnvironmentVariablesPart envpart;
 		private HerokuApplicationManagerViewPart viewPart;
-		
-		public DialogImpl(Shell parentShell, App app, HerokuApplicationManagerViewPart viewPart) {
+
+		public DialogImpl(Shell parentShell, App app,
+				HerokuApplicationManagerViewPart viewPart) {
 			super(parentShell);
 			this.app = app;
 			this.viewPart = viewPart;
@@ -380,19 +419,38 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				setShellStyle(SWT.DIALOG_TRIM | getDefaultOrientation());
 			}
 		}
-		
+
 		App getApp() {
 			return app;
 		}
+		
+		void setApp(App app) {
+			this.app = app;
+			infopart.setDomainObject(app);
+			collabpart.setDomainObject(app);
+			envpart.setDomainObject(app);
+			HerokuUtils.runOnDisplay(true, getShell(), app, new RunnableWithParameter<App>() {
 
+				@Override
+				public void run(App argument) {
+					updateTitleInfo();
+				}
+			});
+		}
+
+		void updateTitleInfo() {
+			getShell().setText("application information - " + app.getName());
+			setTitle("Application information");
+			setMessage("View and modify application informations of "
+					+ app.getName());
+		}
+		
 		@Override
 		protected Control createDialogArea(Composite parent) {
 			Composite container = (Composite) super.createDialogArea(parent);
 
-			getShell().setText("application information - " + app.getName());
-			setTitle("Application information");
-			setMessage("View and modify application informations of " + app.getName());
-			
+			updateTitleInfo();
+
 			CTabFolder folder = new CTabFolder(container, SWT.BOTTOM
 					| SWT.BORDER);
 
@@ -415,46 +473,47 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			{
 				CTabItem item = new CTabItem(folder, SWT.NONE);
 				item.setText("Environment Variables");
-				envpart = new EnvironmentVariablesPart(); 
+				envpart = new EnvironmentVariablesPart();
 				item.setControl(envpart.createUI(folder));
 				envpart.setDomainObject(app);
 			}
-			
+
 			folder.setSelection(0);
 			folder.setLayoutData(new GridData(GridData.FILL_BOTH));
 
 			return container;
 		}
-		
+
 		@Override
 		public int open() {
 			viewPart.dialogOpened(this);
 			return super.open();
 		}
-		
+
 		@Override
 		protected void createButtonsForButtonBar(Composite parent) {
-			createButton(parent, IDialogConstants.CLOSE_ID, IDialogConstants.CLOSE_LABEL, true);
+			createButton(parent, IDialogConstants.CLOSE_ID,
+					IDialogConstants.CLOSE_LABEL, true);
 		}
-		
+
 		@Override
 		protected void buttonPressed(int buttonId) {
-			if( buttonId == IDialogConstants.CLOSE_ID ) {
+			if (buttonId == IDialogConstants.CLOSE_ID) {
 				close();
 			} else {
-				super.buttonPressed(buttonId);	
+				super.buttonPressed(buttonId);
 			}
 		}
-		
+
 		@Override
 		public boolean close() {
 			boolean rv = super.close();
-			
-			if( rv ) {
+
+			if (rv) {
 				// unregister the view
 				viewPart.dialogClosed(this);
 			}
-			
+
 			return rv;
 		}
 	}
