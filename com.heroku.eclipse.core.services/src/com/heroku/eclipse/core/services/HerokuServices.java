@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.jgit.transport.CredentialsProvider;
 
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
@@ -247,16 +248,22 @@ public interface HerokuServices {
 	 *            	the App instance to materialize
 	 * @param workingDir 
 	 * 				the directory where the project will be materialized
+	 * @param timeout 
 	 * @param progressTitle 
 	 * 				the dialog title to display during the materialization process
 	 * @param pm
 	 *            	the progress monitor to use
+	 * @param handler 
 	 * @return true, if the materialization was successful, otherwise false the
 	 *         App instance to materialize
 	 * @return the materialized App
 	 * @throws HerokuServiceException
 	 */
-	public boolean materializeGitApp(App app, String workingDir, int timeout, String progressTitle, IProgressMonitor pm) throws HerokuServiceException;
+	public boolean materializeGitApp(App app, String workingDir, int timeout, String progressTitle, IProgressMonitor pm, CredentialsProvider cred) throws HerokuServiceException;
+	
+	interface HostExceptionHandler {
+		public boolean proceed(String message);
+	}
 
 	/**
 	 * Materializes the given app in the user's local git repository

@@ -14,11 +14,13 @@ import org.eclipse.ui.PlatformUI;
 import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
+import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
+import com.heroku.eclipse.ui.git.HerokuCredentialsProvider;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 
 /**
@@ -66,32 +68,35 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 				.getString(UIPreferences.DEFAULT_REPO_DIR);
 		
 		int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore()
-				.getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT); 
+				.getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
+		
+		HerokuCredentialsProvider cred = new HerokuCredentialsProvider( HerokuProperties.getString("heroku.eclipse.git.defaultUser"), "" ); //$NON-NLS-1$ //$NON-NLS-2$
 		
 //		try {
 //			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
 //				@Override
 //				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 //					// first clone
-					App app = createHerokuApp(new NullProgressMonitor());
-					if (app != null) {
-						// then materialize
-						try {
-							service.materializeGitApp(app, destinationDir, timeout, Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), new NullProgressMonitor()); //$NON-NLS-1$
-							rv = true;
-						}
-						catch (HerokuServiceException e) {
-							if ( e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE ) {
-								namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
-								namePage.setVisible(true);
+						App app = createHerokuApp(new NullProgressMonitor());
+						if (app != null) {
+							// then materialize
+							try {
+								service.materializeGitApp(app, destinationDir, timeout, Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), new NullProgressMonitor(), cred); //$NON-NLS-1$
+								rv = true;
 							}
-							else {
-								e.printStackTrace();
-								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
-								HerokuUtils.internalError(getShell(), e);
+							catch (HerokuServiceException e) {
+								if ( e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE ) {
+									namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
+									namePage.setVisible(true);
+								}
+								else {
+									e.printStackTrace();
+									Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
+									HerokuUtils.internalError(getShell(), e);
+								}
+								
 							}
 						}
-					}
 //				}
 //			});
 //		}
@@ -127,7 +132,18 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 					app = service.createAppFromTemplate(appName, template.getTemplateName(), pm);
 				}
 				catch (HerokuServiceException e) {
-					e.printStackTrace();
+					if ( e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE ) {
+						templatePage.setVisible(false);
+						
+						namePage.setVisible(true);
+						namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
+					}
+					else {
+						e.printStackTrace();
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
+						HerokuUtils.internalError(getShell(), e);
+					}
+					
 				}
 			}
 		}

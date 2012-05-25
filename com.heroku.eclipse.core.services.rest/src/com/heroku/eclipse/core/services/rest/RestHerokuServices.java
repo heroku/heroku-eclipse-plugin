@@ -40,6 +40,8 @@ import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.errors.UnsupportedCredentialItem;
+import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.eclipse.m2e.core.MavenPlugin;
@@ -386,7 +388,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public boolean materializeGitApp(App app, String gitLocation, int timeout, String dialogTitle, IProgressMonitor pm) throws HerokuServiceException {
+	public boolean materializeGitApp(App app, String gitLocation, int timeout, String dialogTitle, IProgressMonitor pm, CredentialsProvider cred) throws HerokuServiceException {
 		boolean rv = false;
 
 		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '"+app.getName()+"' in workspace" ); //$NON-NLS-1$ //$NON-NLS-2$
@@ -406,8 +408,9 @@ public class RestHerokuServices implements HerokuServices {
 
 			CloneOperation cloneOp = new CloneOperation(uri, true, null, workdir,
 					HerokuProperties.getString("heroku.eclipse.git.defaultRefs"), HerokuProperties.getString("heroku.eclipse.git.defaultOrigin"), timeout); //$NON-NLS-1$ //$NON-NLS-2$
-			UsernamePasswordCredentialsProvider user = new UsernamePasswordCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
-			cloneOp.setCredentialsProvider(user);
+			
+//			UsernamePasswordCredentialsProvider user = new UsernamePasswordCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
+			cloneOp.setCredentialsProvider(cred);
 			cloneOp.setCloneSubmodules(true);
 			runAsJob(uri, cloneOp, app, dialogTitle);
 
@@ -423,7 +426,7 @@ public class RestHerokuServices implements HerokuServices {
 		return rv;
 	}
 
-	private void runAsJob(final URIish uri, final CloneOperation op, final App app, String dialogTitle ) {
+	private void runAsJob(final URIish uri, final CloneOperation op, final App app, String dialogTitle) {
 		final Job job = new Job(dialogTitle) {
 			@Override
 			protected IStatus run(final IProgressMonitor monitor) {
