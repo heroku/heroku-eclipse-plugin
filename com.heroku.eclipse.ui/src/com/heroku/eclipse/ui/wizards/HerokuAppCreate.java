@@ -10,7 +10,6 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.PlatformUI;
 import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
@@ -64,85 +63,94 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 	public boolean performFinish() {
 		boolean rv = false;
 
-		String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore()
-				.getString(UIPreferences.DEFAULT_REPO_DIR);
-		
-		int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore()
-				.getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
-		
-		HerokuCredentialsProvider cred = new HerokuCredentialsProvider( HerokuProperties.getString("heroku.eclipse.git.defaultUser"), "" ); //$NON-NLS-1$ //$NON-NLS-2$
-		
-//		try {
-//			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
-//				@Override
-//				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-//					// first clone
-						App app = createHerokuApp(new NullProgressMonitor());
-						if (app != null) {
-							// then materialize
-							try {
-								service.materializeGitApp(app, destinationDir, timeout, Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), new NullProgressMonitor(), cred); //$NON-NLS-1$
-								rv = true;
-							}
-							catch (HerokuServiceException e) {
-								if ( e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE ) {
-									namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
-									namePage.setVisible(true);
-								}
-								else {
-									e.printStackTrace();
-									Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
-									HerokuUtils.internalError(getShell(), e);
-								}
-								
-							}
-						}
-//				}
-//			});
-//		}
-//		catch (InvocationTargetException e1) {
-//			e1.printStackTrace();
-//			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e1); //$NON-NLS-1$
-//			HerokuUtils.internalError(getShell(), e1);
-//		}
-//		catch (InterruptedException e1) {
-//			e1.printStackTrace();
-//			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e1); //$NON-NLS-1$
-//			HerokuUtils.internalError(getShell(), e1);
-//		}
+		final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
+		final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 
-		return rv;
+		final String appName = namePage.getAppName();
+		final AppTemplate template = templatePage.getAppTemplate();
+
+		final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
+		try {
+			getContainer().run(true, false, new IRunnableWithProgress() {
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					// first clone
+
+					App app = createHerokuApp(appName, template, new NullProgressMonitor());
+					if (app != null) {
+						// then materialize
+						try {
+							service.materializeGitApp(app, destinationDir, timeout,
+									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), new NullProgressMonitor(), cred); //$NON-NLS-1$
+						}
+						catch (HerokuServiceException e) {
+							if (e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
+								namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
+								namePage.setVisible(true);
+							}
+							else {
+								e.printStackTrace();
+								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
+								HerokuUtils.internalError(getShell(), e);
+							}
+
+						}
+					}
+				}
+			});
+		}
+		catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return true;
 	}
+
+	// catch (InvocationTargetException e1) {
+	// e1.printStackTrace();
+	//			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e1); //$NON-NLS-1$
+	// HerokuUtils.internalError(getShell(), e1);
+	// }
+	// catch (InterruptedException e1) {
+	// e1.printStackTrace();
+	//			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e1); //$NON-NLS-1$
+	// HerokuUtils.internalError(getShell(), e1);
+	// }
+	//
+	// return rv;
+	// }
 
 	/**
 	 * Creates the app on the Heroku side
 	 * 
 	 * @return the newly created App instance
 	 */
-	private App createHerokuApp( IProgressMonitor pm ) {
+	private App createHerokuApp(String appName, AppTemplate template, IProgressMonitor pm) {
 		App app = null;
 
-		String appName = namePage.getAppName();
-
 		if (appName != null) {
-			AppTemplate template = templatePage.getAppTemplate();
-
 			if (template != null) {
 				try {
 					app = service.createAppFromTemplate(appName, template.getTemplateName(), pm);
 				}
 				catch (HerokuServiceException e) {
-					if ( e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE ) {
+					if (e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
 						getContainer().showPage(namePage);
-						Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "Application '"+app.getName()+"' already exists, denying creation", e); //$NON-NLS-1$ //$NON-NLS-2$
+						Activator.getDefault().getLogger()
+								.log(LogService.LOG_WARNING, "Application '" + app.getName() + "' already exists, denying creation", e); //$NON-NLS-1$ //$NON-NLS-2$
 						namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
 					}
 					else {
 						e.printStackTrace();
 						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
-						HerokuUtils.internalError(getShell(), e);
+//						HerokuUtils.internalError(getShell(), e);
 					}
-					
+
 				}
 			}
 		}
