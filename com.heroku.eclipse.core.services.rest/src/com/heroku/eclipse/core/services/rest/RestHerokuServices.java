@@ -353,4 +353,19 @@ public class RestHerokuServices implements HerokuServices {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	@Override
+	public boolean canObtainHerokuSession() {
+		if( herokuSession != null ) {
+			return true;
+		}
+		
+		//TODO We should store a NONE secure preference to know if an API-Key is configured!
+		String key = null;
+		try {
+			key = getAPIKey();
+		} catch (HerokuServiceException e) {
+		}
+		return key != null && ! key.trim().isEmpty();
+	}
 }
