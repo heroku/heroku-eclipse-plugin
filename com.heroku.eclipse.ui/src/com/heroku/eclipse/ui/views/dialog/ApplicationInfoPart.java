@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Text;
 import com.heroku.api.App;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
+import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.RunnableWithParameter;
 
@@ -38,11 +39,11 @@ public class ApplicationInfoPart {
 		
 		{
 			Label l = new Label(container, SWT.NONE);
-			l.setText("Name");
+			l.setText(Messages.getString("HerokuAppInformationPart_Name")); //$NON-NLS-1$
 			appName = new Text(container, SWT.BORDER);
 			appName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			renameApp = new Button(container, SWT.PUSH);
-			renameApp.setText("Rename");
+			renameApp.setText(Messages.getString("HerokuAppInformationPart_Rename")); //$NON-NLS-1$
 			renameApp.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
@@ -58,7 +59,7 @@ public class ApplicationInfoPart {
 		
 		{
 			Label l = new Label(container, SWT.NONE);
-			l.setText("URL");
+			l.setText(Messages.getString("HerokuAppInformationPart_URL")); //$NON-NLS-1$
 			appUrl = new Link(container, SWT.NONE);
 			appUrl.setLayoutData(new GridData(GridData.FILL,SWT.CENTER,true,false,2,1));
 			appUrl.addSelectionListener(new SelectionAdapter() {
@@ -71,14 +72,14 @@ public class ApplicationInfoPart {
 		
 		{
 			Label l = new Label(container, SWT.NONE);
-			l.setText("Git Repository URL");
+			l.setText(Messages.getString("HerokuAppInformationPart_GitRepositoryURL")); //$NON-NLS-1$
 			appGitUrl = new Label(container, SWT.NONE);
 			appGitUrl.setLayoutData(new GridData(GridData.FILL,SWT.CENTER,true,false,2,1));
 		}
 		
 		{
 			Label l = new Label(container, SWT.NONE);
-			l.setText("Domain Name");
+			l.setText(Messages.getString("HerokuAppInformationPart_DomainName")); //$NON-NLS-1$
 			appDomainName = new Label(container, SWT.NONE);
 			appDomainName.setLayoutData(new GridData(GridData.FILL,SWT.CENTER,true,false,2,1));
 		}

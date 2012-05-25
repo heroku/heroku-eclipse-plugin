@@ -24,6 +24,7 @@ import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
+import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.RunnableWithReturn;
@@ -57,7 +58,7 @@ public class CollaboratorsPart {
 			{
 				TableViewerColumn column = new TableViewerColumn(viewer,
 						SWT.NONE);
-				column.getColumn().setText("Owner");
+				column.getColumn().setText(Messages.getString("HerokuAppInformationCollaborators_Owner")); //$NON-NLS-1$
 				column.getColumn().pack();
 				column.setLabelProvider(LabelProviderFactory
 						.createCollaborator_Owner(new RunnableWithReturn<Boolean, Collaborator>() {
@@ -72,7 +73,7 @@ public class CollaboratorsPart {
 			{
 				TableViewerColumn column = new TableViewerColumn(viewer,
 						SWT.NONE);
-				column.getColumn().setText("Collaborator E-Mail");
+				column.getColumn().setText(Messages.getString("HerokuAppInformationCollaborators_Email")); //$NON-NLS-1$"
 				column.getColumn().setWidth(200);
 				column.setLabelProvider(LabelProviderFactory
 						.createCollaborator_Email());
@@ -85,7 +86,7 @@ public class CollaboratorsPart {
 
 			{
 				addButton = new Button(controls, SWT.PUSH);
-				addButton.setText("+");
+				addButton.setText("+"); //$NON-NLS-1$
 				addButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				addButton.addSelectionListener(new SelectionAdapter() {
 					@Override
@@ -97,7 +98,7 @@ public class CollaboratorsPart {
 
 			{
 				removeButton = new Button(controls, SWT.PUSH);
-				removeButton.setText("-");
+				removeButton.setText("-"); //$NON-NLS-1$
 				removeButton.setLayoutData(new GridData(
 						GridData.FILL_HORIZONTAL));
 				removeButton.addSelectionListener(new SelectionAdapter() {
@@ -118,7 +119,7 @@ public class CollaboratorsPart {
 
 			{
 				makeOwner = new Button(controls, SWT.PUSH);
-				makeOwner.setText("Make Owner");
+				makeOwner.setText(Messages.getString("HerokuAppInformationCollaborators_MakeOwner")); //$NON-NLS-1$
 				makeOwner.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				makeOwner.addSelectionListener(new SelectionAdapter() {
 					@Override
@@ -127,7 +128,7 @@ public class CollaboratorsPart {
 						if( s.size() == 1 ) {
 							Collaborator c = (Collaborator) s.getFirstElement();
 							if( c != currentOwner ) {
-								if( MessageDialog.openQuestion(makeOwner.getShell(), "Transfer application?", "Would you really like to transfer the application to '"+c.getEmail()+"'") ) {
+								if( MessageDialog.openQuestion(makeOwner.getShell(), Messages.getString("HerokuAppInformationCollaborators_Transfer_Title"), Messages.getFormattedString("HerokuAppInformationCollaborators_Transfer_Message", c.getEmail()))) {  //$NON-NLS-1$//$NON-NLS-2$
 									try {
 										Activator.getDefault().getService().transferApplication(domainObject, c.getEmail());
 									} catch (HerokuServiceException e1) {
@@ -157,17 +158,17 @@ public class CollaboratorsPart {
 		String message;
 
 		if (collaborators.size() == 1) {
-			message = "Do you really want to remove the collaborator '"
-					+ collaborators.get(0).getEmail() + "'?";
+			
+			message = Messages.getFormattedString("HerokuAppInformationCollaborators_Remove_QuestionSingle", collaborators.get(0).getEmail()); //$NON-NLS-1$
 		} else {
-			message = "The following collaborators will be remove:\n";
+			String removed = ""; //$NON-NLS-1$
 			for (Collaborator c : collaborators) {
-				message += "* " + c.getEmail() + "\n";
+				removed += "* " + c.getEmail() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$
 			}
-			message += "Do you want to proceed?";
+			message = Messages.getFormattedString("HerokuAppInformationCollaborators_Remove_QuestionMultiple", removed); //$NON-NLS-1$
 		}
 
-		if (MessageDialog.openQuestion(shell, "Remove collaborator", message)) {
+		if (MessageDialog.openQuestion(shell, Messages.getString("HerokuAppInformationCollaborators_Remove_Title"), message)) { //$NON-NLS-1$
 			try {
 				String[] emails = new String[collaborators.size()];
 				for (int i = 0; i < emails.length; i++) {
@@ -193,7 +194,7 @@ public class CollaboratorsPart {
 			protected Control createDialogArea(Composite parent) {
 				Composite container = (Composite) super
 						.createDialogArea(parent);
-				getShell().setText("Add Collaborator");
+				getShell().setText(Messages.getString("HerokuAppInformationCollaborators_Add_Title")); //$NON-NLS-1$
 
 				Composite area = new Composite(container, SWT.NONE);
 				area.setLayout(new GridLayout(2, false));
@@ -201,7 +202,7 @@ public class CollaboratorsPart {
 
 				{
 					Label l = new Label(area, SWT.NONE);
-					l.setText("E-Mail");
+					l.setText(Messages.getString("HerokuAppInformationCollaborators_Add_Email")); //$NON-NLS-1$
 
 					emailField = new Text(area, SWT.BORDER);
 					emailField.setLayoutData(new GridData(
