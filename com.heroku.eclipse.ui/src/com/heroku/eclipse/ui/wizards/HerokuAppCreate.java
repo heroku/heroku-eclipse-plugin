@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.egit.ui.UIPreferences;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -60,23 +61,29 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 	@Override
 	public boolean performFinish() {
 		boolean rv = false;
+
+		String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore()
+				.getString(UIPreferences.DEFAULT_REPO_DIR);
 		
-		try {
-			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
-				@Override
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-					// first clone
-					App app = createHerokuApp(monitor);
+		int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore()
+				.getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT); 
+		
+//		try {
+//			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
+//				@Override
+//				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+//					// first clone
+					App app = createHerokuApp(new NullProgressMonitor());
 					if (app != null) {
 						// then materialize
 						try {
-							service.materializeGitApp(app, Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), monitor); //$NON-NLS-1$
+							service.materializeGitApp(app, destinationDir, timeout, Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), new NullProgressMonitor()); //$NON-NLS-1$
+							rv = true;
 						}
 						catch (HerokuServiceException e) {
 							if ( e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE ) {
 								namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
 								namePage.setVisible(true);
-								return;
 							}
 							else {
 								e.printStackTrace();
@@ -85,19 +92,19 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 							}
 						}
 					}
-				}
-			});
-		}
-		catch (InvocationTargetException e1) {
-			e1.printStackTrace();
-			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e1); //$NON-NLS-1$
-			HerokuUtils.internalError(getShell(), e1);
-		}
-		catch (InterruptedException e1) {
-			e1.printStackTrace();
-			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e1); //$NON-NLS-1$
-			HerokuUtils.internalError(getShell(), e1);
-		}
+//				}
+//			});
+//		}
+//		catch (InvocationTargetException e1) {
+//			e1.printStackTrace();
+//			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e1); //$NON-NLS-1$
+//			HerokuUtils.internalError(getShell(), e1);
+//		}
+//		catch (InterruptedException e1) {
+//			e1.printStackTrace();
+//			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e1); //$NON-NLS-1$
+//			HerokuUtils.internalError(getShell(), e1);
+//		}
 
 		return rv;
 	}

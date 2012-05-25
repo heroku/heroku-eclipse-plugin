@@ -245,6 +245,8 @@ public interface HerokuServices {
 	 * 
 	 * @param app
 	 *            	the App instance to materialize
+	 * @param workingDir 
+	 * 				the directory where the project will be materialized
 	 * @param progressTitle 
 	 * 				the dialog title to display during the materialization process
 	 * @param pm
@@ -254,11 +256,12 @@ public interface HerokuServices {
 	 * @return the materialized App
 	 * @throws HerokuServiceException
 	 */
-	public boolean materializeGitApp(App app, String progressTitle, IProgressMonitor pm) throws HerokuServiceException;
+	public boolean materializeGitApp(App app, String workingDir, int timeout, String progressTitle, IProgressMonitor pm) throws HerokuServiceException;
 
 	/**
 	 * Materializes the given app in the user's local git repository
-	 * @param projectName 
+	 * @param projectName
+	 * @param timeout
 	 * @param projectPath 
 	 * @param repoDir 
 	 * 

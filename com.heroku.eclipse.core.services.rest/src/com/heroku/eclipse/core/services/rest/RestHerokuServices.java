@@ -369,7 +369,15 @@ public class RestHerokuServices implements HerokuServices {
 			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new Heroku App '"+appName+"' from template '"+templateName+"'" ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			App randomApp = getOrCreateHerokuSession().cloneTemplate(templateName);
 			getOrCreateHerokuSession().renameApp(randomApp.getName(), appName);
-			return getOrCreateHerokuSession().getApp(appName);
+			App app = getOrCreateHerokuSession().getApp(appName);
+			
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put(KEY_APPLICATION_ID, app.getId());
+
+			Event event = new Event(TOPIC_APPLICATION_NEW, map);
+			eventAdmin.postEvent(event);
+
+			return app;
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -378,17 +386,14 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public boolean materializeGitApp(App app, String dialogTitle, IProgressMonitor pm) throws HerokuServiceException {
+	public boolean materializeGitApp(App app, String gitLocation, int timeout, String dialogTitle, IProgressMonitor pm) throws HerokuServiceException {
 		boolean rv = false;
-
-		// TODO fetch from egit prefs
-		String gitLocation = "/home/udo/git/" + app.getName();
 
 		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '"+app.getName()+"' in workspace" ); //$NON-NLS-1$ //$NON-NLS-2$
 		try {
 			URIish uri = new URIish(app.getGitUrl());
 
-			final File workdir = new File(gitLocation);
+			final File workdir = new File(gitLocation, app.getName());
 
 			boolean created = workdir.exists();
 			if (!created) {
@@ -398,12 +403,6 @@ public class RestHerokuServices implements HerokuServices {
 			if (!created || !workdir.isDirectory()) {
 				throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION, "local Git location is invalid: " + gitLocation); //$NON-NLS-1$
 			}
-
-			// TODO: timeout from egit prefs
-			int timeout = 5000;
-			
-			// int timeout = Activator.getDefault().getPreferenceStore()
-			// .getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 
 			CloneOperation cloneOp = new CloneOperation(uri, true, null, workdir,
 					HerokuProperties.getString("heroku.eclipse.git.defaultRefs"), HerokuProperties.getString("heroku.eclipse.git.defaultOrigin"), timeout); //$NON-NLS-1$ //$NON-NLS-2$
@@ -415,10 +414,10 @@ public class RestHerokuServices implements HerokuServices {
 			rv = true;
 		}
 		catch (JGitInternalException e) {
-			e.printStackTrace();
+			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e);
 		}
 		catch (URISyntaxException e) {
-			e.printStackTrace();
+			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e);
 		}
 
 		return rv;
