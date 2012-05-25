@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -64,7 +65,13 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 		App app = createHerokuApp();
 		// materialize project locally
 		if ( app != null ) {
-			
+			try {
+				service.materializeGitApp(app, new NullProgressMonitor());
+			}
+			catch (HerokuServiceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			rv = true;
 		}
 		
@@ -110,7 +117,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 		return app;
 	}
 	
-//	private boolean materizalizeApp( App app ) {
+	private boolean materizalizeApp( App app ) {
 //		try {
 //			URIish uri = new URIish(app.getGitUrl());
 //			setWindowTitle("cloning template into local workspace ...");
@@ -124,8 +131,8 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 //			e.printStackTrace();
 //		}
 //		
-//		return false;
-//	}
+		return false;
+	}
 	
 //	/**
 //	 * Do the clone using data which were collected on the pages

@@ -47,4 +47,8 @@ public class Activator implements BundleActivator {
 	public Logger getLogger() {
 		return logService.getLogger(getContext().getBundle(), null);
 	}
+	
+	public static String getPluginId() {
+		return ID;
+	}
 }

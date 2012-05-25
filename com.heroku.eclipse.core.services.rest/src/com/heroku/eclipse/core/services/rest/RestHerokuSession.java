@@ -65,7 +65,8 @@ public class RestHerokuSession implements HerokuSession {
 	@Override
 	public List<App> listApps() throws HerokuServiceException {
 		checkValid();
-		return api.listApps();
+		List<App> list = api.listApps();
+		return list;
 	}
 
 	@Override
@@ -160,10 +161,31 @@ public class RestHerokuSession implements HerokuSession {
 	}
 
 	@Override
-	public App cloneApp(String templateName) throws HerokuServiceException {
+	public App cloneTemplate(String templateName) throws HerokuServiceException {
 		checkValid();
 		try {
 			return api.cloneApp(templateName);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	@Override
+	public App getApp(String appName) throws HerokuServiceException {
+		checkValid();
+		try {
+			// HerokuAPI.getApp is currently buggy: it does not deliver the git
+			// URL for an App, so we use listApps instead
+			// return api.getApp(appName);
+
+			List<App> apps = listApps();
+			for (App app : apps) {
+				if (app.getName().equals(appName)) {
+					return app;
+				}
+			}
+			return null;
 		}
 		catch (RequestFailedException e) {
 			throw checkException(e);

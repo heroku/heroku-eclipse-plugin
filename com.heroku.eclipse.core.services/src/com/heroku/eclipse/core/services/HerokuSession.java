@@ -115,5 +115,16 @@ public interface HerokuSession {
 	 * 				if name is invalid
 	 * 				if the request fails
 	 */
-	public App cloneApp( String templateName ) throws HerokuServiceException;
+	public App cloneTemplate( String templateName ) throws HerokuServiceException;
+	
+	/**
+	 * Retrieves the named, existing app from the user's Heroku account
+	 * @param appName
+	 * @return the already existing App
+	 * @throws HerokuServiceException
+	 * 				if {@link #isValid()} is false
+	 * 				if name is invalid
+	 * 				if the request fails
+	 */
+	public App getApp( String appName ) throws HerokuServiceException;
 }

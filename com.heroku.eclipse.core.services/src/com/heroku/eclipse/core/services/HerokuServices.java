@@ -1,6 +1,10 @@
 package com.heroku.eclipse.core.services;
 
+import java.io.File;
 import java.util.List;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 
 import com.heroku.api.App;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
@@ -190,8 +194,22 @@ public interface HerokuServices {
 	 * Materializes the given app in the user's local git repository 
 	 * @param app
 	 * 			the App instance to materialize
-	 * @return the materialized App
+	 * @param pm 
+	 * 			the progress monitor to use
+	 * @return true, if the materialization was successful, otherwise false
 	 * @throws HerokuServiceException
 	 */
-	public App materializeGitApp( App app ) throws HerokuServiceException;
+	public boolean materializeGitApp( App app, IProgressMonitor pm ) throws HerokuServiceException;
+	
+	/**
+	 * Materializes the given app in the user's local git repository 
+	 * @param app
+	 * 			the App instance to materialize
+	 * @param pm 
+	 * 			the progress monitor to use
+	 * @return true, if the materialization was successful, otherwise false
+	 * @throws HerokuServiceException
+	 */
+	public IStatus createProject( final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm ) throws HerokuServiceException;
+	
 }

@@ -75,7 +75,7 @@ public class HerokuAppCreateNamePage extends WizardPage {
 				public void modifyText(ModifyEvent e) {
 					setErrorMessage(null);
 					setPageComplete(true);
-					if ( tAppName.getText() == null || tAppName.getText().trim().isEmpty() ) {
+					if ( ! HerokuUtils.isNotEmpty(tAppName.getText() ) ) {
 						setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameEmpty")); //$NON-NLS-1$
 						setPageComplete(false);
 					}

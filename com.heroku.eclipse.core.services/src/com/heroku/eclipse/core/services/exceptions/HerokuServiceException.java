@@ -75,6 +75,11 @@ public class HerokuServiceException extends Exception {
 	 */
 	public static final int INVALID_PREFERENCES = 12;
 
+	/**
+	 * the location intended to contain files from git is invalid or not accessible
+	 */
+	public static final int INVALID_LOCAL_GIT_LOCATION = 13;
+
 	private final int errorCode;
 
 	public HerokuServiceException(Throwable t) {

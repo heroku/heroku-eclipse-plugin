@@ -72,5 +72,23 @@ public class HerokuUtils {
 
 		ErrorDialog.openError(shell, title, null, status);
 	}
+	
+	/**
+	 * Simple test checking if the given string is either null or empty
+	 * @param something
+	 * @return true, if the string contains "something", false if not 
+	 */
+	public static boolean isNotEmpty( String something ) {
+		return ( something == null || something.trim().isEmpty() ) ? false : true;
+	}
 
+	/**
+	 * Returns an empty String when the given String is null, otherwise
+	 * the passed in String. 
+	 * @param something
+	 * @return either an empty String or the passed in non empty String
+	 */
+	public static String ensureNotNull( String something ) {
+		return (something == null) ? "" : something; //$NON-NLS-1$
+	}
 }

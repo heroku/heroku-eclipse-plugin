@@ -12,6 +12,7 @@ public class AppTemplate {
 	private String templateDescription = ""; //$NON-NLS-1$
 	private String frameworksLibs = ""; //$NON-NLS-1$
 	private String addons = ""; //$NON-NLS-1$
+	private String buildType = ""; //$NON-NLS-1$
 	
 	/**
 	 * @return the language
@@ -96,5 +97,17 @@ public class AppTemplate {
 	 */
 	public void setAddons(String addons) {
 		this.addons = addons;
+	}
+	/**
+	 * @return the buildType
+	 */
+	public String getBuildType() {
+		return buildType;
+	}
+	/**
+	 * @param buildType the buildType to set
+	 */
+	public void setBuildType(String buildType) {
+		this.buildType = buildType;
 	}
 }

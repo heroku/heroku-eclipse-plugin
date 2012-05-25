@@ -350,7 +350,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 					setErrorMessage(null);
 					try {
 						String sshKey = ((Text)widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText();
-						if ( ! sshKey.trim().isEmpty() ) {
+						if ( HerokuUtils.isNotEmpty(sshKey) ) {
 							service.setSSHKey(sshKey);
 							setMessage(Messages.getString("HerokuPreferencePage_Info_SSHKeyAdd_OK"), IMessageProvider.INFORMATION); //$NON-NLS-1$)
 						}
@@ -588,7 +588,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			
 			String apiKey = service.getAPIKey();
 
-			((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(ensureNotNull(apiKey));
+			((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(HerokuUtils.ensureNotNull(apiKey));
 
 			// primary source for the SSH key are the preferences
 			String sshKey = service.getSSHKey();
@@ -598,14 +598,14 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				@SuppressWarnings({ "restriction", "deprecation" })
 				String sshHome = jschPreferences.getString(org.eclipse.jsch.internal.core.IConstants.KEY_SSH2HOME);
 
-				if (sshHome != null && !sshHome.trim().isEmpty()) {
+				if (HerokuUtils.isNotEmpty(sshHome)) {
 					File keyFile = null;
 				
 					// if we have key preferences, use them
 					@SuppressWarnings({ "restriction", "deprecation" })
 					String wantedKeys = jschPreferences.getString(org.eclipse.jsch.internal.core.IConstants.KEY_PRIVATEKEY);
 
-					if (wantedKeys != null && !wantedKeys.trim().isEmpty()) {
+					if (HerokuUtils.isNotEmpty(wantedKeys)) {
 						// we use the first found .pub key file, controlled by the user's precedence
 						String[] keyfiles = wantedKeys.split(","); //$NON-NLS-1$
 						for (int i = 0; i < keyfiles.length; i++) {
@@ -643,7 +643,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				}
 			}
 
-			((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText(ensureNotNull(sshKey));
+			((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).setText(HerokuUtils.ensureNotNull(sshKey));
 
 			boolean existingAPIKey = validateAPIKeyData(false);
 
@@ -680,10 +680,6 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				((Text) widgetRegistry.get(PreferenceConstants.P_PASSWORD)).setText(develPwd);
 			}
 		}
-	}
-
-	private static String ensureNotNull(String nullable) {
-		return (nullable == null) ? "" : nullable; //$NON-NLS-1$
 	}
 
 	@Override

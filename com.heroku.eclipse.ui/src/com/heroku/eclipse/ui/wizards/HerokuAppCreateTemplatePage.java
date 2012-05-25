@@ -261,7 +261,8 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 				@Override
 				public void selectionChanged(SelectionChangedEvent event) {
 					final IStructuredSelection s = (IStructuredSelection) event.getSelection();
-					displayTemplateDetails((AppTemplate) s.getFirstElement());
+					appTemplate = (AppTemplate) s.getFirstElement();
+					displayTemplateDetails(appTemplate);
 					
 					setPageComplete(true);
 				}

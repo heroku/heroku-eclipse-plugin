@@ -1,8 +1,11 @@
 package com.heroku.eclipse.core.services.rest;
 
+import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,11 +18,34 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.egit.core.RepositoryUtil;
+import org.eclipse.egit.core.op.CloneOperation;
+import org.eclipse.egit.core.op.ConnectProviderOperation;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
+import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.URIish;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.log.LogService;
@@ -51,6 +77,7 @@ public class RestHerokuServices implements HerokuServices {
 	//	private static final String PREF_SSH_KEY = "sshKey"; //$NON-NLS-1$
 	//
 	private EventAdmin eventAdmin;
+	private RepositoryUtil egitUtils;
 
 	/**
 	 * @param eventAdmin
@@ -136,6 +163,9 @@ public class RestHerokuServices implements HerokuServices {
 				validateSSHKey(sshKey);
 				getOrCreateHerokuSession().addSSHKey(sshKey);
 				p.put(PreferenceConstants.P_SSH_KEY, sshKey);
+			}
+			else {
+				throw new HerokuServiceException(HerokuServiceException.SSH_KEY_ALREADY_EXISTS, "SSH key already registered with this account!"); //$NON-NLS-1$
 			}
 			p.flush();
 		}
@@ -258,8 +288,8 @@ public class RestHerokuServices implements HerokuServices {
 
 	@Override
 	public List<App> listApps() throws HerokuServiceException {
-		List<App> apps = new ArrayList<App>();
-		apps = getOrCreateHerokuSession().listApps();
+		// = new ArrayList<App>();
+		List<App> apps = getOrCreateHerokuSession().listApps();
 		return apps;
 	}
 
@@ -319,12 +349,13 @@ public class RestHerokuServices implements HerokuServices {
 				throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, "unable to map JSON data from templates list", e); //$NON-NLS-1$
 			}
 			catch (MalformedURLException e) {
-				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "malformed URL '"+templateURI+"'for templates listing ", e); //$NON-NLS-1$ //$NON-NLS-2$
-				throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, "malformed URL '"+templateURI+"'for templates listing ", e); //$NON-NLS-1$ //$NON-NLS-2$
+				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "malformed URL '" + templateURI + "'for templates listing ", e); //$NON-NLS-1$ //$NON-NLS-2$
+				throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, "malformed URL '" + templateURI + "'for templates listing ", e); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			catch (IOException e) {
-				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "network error when retrieving templates listing from "+templateURI, e); //$NON-NLS-1$
-				throw new HerokuServiceException(HerokuServiceException.REQUEST_FAILED, "network error when retrieving templates listing from "+templateURI, e); //$NON-NLS-1$
+				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "network error when retrieving templates listing from " + templateURI, e); //$NON-NLS-1$
+				throw new HerokuServiceException(HerokuServiceException.REQUEST_FAILED,
+						"network error when retrieving templates listing from " + templateURI, e); //$NON-NLS-1$
 			}
 		}
 
@@ -333,24 +364,267 @@ public class RestHerokuServices implements HerokuServices {
 
 	@Override
 	public App createAppFromTemplate(String appName, String templateName) throws HerokuServiceException {
-		App app = null;
 		try {
-			app = getOrCreateHerokuSession().cloneApp(templateName);
-			getOrCreateHerokuSession().renameApp(app.getName(), appName);
+			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new Heroku App '"+appName+"' from template '"+templateName+"'" ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			App randomApp = getOrCreateHerokuSession().cloneTemplate(templateName);
+			getOrCreateHerokuSession().renameApp(randomApp.getName(), appName);
+			return getOrCreateHerokuSession().getApp(appName);
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
+			throw e;
 		}
-		
-		return app;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.heroku.eclipse.core.services.HerokuServices#materializeGitApp(com.heroku.api.App)
-	 */
 	@Override
-	public App materializeGitApp(App app) throws HerokuServiceException {
-		// TODO Auto-generated method stub
-		return null;
+	public boolean materializeGitApp(App app, IProgressMonitor pm) throws HerokuServiceException {
+		boolean rv = false;
+
+		// TODO fetch from egit prefs
+		String gitLocation = "/home/udo/git/" + app.getName();
+
+		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '"+app.getName()+"' in workspace" ); //$NON-NLS-1$ //$NON-NLS-2$
+		try {
+			URIish uri = new URIish(app.getGitUrl());
+
+			final File workdir = new File(gitLocation);
+
+			boolean created = workdir.exists();
+			if (!created) {
+				created = workdir.mkdirs();
+			}
+
+			if (!created || !workdir.isDirectory()) {
+				throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION, "local Git location is invalid: " + gitLocation); //$NON-NLS-1$
+			}
+
+			// TODO: timeout from egit prefs
+			int timeout = 5000;
+			// int timeout = Activator.getDefault().getPreferenceStore()
+			// .getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
+
+			CloneOperation cloneOp = new CloneOperation(uri, true, null, workdir,
+					HerokuProperties.getString("heroku.eclipse.git.defaultRefs"), HerokuProperties.getString("heroku.eclipse.git.defaultOrigin"), timeout); //$NON-NLS-1$ //$NON-NLS-2$
+			UsernamePasswordCredentialsProvider user = new UsernamePasswordCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
+			cloneOp.setCredentialsProvider(user);
+			cloneOp.setCloneSubmodules(true);
+			runAsJob(uri, cloneOp, app);
+
+			rv = true;
+		}
+		catch (JGitInternalException e) {
+			e.printStackTrace();
+		}
+		catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+
+		return rv;
+	}
+
+	private void runAsJob(final URIish uri, final CloneOperation op, final App app) {
+		final Job job = new Job("KASPERL TALKING!") {
+			@Override
+			protected IStatus run(final IProgressMonitor monitor) {
+				try {
+					IStatus status = executeCloneOperation(op, monitor);
+
+					if (status.isOK()) {
+						// enableNatureAction
+						return createProject(app.getName(), op.getGitDir().getParentFile().getAbsolutePath(), op.getGitDir(), monitor);
+					}
+					else {
+						return status;
+					}
+				}
+				catch (InterruptedException e) {
+					return Status.CANCEL_STATUS;
+				}
+				catch (InvocationTargetException e) {
+					Throwable thr = e.getCause();
+					return new Status(IStatus.ERROR, Activator.getPluginId(), 0, thr.getMessage(), thr);
+				}
+			}
+		};
+		job.setUser(true);
+		job.schedule();
+	}
+
+	private IStatus executeCloneOperation(final CloneOperation op, final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+		op.run(monitor);
+		getEgitUtils().addConfiguredRepository(op.getGitDir());
+
+		return Status.OK_STATUS;
+	}
+
+	public IStatus createProject(final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm) {
+		try {
+			IWorkspaceRunnable wsr = new IWorkspaceRunnable() {
+				public void run(IProgressMonitor actMonitor) throws CoreException {
+					final IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
+					desc.setLocation(new Path(projectPath));
+					IProject prj = ResourcesPlugin.getWorkspace().getRoot().getProject(desc.getName());
+					prj.create(desc, actMonitor);
+					prj.open(actMonitor);
+					ConnectProviderOperation cpo = new ConnectProviderOperation(prj, repoDir);
+					cpo.execute(new NullProgressMonitor());
+
+					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
+
+					IFile pom = prj.getFile("pom.xml");
+					// add maven nature, if this is a maven project
+					if (pom.exists()) {
+						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Detected Java Maven application" ); //$NON-NLS-1$
+//						Job job = new Job("here comes maven") {
+//
+//							protected IStatus run(IProgressMonitor monitor) {
+//								try {
+//									ResolverConfiguration configuration = new ResolverConfiguration();
+//									configuration.setResolveWorkspaceProjects(workspaceProjects);
+//									configuration.setSelectedProfiles(""); //$NON-NLS-1$
+//
+//									boolean hasMavenNature = project.hasNature(IMavenConstants.NATURE_ID);
+//
+//									IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
+//
+//									configurationManager.enableMavenNature(project, configuration, monitor);
+//
+//									if (!hasMavenNature) {
+//										configurationManager.updateProjectConfiguration(project, monitor);
+//									}
+//								}
+//								catch (CoreException ex) {
+//									log.error(ex.getMessage(), ex);
+//								}
+//								return Status.OK_STATUS;
+//							}
+//						};
+					}
+					Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Heroku application import completed" ); //$NON-NLS-1$
+					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
+				}
+			};
+			ResourcesPlugin.getWorkspace().run(wsr, pm);
+		}
+		catch (CoreException e) {
+			e.printStackTrace();
+		}
+		return Status.OK_STATUS;
+	}
+
+	// private void importProjects(final Repository repository) {
+	// String repoName = getEgitUtils().getRepositoryName(repository);
+	// Job importJob = new Job("kasperl importing") {
+	//
+	// protected IStatus run(IProgressMonitor monitor) {
+	// List<File> files = new ArrayList<File>();
+	// // ProjectUtil.findProjectFiles(files, repository.getWorkTree(), null,
+	// monitor);
+	// // if (files.isEmpty())
+	// // return Status.OK_STATUS;
+	//
+	// Set<ProjectRecord> records = new LinkedHashSet<ProjectRecord>();
+	// for (File file : files)
+	// records.add(new ProjectRecord(file));
+	// try {
+	// ProjectUtils.createProjects(records, repository, null, monitor);
+	// }
+	// catch (InvocationTargetException e) {
+	// Activator.logError(e.getLocalizedMessage(), e);
+	// }
+	// catch (InterruptedException e) {
+	// Activator.logError(e.getLocalizedMessage(), e);
+	// }
+	// return Status.OK_STATUS;
+	// }
+	// };
+	// importJob.schedule();
+	// }
+
+	public boolean materializeJGitApp(App app) throws HerokuServiceException {
+		boolean rv = false;
+		String gitLocation = "/home/udo/git/" + app.getName();
+
+		System.err.println("materializing " + app.getName() + ", id " + app.getId());
+		try {
+			URIish uri = new URIish(app.getGitUrl());
+
+			final File workdir = new File(gitLocation);
+			//
+			// boolean created = workdir.exists();
+			// if (!created) {
+			// created = workdir.mkdirs();
+			// }
+			//
+			// if (!created || !workdir.isDirectory()) {
+			//				throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION, "local Git location is invalid: "+gitLocation ); //$NON-NLS-1$
+			// }
+
+			FileRepositoryBuilder builder = new FileRepositoryBuilder();
+			Repository repository = builder.setGitDir(workdir).readEnvironment().findGitDir().build();
+
+			Git git = new Git(repository);
+			System.err.println("about to clone " + app.getGitUrl() + " into dir " + gitLocation); //$NON-NLS-1$//$NON-NLS-2$
+
+			CloneCommand clone = Git.cloneRepository();
+			clone.setBare(false);
+			clone.setCloneAllBranches(true);
+			clone.setDirectory(workdir).setURI(app.getGitUrl());
+			UsernamePasswordCredentialsProvider user = new UsernamePasswordCredentialsProvider("git", "");
+			clone.setCredentialsProvider(user);
+			clone.call();
+
+			// // refs/head/master=393838383838
+			// final Ref ref = cloneDestination.getInitialBranch();
+			//
+			// final String remoteName = "origin";
+			//
+			// boolean created = workdir.exists();
+			// if (!created) {
+			// created = workdir.mkdirs();
+			// }
+			//
+			// if (!created || !workdir.isDirectory()) {
+			//				throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION, "local Git location is invalid: "+gitLocation ); //$NON-NLS-1$
+			// return false;
+			// }
+			//
+			// int timeout = 5000;
+			// CloneOperation clone = new CloneOperation(uri, true,
+			// selectedBranches, workdir, ref.getName(), remoteName, timeout);
+			//
+			// int timeout = Activator.getDefault().getPreferenceStore()
+			// .getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
+			// final CloneOperation op = new CloneOperation(uri, allSelected,
+			// selectedBranches, workdir, ref != null ? ref.getName() : null,
+			// remoteName, timeout);
+			// if (credentials != null)
+			// op.setCredentialsProvider(new
+			// UsernamePasswordCredentialsProvider(
+			// credentials.getUser(), credentials.getPassword()));
+			// op.setCloneSubmodules(cloneDestination.isCloneSubmodules());
+
+			rv = true;
+		}
+		catch (JGitInternalException e) {
+			e.printStackTrace();
+		}
+		catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return rv;
+	}
+
+	private RepositoryUtil getEgitUtils() {
+		if (egitUtils == null) {
+			egitUtils = org.eclipse.egit.core.Activator.getDefault().getRepositoryUtil();
+		}
+
+		return egitUtils;
 	}
 }
