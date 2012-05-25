@@ -116,4 +116,8 @@ public interface HerokuSession {
 	 * 				if the request fails
 	 */
 	public App cloneApp( String templateName ) throws HerokuServiceException;
+	
+	public void restart(App app) throws HerokuServiceException;
+
+	public void destroyApp(App app) throws HerokuServiceException;
 }

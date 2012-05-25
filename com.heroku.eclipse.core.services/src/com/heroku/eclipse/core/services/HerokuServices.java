@@ -27,12 +27,13 @@ public interface HerokuServices {
 	 * Base topic for all session related events
 	 */
 	public static final String TOPIC_SESSION = ROOT_CORE_TOPIC + "session/";
-	
+
 	/**
 	 * Base topic for all session related events
 	 */
-	public static final String TOPIC_APPLICATION = ROOT_CORE_TOPIC + "application/";
-	
+	public static final String TOPIC_APPLICATION = ROOT_CORE_TOPIC
+			+ "application/";
+
 	/**
 	 * Event topic fired if a session is invalidated
 	 * 
@@ -51,8 +52,9 @@ public interface HerokuServices {
 	/**
 	 * Event topic fired if a new application is successfully created
 	 */
-	public static final String TOPIC_APPLICATION_NEW = TOPIC_APPLICATION + "new";
-	
+	public static final String TOPIC_APPLICATION_NEW = TOPIC_APPLICATION
+			+ "new";
+
 	/**
 	 * Key used for all widgets of the project
 	 */
@@ -224,4 +226,22 @@ public interface HerokuServices {
 	 * @return <code>true</code> if configured so that a session can be created
 	 */
 	public boolean canObtainHerokuSession();
+
+	/**
+	 * Restart an application
+	 * 
+	 * @param app
+	 *            the application to restart
+	 * @throws HerokuServiceException
+	 */
+	public void restartApplication(App app) throws HerokuServiceException;
+
+	/**
+	 * Destroy an application
+	 * 
+	 * @param app
+	 *            the application to destroy
+	 * @throws HerokuServiceException
+	 */
+	public void destroyApplication(App app) throws HerokuServiceException;
 }

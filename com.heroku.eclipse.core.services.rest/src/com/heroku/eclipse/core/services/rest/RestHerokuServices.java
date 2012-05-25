@@ -368,4 +368,14 @@ public class RestHerokuServices implements HerokuServices {
 		}
 		return key != null && ! key.trim().isEmpty();
 	}
+	
+	@Override
+	public void restartApplication(App app) throws HerokuServiceException {
+		getOrCreateHerokuSession().restart(app);
+	}
+	
+	@Override
+	public void destroyApplication(App app) throws HerokuServiceException {
+		getOrCreateHerokuSession().destroyApp(app);
+	}
 }
