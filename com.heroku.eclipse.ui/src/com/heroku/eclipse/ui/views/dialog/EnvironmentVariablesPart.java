@@ -20,6 +20,10 @@ public class EnvironmentVariablesPart {
 			viewer.getTable().setHeaderVisible(true);
 			viewer.getTable().setLinesVisible(true);
 			
+			GridData gd = new GridData(GridData.FILL_BOTH);
+			gd.heightHint = 300;
+			viewer.getControl().setLayoutData(gd);
+			
 			{
 				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 				column.getColumn().setText("Key");
@@ -62,6 +66,10 @@ public class EnvironmentVariablesPart {
 	}
 	
 	public void setDomainObject(App domainObject) {
+		
+	}
+	
+	public void dispose() {
 		
 	}
 }

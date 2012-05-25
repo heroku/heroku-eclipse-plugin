@@ -123,4 +123,9 @@ public interface HerokuSession {
 	public void destroyApp(App app) throws HerokuServiceException;
 	
 	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException;
+	
+	public void addCollaborator(App app, String email) throws HerokuServiceException;
+	
+	public void removeCollaborator(App app, String email)
+			throws HerokuServiceException;
 }

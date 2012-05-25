@@ -30,6 +30,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
@@ -451,11 +453,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 
 			updateTitleInfo();
 
-			CTabFolder folder = new CTabFolder(container, SWT.BOTTOM
+			TabFolder folder = new TabFolder(container, SWT.TOP
 					| SWT.BORDER);
 
 			{
-				CTabItem item = new CTabItem(folder, SWT.NONE);
+				TabItem item = new TabItem(folder, SWT.NONE);
 				item.setText("Application Info");
 				infopart = new ApplicationInfoPart(viewPart);
 				item.setControl(infopart.createUI(folder));
@@ -463,7 +465,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 			}
 
 			{
-				CTabItem item = new CTabItem(folder, SWT.NONE);
+				TabItem item = new TabItem(folder, SWT.NONE);
 				item.setText("Collaborators");
 				collabpart = new CollaboratorsPart();
 				item.setControl(collabpart.createUI(folder));
@@ -471,7 +473,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 			}
 
 			{
-				CTabItem item = new CTabItem(folder, SWT.NONE);
+				TabItem item = new TabItem(folder, SWT.NONE);
 				item.setText("Environment Variables");
 				envpart = new EnvironmentVariablesPart();
 				item.setControl(envpart.createUI(folder));
@@ -510,6 +512,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 			boolean rv = super.close();
 
 			if (rv) {
+				infopart.dispose();
+				collabpart.dispose();
+				envpart.dispose();
 				// unregister the view
 				viewPart.dialogClosed(this);
 			}

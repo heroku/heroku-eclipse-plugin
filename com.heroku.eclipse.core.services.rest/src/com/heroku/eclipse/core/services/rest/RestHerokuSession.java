@@ -201,4 +201,22 @@ public class RestHerokuSession implements HerokuSession {
 		}
 	}
 	
+	public void addCollaborator(App app, String email) throws HerokuServiceException {
+		checkValid();
+		try {
+			api.addCollaborator(app.getName(), email);
+		} catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
+	public void removeCollaborator(App app, String email)
+			throws HerokuServiceException {
+		checkValid();
+		try {
+			api.removeCollaborator(app.getName(), email);
+		} catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
 }

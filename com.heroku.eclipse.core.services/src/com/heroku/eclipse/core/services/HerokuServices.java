@@ -62,6 +62,22 @@ public interface HerokuServices {
 	public static final String TOPIC_APPLICATION_RENAMED = TOPIC_APPLICATION + "renamed";
 
 	/**
+	 * Base topic fired if a collaborators of an applications are changed
+	 */
+	public static final String TOPIC_APPLICATION_COLLABORATORS = TOPIC_APPLICATION + "collaborators/";
+	
+	/**
+	 * Event topic fired after collaborators are added to an application
+	 */
+	public static final String TOPIC_APPLICATION_COLLABORATORS_ADDED = TOPIC_APPLICATION_COLLABORATORS + "added";
+	
+	/**
+	 * Event topic fired after collaborators are removed from an application
+	 */
+	public static final String TOPIC_APPLICATION_COLLABORATORS_REMOVED = TOPIC_APPLICATION_COLLABORATORS + "removed";
+	
+	
+	/**
 	 * Key used for all widgets of the project
 	 */
 	public static final String ROOT_WIDGET_ID = "com.heroku.eclipse.identifier"; //$NON-NLS-1$
@@ -75,6 +91,8 @@ public interface HerokuServices {
 	public static final String KEY_SESSION_INSTANCE = "session"; //$NON-NLS-1$
 
 	public static final String KEY_APPLICATION_ID = "applicationId";
+	
+	public static final String KEY_COLLABORATORS_LIST = "collaborators";
 	
 	/**
 	 * Logs into the Heroku account and if successful, returns the user's
@@ -266,4 +284,8 @@ public interface HerokuServices {
 			throws HerokuServiceException;
 	
 	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException;
+
+	public void addCollaborator(App app, String email) throws HerokuServiceException;
+
+	public void removeCollaborators(App app, String... email) throws HerokuServiceException;
 }

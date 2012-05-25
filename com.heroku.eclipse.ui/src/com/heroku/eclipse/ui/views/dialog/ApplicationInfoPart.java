@@ -100,4 +100,8 @@ public class ApplicationInfoPart {
 		});
 		
 	}
+	
+	public void dispose() {
+		
+	}
 }
