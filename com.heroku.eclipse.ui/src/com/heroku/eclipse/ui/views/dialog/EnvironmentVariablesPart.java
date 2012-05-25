@@ -8,6 +8,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
+import com.heroku.api.App;
+
 public class EnvironmentVariablesPart {
 	public Composite createUI(Composite parent) {
 		Composite container = new Composite(parent, SWT.NONE);
@@ -15,16 +17,22 @@ public class EnvironmentVariablesPart {
 		
 		{
 			TableViewer viewer = new TableViewer(container);
+			viewer.getTable().setHeaderVisible(true);
+			viewer.getTable().setLinesVisible(true);
 			
 			{
 				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 				column.getColumn().setText("Key");
+				column.getColumn().setWidth(200);
 			}
 			
 			{
 				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 				column.getColumn().setText("Value");
+				column.getColumn().setWidth(200);
 			}
+			
+			viewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
 		}
 		
 		{
@@ -51,5 +59,9 @@ public class EnvironmentVariablesPart {
 		}
 		
 		return container;
+	}
+	
+	public void setDomainObject(App domainObject) {
+		
 	}
 }
