@@ -39,13 +39,13 @@ import org.eclipse.egit.core.op.ConnectProviderOperation;
 import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.JGitInternalException;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.internal.IMavenConstants;
+import org.eclipse.m2e.core.project.IProjectConfigurationManager;
+import org.eclipse.m2e.core.project.ResolverConfiguration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventAdmin;
 import org.osgi.service.log.LogService;
@@ -472,34 +472,28 @@ public class RestHerokuServices implements HerokuServices {
 
 					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
 
-					IFile pom = prj.getFile("pom.xml");
+					IFile pom = prj.getFile(IMavenConstants.POM_FILE_NAME);
 					// add maven nature, if this is a maven project
 					if (pom.exists()) {
 						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Detected Java Maven application" ); //$NON-NLS-1$
-//						Job job = new Job("here comes maven") {
-//
-//							protected IStatus run(IProgressMonitor monitor) {
-//								try {
-//									ResolverConfiguration configuration = new ResolverConfiguration();
-//									configuration.setResolveWorkspaceProjects(workspaceProjects);
+								try {
+									ResolverConfiguration configuration = new ResolverConfiguration();
+									configuration.setResolveWorkspaceProjects(false);
 //									configuration.setSelectedProfiles(""); //$NON-NLS-1$
-//
-//									boolean hasMavenNature = project.hasNature(IMavenConstants.NATURE_ID);
-//
-//									IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
-//
-//									configurationManager.enableMavenNature(project, configuration, monitor);
-//
-//									if (!hasMavenNature) {
-//										configurationManager.updateProjectConfiguration(project, monitor);
-//									}
-//								}
-//								catch (CoreException ex) {
-//									log.error(ex.getMessage(), ex);
-//								}
-//								return Status.OK_STATUS;
-//							}
-//						};
+
+									boolean hasMavenNature = prj.hasNature(IMavenConstants.NATURE_ID);
+
+									IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
+
+									configurationManager.enableMavenNature(prj, configuration, actMonitor);
+
+									if (!hasMavenNature) {
+										configurationManager.updateProjectConfiguration(prj, actMonitor);
+									}
+								}
+								catch (CoreException ex) {
+									ex.printStackTrace();
+								}
 					}
 					Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Heroku application import completed" ); //$NON-NLS-1$
 					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
@@ -511,114 +505,6 @@ public class RestHerokuServices implements HerokuServices {
 			e.printStackTrace();
 		}
 		return Status.OK_STATUS;
-	}
-
-	// private void importProjects(final Repository repository) {
-	// String repoName = getEgitUtils().getRepositoryName(repository);
-	// Job importJob = new Job("kasperl importing") {
-	//
-	// protected IStatus run(IProgressMonitor monitor) {
-	// List<File> files = new ArrayList<File>();
-	// // ProjectUtil.findProjectFiles(files, repository.getWorkTree(), null,
-	// monitor);
-	// // if (files.isEmpty())
-	// // return Status.OK_STATUS;
-	//
-	// Set<ProjectRecord> records = new LinkedHashSet<ProjectRecord>();
-	// for (File file : files)
-	// records.add(new ProjectRecord(file));
-	// try {
-	// ProjectUtils.createProjects(records, repository, null, monitor);
-	// }
-	// catch (InvocationTargetException e) {
-	// Activator.logError(e.getLocalizedMessage(), e);
-	// }
-	// catch (InterruptedException e) {
-	// Activator.logError(e.getLocalizedMessage(), e);
-	// }
-	// return Status.OK_STATUS;
-	// }
-	// };
-	// importJob.schedule();
-	// }
-
-	public boolean materializeJGitApp(App app) throws HerokuServiceException {
-		boolean rv = false;
-		String gitLocation = "/home/udo/git/" + app.getName();
-
-		System.err.println("materializing " + app.getName() + ", id " + app.getId());
-		try {
-			URIish uri = new URIish(app.getGitUrl());
-
-			final File workdir = new File(gitLocation);
-			//
-			// boolean created = workdir.exists();
-			// if (!created) {
-			// created = workdir.mkdirs();
-			// }
-			//
-			// if (!created || !workdir.isDirectory()) {
-			//				throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION, "local Git location is invalid: "+gitLocation ); //$NON-NLS-1$
-			// }
-
-			FileRepositoryBuilder builder = new FileRepositoryBuilder();
-			Repository repository = builder.setGitDir(workdir).readEnvironment().findGitDir().build();
-
-			Git git = new Git(repository);
-			System.err.println("about to clone " + app.getGitUrl() + " into dir " + gitLocation); //$NON-NLS-1$//$NON-NLS-2$
-
-			CloneCommand clone = Git.cloneRepository();
-			clone.setBare(false);
-			clone.setCloneAllBranches(true);
-			clone.setDirectory(workdir).setURI(app.getGitUrl());
-			UsernamePasswordCredentialsProvider user = new UsernamePasswordCredentialsProvider("git", "");
-			clone.setCredentialsProvider(user);
-			clone.call();
-
-			// // refs/head/master=393838383838
-			// final Ref ref = cloneDestination.getInitialBranch();
-			//
-			// final String remoteName = "origin";
-			//
-			// boolean created = workdir.exists();
-			// if (!created) {
-			// created = workdir.mkdirs();
-			// }
-			//
-			// if (!created || !workdir.isDirectory()) {
-			//				throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION, "local Git location is invalid: "+gitLocation ); //$NON-NLS-1$
-			// return false;
-			// }
-			//
-			// int timeout = 5000;
-			// CloneOperation clone = new CloneOperation(uri, true,
-			// selectedBranches, workdir, ref.getName(), remoteName, timeout);
-			//
-			// int timeout = Activator.getDefault().getPreferenceStore()
-			// .getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
-			// final CloneOperation op = new CloneOperation(uri, allSelected,
-			// selectedBranches, workdir, ref != null ? ref.getName() : null,
-			// remoteName, timeout);
-			// if (credentials != null)
-			// op.setCredentialsProvider(new
-			// UsernamePasswordCredentialsProvider(
-			// credentials.getUser(), credentials.getPassword()));
-			// op.setCloneSubmodules(cloneDestination.isCloneSubmodules());
-
-			rv = true;
-		}
-		catch (JGitInternalException e) {
-			e.printStackTrace();
-		}
-		catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		return rv;
 	}
 
 	private RepositoryUtil getEgitUtils() {
