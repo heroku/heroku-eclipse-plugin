@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.heroku.api.App;
+import com.heroku.api.Collaborator;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.Key;
 import com.heroku.api.exception.RequestFailedException;
@@ -188,6 +189,66 @@ public class RestHerokuSession implements HerokuSession {
 			return null;
 		}
 		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
+	public void restart(App app) throws HerokuServiceException {
+		checkValid();
+		try {
+			api.restart(app.getName());
+		} catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
+	@Override
+	public void destroyApp(App app) throws HerokuServiceException {
+		checkValid();
+		try {
+			api.destroyApp(app.getName());
+		} catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
+	@Override
+	public List<Collaborator> getCollaborators(App app)
+			throws HerokuServiceException {
+		checkValid();
+		try {
+			return api.listCollaborators(app.getName());
+		} catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
+	public void addCollaborator(App app, String email) throws HerokuServiceException {
+		checkValid();
+		try {
+			api.addCollaborator(app.getName(), email);
+		} catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
+	public void removeCollaborator(App app, String email)
+			throws HerokuServiceException {
+		checkValid();
+		try {
+			api.removeCollaborator(app.getName(), email);
+		} catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
+	@Override
+	public void transferApplication(App app, String newOwner)
+			throws HerokuServiceException {
+		checkValid();
+		try {
+			api.transferApp(app.getName(), newOwner);
+		} catch (RequestFailedException e) {
 			throw checkException(e);
 		}
 	}

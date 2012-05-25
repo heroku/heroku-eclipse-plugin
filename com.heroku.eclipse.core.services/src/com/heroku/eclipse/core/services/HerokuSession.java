@@ -3,6 +3,7 @@ package com.heroku.eclipse.core.services;
 import java.util.List;
 
 import com.heroku.api.App;
+import com.heroku.api.Collaborator;
 import com.heroku.api.Key;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 
@@ -127,4 +128,17 @@ public interface HerokuSession {
 	 * 				if the request fails
 	 */
 	public App getApp( String appName ) throws HerokuServiceException;
+
+	public void restart(App app) throws HerokuServiceException;
+
+	public void destroyApp(App app) throws HerokuServiceException;
+	
+	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException;
+	
+	public void addCollaborator(App app, String email) throws HerokuServiceException;
+	
+	public void removeCollaborator(App app, String email)
+			throws HerokuServiceException;
+	
+	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
 }

@@ -52,6 +52,7 @@ import org.osgi.service.log.LogService;
 import org.osgi.service.prefs.BackingStoreException;
 
 import com.heroku.api.App;
+import com.heroku.api.Collaborator;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.exception.LoginFailedException;
 import com.heroku.api.exception.RequestFailedException;
@@ -626,5 +627,104 @@ public class RestHerokuServices implements HerokuServices {
 		}
 
 		return egitUtils;
+	}
+	
+	@Override
+	public boolean canObtainHerokuSession() {
+		if( herokuSession != null ) {
+			return true;
+		}
+		
+		//TODO We should store a NONE secure preference to know if an API-Key is configured!
+		String key = null;
+		try {
+			key = getAPIKey();
+		} catch (HerokuServiceException e) {
+		}
+		return key != null && ! key.trim().isEmpty();
+	}
+	
+	@Override
+	public void restartApplication(App app) throws HerokuServiceException {
+		getOrCreateHerokuSession().restart(app);
+	}
+	
+	@Override
+	public void destroyApplication(App app) throws HerokuServiceException {
+		getOrCreateHerokuSession().destroyApp(app);
+	}
+	
+	@Override
+	public void renameApp(App application, String newName)
+			throws HerokuServiceException {
+		getOrCreateHerokuSession().renameApp(application.getName(), newName);
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put(KEY_APPLICATION_ID, application.getId());
+
+		Event event = new Event(TOPIC_APPLICATION_RENAMED, map);
+		eventAdmin.postEvent(event);
+	}
+	
+	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException {
+		return getOrCreateHerokuSession().getCollaborators(app);
+	}
+	
+	@Override
+	public void addCollaborator(App app, String email)
+			throws HerokuServiceException {
+		getOrCreateHerokuSession().addCollaborator(app, email);
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put(KEY_APPLICATION_ID, app.getId());
+		map.put(KEY_COLLABORATORS_LIST, new String[] {email});
+
+		Event event = new Event(TOPIC_APPLICATION_COLLABORATORS_ADDED, map);
+		eventAdmin.postEvent(event);
+	}
+
+	@Override
+	public void removeCollaborators(App app, String... emails) 
+			throws HerokuServiceException {
+		HerokuSession s = getOrCreateHerokuSession();
+		
+		List<String> notremove = new ArrayList<String>();
+		List<String> removed = new ArrayList<String>();
+		
+		for( String e : emails ) {
+			try {
+				s.removeCollaborator(app, e);
+				removed.add(e);
+			} catch (HerokuServiceException ex) {
+				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Could not remove collaborator '"+e+"' from application '"+app.getName()+"'", ex);
+				notremove.add(e);
+			}
+		}
+		
+		if( ! removed.isEmpty() ) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put(KEY_APPLICATION_ID, app.getId());
+			map.put(KEY_COLLABORATORS_LIST, emails);
+
+			Event event = new Event(TOPIC_APPLICATION_COLLABORATORS_ADDED, map);
+			eventAdmin.postEvent(event);
+		}
+		
+		if( ! notremove.isEmpty() ) {
+			//TODO Throw exception with 
+		}
+	}
+	
+	@Override
+	public void transferApplication(App app, String newOwner)
+			throws HerokuServiceException {
+		getOrCreateHerokuSession().transferApplication(app, newOwner);
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put(KEY_APPLICATION_ID, app.getId());
+		map.put(KEY_APPLICATION_OWNER, newOwner);
+
+		Event event = new Event(TOPIC_APPLICATION_TRANSFERED, map);
+		eventAdmin.postEvent(event);
 	}
 }

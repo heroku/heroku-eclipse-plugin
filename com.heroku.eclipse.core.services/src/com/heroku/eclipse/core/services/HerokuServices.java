@@ -7,6 +7,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 
 import com.heroku.api.App;
+import com.heroku.api.Collaborator;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 
@@ -28,19 +29,62 @@ public interface HerokuServices {
 	public static final String ROOT_CORE_TOPIC = ROOT_TOPIC + "core/"; //$NON-NLS-1$
 
 	/**
+	 * Base topic for all session related events
+	 */
+	public static final String TOPIC_SESSION = ROOT_CORE_TOPIC + "session/";
+
+	/**
+	 * Base topic for all session related events
+	 */
+	public static final String TOPIC_APPLICATION = ROOT_CORE_TOPIC
+			+ "application/";
+
+	/**
 	 * Event topic fired if a session is invalidated
 	 * 
 	 * @see #KEY_SESSION_INSTANCE
 	 */
-	public static final String TOPIC_SESSION_INVALID = ROOT_CORE_TOPIC
-			+ "session/invalid"; //$NON-NLS-1$
+	public static final String TOPIC_SESSION_INVALID = TOPIC_SESSION
+			+ "invalid"; //$NON-NLS-1$
 	/**
 	 * Event topic fired if a session a new session is created
 	 * 
 	 * @see #KEY_SESSION_INSTANCE
 	 */
-	public static final String TOPIC_SESSION_CREATED = ROOT_CORE_TOPIC
-			+ "session/created"; //$NON-NLS-1$
+	public static final String TOPIC_SESSION_CREATED = TOPIC_SESSION
+			+ "created"; //$NON-NLS-1$
+
+	/**
+	 * Event topic fired if a new application is successfully created
+	 */
+	public static final String TOPIC_APPLICATION_NEW = TOPIC_APPLICATION
+			+ "new";
+	
+	/**
+	 * Event topic fired if an existing application is renamed
+	 */
+	public static final String TOPIC_APPLICATION_RENAMED = TOPIC_APPLICATION + "renamed";
+
+	/**
+	 * Event topic fired if an application is transfered to another user
+	 */
+	public static final String TOPIC_APPLICATION_TRANSFERED = TOPIC_APPLICATION + "transfered";
+	
+	/**
+	 * Base topic fired if a collaborators of an applications are changed
+	 */
+	public static final String TOPIC_APPLICATION_COLLABORATORS = TOPIC_APPLICATION + "collaborators/";
+	
+	/**
+	 * Event topic fired after collaborators are added to an application
+	 */
+	public static final String TOPIC_APPLICATION_COLLABORATORS_ADDED = TOPIC_APPLICATION_COLLABORATORS + "added";
+	
+	/**
+	 * Event topic fired after collaborators are removed from an application
+	 */
+	public static final String TOPIC_APPLICATION_COLLABORATORS_REMOVED = TOPIC_APPLICATION_COLLABORATORS + "removed";
+	
 	
 	/**
 	 * Key used for all widgets of the project
@@ -55,6 +99,12 @@ public interface HerokuServices {
 	 */
 	public static final String KEY_SESSION_INSTANCE = "session"; //$NON-NLS-1$
 
+	public static final String KEY_APPLICATION_ID = "applicationId";
+	
+	public static final String KEY_APPLICATION_OWNER = "applicationOwner";
+	
+	public static final String KEY_COLLABORATORS_LIST = "collaborators";
+	
 	/**
 	 * Logs into the Heroku account and if successful, returns the user's
 	 * associated API key. Invokes HerokuAPI.obtainApiKey
@@ -88,7 +138,7 @@ public interface HerokuServices {
 	 * Delivers the Heroku API key stored in the preferences
 	 * 
 	 * @throws HerokuServiceException
-	 *             if we have problems accessing the secure storage 
+	 *             if we have problems accessing the secure storage
 	 * @return the Heroku API key
 	 */
 	public String getAPIKey() throws HerokuServiceException;
@@ -101,8 +151,8 @@ public interface HerokuServices {
 	public String getSSHKey();
 
 	/**
-	 * Stores the SSH key both in the global eclipse preferences and in
-	 * the user's account
+	 * Stores the SSH key both in the global eclipse preferences and in the
+	 * user's account
 	 * 
 	 * @param sshKey
 	 *            the SSH key, might be <code>null</code> to reset it
@@ -145,58 +195,68 @@ public interface HerokuServices {
 	 * @return a string array consisting of the key parts
 	 */
 	public String[] validateSSHKey(String sshKey) throws HerokuServiceException;
-	
+
 	/**
-	 * Removes the given SSH key from both the active Heroku session and the 
+	 * Removes the given SSH key from both the active Heroku session and the
 	 * Eclipse preferences
+	 * 
 	 * @param sshKey
 	 * @throws HerokuServiceException
 	 */
 	public void removeSSHKey(String sshKey) throws HerokuServiceException;
-	
+
 	/**
 	 * Delivers the list of Apps registered for the currently active API key
+	 * 
 	 * @return the list of Apps
 	 * @throws HerokuServiceException
 	 */
 	public List<App> listApps() throws HerokuServiceException;
-	
+
 	/**
-	 * Determines if "everything" is ready to communicate with Heroku,
-	 * eg. all the required preferences have been set up
+	 * Determines if "everything" is ready to communicate with Heroku, eg. all
+	 * the required preferences have been set up
+	 * 
 	 * @return true of false
 	 * @throws HerokuServiceException
 	 */
 	public boolean isReady() throws HerokuServiceException;
-	
+
 	/**
-	 * Delivers the available Heroku App templates 
-	 * @return the list of found application templates, may be empty, if none were found
+	 * Delivers the available Heroku App templates
+	 * 
+	 * @return the list of found application templates, may be empty, if none
+	 *         were found
 	 * @throws HerokuServiceException
 	 */
 	public List<AppTemplate> listTemplates() throws HerokuServiceException;
-	
+
 	/**
-	 * Creates the named app from the given template. It does so by first cloning the
-	 * template and then renaming the newly created, randomly named App to its wanted
-	 * name.
+	 * Creates the named app from the given template. It does so by first
+	 * cloning the template and then renaming the newly created, randomly named
+	 * App to its wanted name.
+	 * 
 	 * @param appName
 	 * @param templateName
 	 * @return the newly created App
 	 * @throws HerokuServiceException
-	 * 				if an app with the same name already exists in the user's account
-	 * 				if the template name is invalid
-	 * 				if there are network problems
+	 *             if an app with the same name already exists in the user's
+	 *             account if the template name is invalid if there are network
+	 *             problems
 	 */
-	public App createAppFromTemplate( String appName, String templateName ) throws HerokuServiceException;
-	
+	public App createAppFromTemplate(String appName, String templateName)
+			throws HerokuServiceException;
+
 	/**
-	 * Materializes the given app in the user's local git repository 
+	 * Materializes the given app in the user's local git repository
+	 * 
 	 * @param app
 	 * 			the App instance to materialize
 	 * @param pm 
 	 * 			the progress monitor to use
 	 * @return true, if the materialization was successful, otherwise false
+	 *            the App instance to materialize
+	 * @return the materialized App
 	 * @throws HerokuServiceException
 	 */
 	public boolean materializeGitApp( App app, IProgressMonitor pm ) throws HerokuServiceException;
@@ -211,5 +271,49 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public IStatus createProject( final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm ) throws HerokuServiceException;
+
+	/**
+	 * Checks if the service is configured so that a session can be created
+	 * 
+	 * @return <code>true</code> if configured so that a session can be created
+	 */
+	public boolean canObtainHerokuSession();
+
+	/**
+	 * Restart an application
+	 * 
+	 * @param app
+	 *            the application to restart
+	 * @throws HerokuServiceException
+	 */
+	public void restartApplication(App app) throws HerokuServiceException;
+
+	/**
+	 * Destroy an application
+	 * 
+	 * @param app
+	 *            the application to destroy
+	 * @throws HerokuServiceException
+	 */
+	public void destroyApplication(App app) throws HerokuServiceException;
+
+	/**
+	 * Rename an application
+	 * 
+	 * @param application
+	 *            the application
+	 * @param newName
+	 *            the new name
+	 * @throws HerokuServiceException
+	 */
+	public void renameApp(App application, String newName)
+			throws HerokuServiceException;
 	
+	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException;
+
+	public void addCollaborator(App app, String email) throws HerokuServiceException;
+
+	public void removeCollaborators(App app, String... email) throws HerokuServiceException;
+	
+	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
 }
