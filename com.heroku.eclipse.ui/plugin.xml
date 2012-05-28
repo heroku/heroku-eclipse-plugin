@@ -44,6 +44,7 @@
       <wizard
             category="com.heroku.eclipse.ui.heroku"
             class="com.heroku.eclipse.ui.wizards.HerokuAppImport"
+            icon="icons/16_16/ImportExistingApp.png"
             id="com.heroku.eclipse.ui.herokuappwizard"
             name="Import existing Heroku App">
       </wizard>
@@ -57,6 +58,7 @@
       <wizard
             category="com.heroku.eclipse.ui.heroku"
             class="com.heroku.eclipse.ui.wizards.HerokuAppCreate"
+            icon="icons/16_16/CloneTemplate.png"
             id="com.heroku.eclipse.ui.herokunewappwizard"
             name="Create Heroku App from Template"
             project="true">
