@@ -96,7 +96,6 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
 								HerokuUtils.internalError(getShell(), e);
 							}
-
 						}
 					}
 				}
