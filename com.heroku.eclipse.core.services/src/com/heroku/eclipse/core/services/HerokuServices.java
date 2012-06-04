@@ -232,6 +232,8 @@ public interface HerokuServices {
 	 * 
 	 * @param appName
 	 * @param templateName
+	 * @param pm
+	 * 				the progress monitor
 	 * @return the newly created App
 	 * @throws HerokuServiceException
 	 *             if an app with the same name already exists in the user's
@@ -251,15 +253,16 @@ public interface HerokuServices {
 	 * @param timeout 
 	 * @param progressTitle 
 	 * 				the dialog title to display during the materialization process
+	 * @param cred
+	 * 				the CredentialsProvider containing everything we need to authenticate  
 	 * @param pm
 	 *            	the progress monitor to use
-	 * @param handler 
 	 * @return true, if the materialization was successful, otherwise false the
 	 *         App instance to materialize
 	 * @return the materialized App
 	 * @throws HerokuServiceException
 	 */
-	public boolean materializeGitApp(App app, String workingDir, int timeout, String progressTitle, IProgressMonitor pm, CredentialsProvider cred) throws HerokuServiceException;
+	public boolean materializeGitApp(App app, String workingDir, int timeout, String progressTitle, CredentialsProvider cred, IProgressMonitor pm) throws HerokuServiceException;
 	
 	interface HostExceptionHandler {
 		public boolean proceed(String message);
@@ -317,11 +320,36 @@ public interface HerokuServices {
 	 */
 	public void renameApp(App application, String newName) throws HerokuServiceException;
 
+	/**
+	 * Retrieves all registered collaborators for the given Heroku App
+	 * @param app
+	 * @return the list of collaborators
+	 * @throws HerokuServiceException
+	 */
 	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException;
 
+	/**
+	 * Adds a collaborator to the given Heroku App
+	 * @param app
+	 * @param email
+	 * @throws HerokuServiceException
+	 */
 	public void addCollaborator(App app, String email) throws HerokuServiceException;
 
+	/**
+	 * Removes one or more collaborators from an App
+	 * @param app
+	 * @param email
+	 * 				a variable length String array
+	 * @throws HerokuServiceException
+	 */
 	public void removeCollaborators(App app, String... email) throws HerokuServiceException;
 
+	/**
+	 * Transfers the given app to a new owner, identified by his/her dmail address
+	 * @param app
+	 * @param newOwner
+	 * @throws HerokuServiceException
+	 */
 	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
 }

@@ -395,7 +395,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public boolean materializeGitApp(App app, String gitLocation, int timeout, String dialogTitle, IProgressMonitor pm, CredentialsProvider cred) throws HerokuServiceException {
+	public boolean materializeGitApp(App app, String gitLocation, int timeout, String dialogTitle, CredentialsProvider cred, IProgressMonitor pm) throws HerokuServiceException {
 		boolean rv = false;
 
 		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '"+app.getName()+"' in workspace" ); //$NON-NLS-1$ //$NON-NLS-2$
@@ -408,9 +408,18 @@ public class RestHerokuServices implements HerokuServices {
 			if (!created) {
 				created = workdir.mkdirs();
 			}
+			// whine if the git location is non empty
+			else if ( workdir.isDirectory() ) {
+				String[] entries = workdir.list();
+				if ( entries != null && entries.length > 0 ) {
+					Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "git location already exists, unable to check out: " + gitLocation ); //$NON-NLS-1$
+					throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION, "git location already exists, unable to check out: " + gitLocation); //$NON-NLS-1$
+				}
+			}
 
 			if (!created || !workdir.isDirectory()) {
-				throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION, "local Git location is invalid: " + gitLocation); //$NON-NLS-1$
+				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "local git location is invalid: " + gitLocation); //$NON-NLS-1$
+				throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION, "local git location is invalid: " + gitLocation); //$NON-NLS-1$
 			}
 
 			CloneOperation cloneOp = new CloneOperation(uri, true, null, workdir,

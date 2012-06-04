@@ -66,8 +66,6 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 
 	@Override
 	public boolean performFinish() {
-		boolean rv = false;
-
 		final App app = listPage.getSelectedApp();
 
 		if (app != null) {
@@ -80,23 +78,28 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
 							service.materializeGitApp(app, destinationDir, timeout,
-									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), new NullProgressMonitor(), cred); //$NON-NLS-1$
+									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, new NullProgressMonitor()); //$NON-NLS-1$
 						}
 						catch (HerokuServiceException e) {
-							e.printStackTrace();
-							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
-							HerokuUtils.internalError(getShell(), e);
+							if ( e.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION ) {
+								HerokuUtils.userError(getShell(), Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("replacements)HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir+System.getProperty("path.separator")+app.getName()));  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+							}
+							else {
+								e.printStackTrace();
+								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
+								HerokuUtils.internalError(getShell(), e);
+							}
 						}
 					}
 				});
 			}
 			catch (InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
+				HerokuUtils.internalError(getShell(), e);
 			}
 			catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
+				HerokuUtils.internalError(getShell(), e);
 			}
 		}
 
