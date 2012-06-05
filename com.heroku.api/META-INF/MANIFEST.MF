@@ -11,7 +11,9 @@ Bundle-ClassPath: commons-codec-1.4.jar,
  jackson-mapper-asl-1.9.2.jar,
  heroku-api-0.8.jar,
  heroku-http-apache-0.8.jar,
- heroku-json-jackson-0.8.jar
+ heroku-json-jackson-0.8.jar,
+ .,
+ heroku-eclipse-useragent-0.0.1.jar
 Export-Package: com.heroku.api,
  com.heroku.api.connection,
  com.heroku.api.exception,
