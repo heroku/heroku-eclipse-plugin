@@ -119,7 +119,7 @@ public class HerokuServicesTest extends TestCase {
 		}
 	}
 	
-	public void testGetSSHKey() {
+	public void testSetSSHKey() {
 		HerokuServices h = getService();
 		assertNull(h.getSSHKey());
 		try {
@@ -136,7 +136,7 @@ public class HerokuServicesTest extends TestCase {
 			fail(e.getMessage());
 		}
 		
-		assertNotNull(h.getSSHKey());
+		assertEquals(Credentials.VALID_PUBLIC_SSH_KEY1, h.getSSHKey());
 		
 		try {
 			h.setSSHKey("");
@@ -173,6 +173,6 @@ public class HerokuServicesTest extends TestCase {
 			e.printStackTrace();
 			fail(e.getMessage());
 		}
-		
 	}
+	
 }

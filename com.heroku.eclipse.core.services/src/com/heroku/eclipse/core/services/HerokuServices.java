@@ -259,27 +259,18 @@ public interface HerokuServices {
 	 *            	the progress monitor to use
 	 * @return true, if the materialization was successful, otherwise false the
 	 *         App instance to materialize
-	 * @return the materialized App
 	 * @throws HerokuServiceException
 	 */
 	public boolean materializeGitApp(App app, String workingDir, int timeout, String progressTitle, CredentialsProvider cred, IProgressMonitor pm) throws HerokuServiceException;
 	
-	interface HostExceptionHandler {
-		public boolean proceed(String message);
-	}
-
 	/**
 	 * Materializes the given app in the user's local git repository
 	 * @param projectName
-	 * @param timeout
 	 * @param projectPath 
 	 * @param repoDir 
-	 * 
-	 * @param app
-	 *            the App instance to materialize
 	 * @param pm
 	 *            the progress monitor to use
-	 * @return true, if the materialization was successful, otherwise false
+	 * @return the outcome of the creation process in the form of an IStatus object
 	 * @throws HerokuServiceException
 	 */
 	public IStatus createProject(final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm) throws HerokuServiceException;
