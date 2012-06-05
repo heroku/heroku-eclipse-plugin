@@ -347,14 +347,14 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	}
 
 	private void refreshApplications() {
-		final Job o = new Job("Refresh applications") {
+		final Job o = new Job(Messages.getString("HerokuAppManagerViewPart_RefreshApps")) { //$NON-NLS-1$
 			
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				try {
 					saveRefreshApplications();	
 				} catch (Throwable e) {
-					// TODO: handle exception
+					HerokuUtils.internalError(getShell(), e);
 				}
 				
 				return Status.OK_STATUS;
@@ -366,7 +366,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private void saveRefreshApplications() {
 		try {
 			appProcesses.clear();
-			if (herokuService.canObtainHerokuSession()) {
+			if (herokuService.isReady()) {
 				List<App> applications = herokuService.listApps();
 				for( App a : applications ) {
 					appProcesses.put(a.getId(), herokuService.listProcesses(a));

@@ -299,26 +299,28 @@ public class RestHerokuServices implements HerokuServices {
 	public boolean isReady() throws HerokuServiceException {
 		boolean isReady = true;
 
-		// ensure that we have valid prefs
-		String sshKey = null;
-		try {
-			getOrCreateHerokuSession();
-			sshKey = getSSHKey();
+		if (herokuSession == null) {
+			// ensure that we have valid prefs
+			String sshKey = null;
+			try {
+				getOrCreateHerokuSession();
+				sshKey = getSSHKey();
 
-			if (sshKey == null || sshKey.trim().isEmpty()) {
-				throw new HerokuServiceException(HerokuServiceException.INVALID_PREFERENCES, "Heroku preferences missing or invalid!"); //$NON-NLS-1$
+				if (sshKey == null || sshKey.trim().isEmpty()) {
+					throw new HerokuServiceException(HerokuServiceException.INVALID_PREFERENCES, "Heroku preferences missing or invalid!"); //$NON-NLS-1$
+				}
+			}
+			catch (HerokuServiceException e) {
+				// hide "no api key" behind "invalid preferences"
+				if (e.getErrorCode() == HerokuServiceException.NO_API_KEY) {
+					throw new HerokuServiceException(HerokuServiceException.INVALID_PREFERENCES, "Heroku preferences missing or invalid!", e); //$NON-NLS-1$
+				}
+				else {
+					throw e;
+				}
 			}
 		}
-		catch (HerokuServiceException e) {
-			// hide "no api key" behind "invalid preferences"
-			if (e.getErrorCode() == HerokuServiceException.NO_API_KEY) {
-				throw new HerokuServiceException(HerokuServiceException.INVALID_PREFERENCES, "Heroku preferences missing or invalid!", e); //$NON-NLS-1$
-			}
-			else {
-				throw e;
-			}
-		}
-
+		
 		return isReady;
 	}
 
