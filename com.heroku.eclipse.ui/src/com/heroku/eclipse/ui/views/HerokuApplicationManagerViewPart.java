@@ -44,6 +44,7 @@ import com.heroku.api.App;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
+import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.RunnableWithParameter;
@@ -58,8 +59,7 @@ import com.heroku.eclipse.ui.views.dialog.WebsiteOpener;
  * 
  * @author udo.rader@bestsolution.at
  */
-public class HerokuApplicationManagerViewPart extends ViewPart implements
-		WebsiteOpener {
+public class HerokuApplicationManagerViewPart extends ViewPart implements WebsiteOpener {
 
 	/**
 	 * The ID of the view as specified by the extension.
@@ -84,36 +84,35 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 	}
 
 	public void createPartControl(Composite parent) {
-		viewer = new TableViewer(parent, SWT.SINGLE | SWT.H_SCROLL
-				| SWT.V_SCROLL | SWT.FULL_SELECTION);
+		viewer = new TableViewer(parent, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		viewer.setContentProvider(ArrayContentProvider.getInstance());
 		viewer.getTable().setHeaderVisible(true);
 		viewer.getTable().setLinesVisible(true);
 
 		{
 			TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
-			column.getColumn().setText("App Status");
+			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_AppStatus")); //$NON-NLS-1$
 			column.setLabelProvider(LabelProviderFactory.createApp_Status());
 			column.getColumn().pack();
 		}
 
 		{
 			TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
-			column.getColumn().setText("Name");
+			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_Name")); //$NON-NLS-1$
 			column.setLabelProvider(LabelProviderFactory.createApp_Name());
 			column.getColumn().setWidth(200);
 		}
 
 		{
 			TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
-			column.getColumn().setText("Git Url");
+			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_GitUrl")); //$NON-NLS-1$
 			column.setLabelProvider(LabelProviderFactory.createApp_GitUrl());
 			column.getColumn().setWidth(200);
 		}
 
 		{
 			TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
-			column.getColumn().setText("App Url");
+			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_AppUrl")); //$NON-NLS-1$
 			column.setLabelProvider(LabelProviderFactory.createApp_Url());
 			column.getColumn().setWidth(200);
 		}
@@ -132,11 +131,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 				if (app != null) {
 					DialogImpl d = getDialogForApp(app);
 					if (d == null) {
-						DialogImpl dialog = new DialogImpl(getShell(), app,
-								HerokuApplicationManagerViewPart.this);
+						DialogImpl dialog = new DialogImpl(getShell(), app, HerokuApplicationManagerViewPart.this);
 						dialog.setBlockOnOpen(false);
 						dialog.open();
-					} else {
+					}
+					else {
 						d.getShell().setActive();
 					}
 				}
@@ -157,21 +156,21 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 	}
 
 	private MenuManager createContextMenu() {
-		Action refresh = new Action("Refresh") {
+		Action refresh = new Action(Messages.getString("HerokuAppManagerViewPart_Refresh")) { //$NON-NLS-1$
 			@Override
 			public void run() {
 				refreshApplications();
 			}
 		};
 
-		final Action importApp = new Action("Import") {
+		final Action importApp = new Action(Messages.getString("HerokuAppManagerViewPart_Import")) { //$NON-NLS-1$
 			@Override
 			public void run() {
 
 			}
 		};
 
-		final Action open = new Action("Open") {
+		final Action open = new Action(Messages.getString("HerokuAppManagerViewPart_Open")) { //$NON-NLS-1$
 			@Override
 			public void run() {
 				App app = getSelectedApp();
@@ -181,56 +180,50 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 			}
 		};
 
-		final Action restart = new Action("Restart") {
+		final Action restart = new Action(Messages.getString("HerokuAppManagerViewPart_Restart")) { //$NON-NLS-1$
 			@Override
 			public void run() {
 				App app = getSelectedApp();
 				if (app != null) {
-					if (MessageDialog.openQuestion(
-							getShell(),
-							"Restart",
-							"Would you really like to restart '"
-									+ app.getName() + "'?")) {
+					if (MessageDialog.openQuestion(getShell(), Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Restart", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 						try {
 							herokuService.restartApplication(app);
-						} catch (HerokuServiceException e) {
-							// TODO Auto-generated catch block
+						}
+						catch (HerokuServiceException e) {
 							e.printStackTrace();
+							HerokuUtils.internalError(getShell(), e);
 						}
 					}
 				}
 			}
 		};
 
-		final Action viewLogs = new Action("View Logs") {
+		final Action viewLogs = new Action(Messages.getString("HerokuAppManagerViewPart_ViewLogs")) { //$NON-NLS-1$
 			@Override
 			public void run() {
 
 			}
 		};
 
-		final Action scale = new Action("Scale") {
+		final Action scale = new Action(Messages.getString("HerokuAppManagerViewPart_Scale")) { //$NON-NLS-1$
 			@Override
 			public void run() {
 
 			}
 		};
 
-		final Action destroy = new Action("Destroy") {
+		final Action destroy = new Action(Messages.getString("HerokuAppManagerViewPart_Destroy")) { //$NON-NLS-1$
 			@Override
 			public void run() {
 				App app = getSelectedApp();
 				if (app != null) {
-					if (MessageDialog.openQuestion(
-							getShell(),
-							"Restart",
-							"Would you really like to destroy '"
-									+ app.getName() + "'?")) {
+					if (MessageDialog.openQuestion(getShell(), Messages.getString("HerokuAppManagerViewPart_Destroy"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Destroy", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 						try {
 							herokuService.destroyApplication(app);
-						} catch (HerokuServiceException e) {
-							// TODO Auto-generated catch block
+						}
+						catch (HerokuServiceException e) {
 							e.printStackTrace();
+							HerokuUtils.internalError(getShell(), e);
 						}
 					}
 				}
@@ -250,8 +243,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 
 			@Override
 			public void menuAboutToShow(IMenuManager manager) {
-				IStructuredSelection s = (IStructuredSelection) viewer
-						.getSelection();
+				IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
 
 				boolean enabled = !s.isEmpty();
 				importApp.setEnabled(enabled);
@@ -269,19 +261,19 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 	@Override
 	public void openInternal(App application) {
 		try {
-			IWorkbenchBrowserSupport wbb = getSite().getWorkbenchWindow()
-					.getWorkbench().getBrowserSupport();
-			IWebBrowser browser = wbb.createBrowser(
-					IWorkbenchBrowserSupport.AS_EDITOR, application.getName(),
-					application.getName(), "Heroku application - "
-							+ application.getName());
+			IWorkbenchBrowserSupport wbb = getSite().getWorkbenchWindow().getWorkbench().getBrowserSupport();
+			IWebBrowser browser = wbb.createBrowser(IWorkbenchBrowserSupport.AS_EDITOR, application.getName(), application.getName(),
+					Messages.getFormattedString("HerokuAppManagerViewPart_HerokuApp", //$NON-NLS-1$
+							application.getName()));
 			browser.openURL(new URL(application.getWebUrl()));
-		} catch (PartInitException e) {
-			// TODO Auto-generated catch block
+		}
+		catch (PartInitException e) {
 			e.printStackTrace();
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
+			HerokuUtils.internalError(getShell(), e);
+		}
+		catch (MalformedURLException e) {
 			e.printStackTrace();
+			HerokuUtils.internalError(getShell(), e);
 		}
 	}
 
@@ -310,9 +302,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 				refreshApplications();
 			}
 		};
-		
+
 		EventHandler transferApplicationHandler = new EventHandler() {
-			
+
 			@Override
 			public void handleEvent(Event event) {
 				refreshApplications();
@@ -320,25 +312,17 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 		};
 
 		handlerRegistrations = new ArrayList<ServiceRegistration<EventHandler>>();
-		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
-				sessionInvalidationHandler,
-				HerokuServices.TOPIC_SESSION_INVALID));
-		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
-				newApplicationHandler, HerokuServices.TOPIC_APPLICATION_NEW));
-		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
-				renameApplicationHandler,
-				HerokuServices.TOPIC_APPLICATION_RENAMED));
-		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(
-				transferApplicationHandler,
-				HerokuServices.TOPIC_APPLICATION_TRANSFERED));
+		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(sessionInvalidationHandler, HerokuServices.TOPIC_SESSION_INVALID));
+		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(newApplicationHandler, HerokuServices.TOPIC_APPLICATION_NEW));
+		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(renameApplicationHandler, HerokuServices.TOPIC_APPLICATION_RENAMED));
+		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(transferApplicationHandler, HerokuServices.TOPIC_APPLICATION_TRANSFERED));
 	}
 
 	private void refreshApplications() {
 		try {
 			if (herokuService.canObtainHerokuSession()) {
 				List<App> applications = herokuService.listApps();
-				HerokuUtils.runOnDisplay(true, viewer, applications,
-						ViewerOperations.input(viewer));
+				HerokuUtils.runOnDisplay(true, viewer, applications, ViewerOperations.input(viewer));
 
 				// Update the open dialogs
 				HashSet<DialogImpl> copy = new HashSet<DialogImpl>(openDialogs);
@@ -355,19 +339,21 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 						}
 					}
 				}
-				
-				// Close dialogs for remain apps because they don't seem to exist anymore
-				for( DialogImpl d : copy ) {
+
+				// Close dialogs for remain apps because they don't seem to
+				// exist anymore
+				for (DialogImpl d : copy) {
 					d.close();
 				}
-				
-			} else {
-				HerokuUtils.runOnDisplay(true, viewer, new Object[0],
-						ViewerOperations.input(viewer));
+
 			}
-		} catch (HerokuServiceException e) {
-			// TODO Auto-generated catch block
+			else {
+				HerokuUtils.runOnDisplay(true, viewer, new Object[0], ViewerOperations.input(viewer));
+			}
+		}
+		catch (HerokuServiceException e) {
 			e.printStackTrace();
+			HerokuUtils.internalError(getShell(), e);
 		}
 	}
 
@@ -418,15 +404,14 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 		private EnvironmentVariablesPart envpart;
 		private HerokuApplicationManagerViewPart viewPart;
 
-		public DialogImpl(Shell parentShell, App app,
-				HerokuApplicationManagerViewPart viewPart) {
+		public DialogImpl(Shell parentShell, App app, HerokuApplicationManagerViewPart viewPart) {
 			super(parentShell);
 			this.app = app;
 			this.viewPart = viewPart;
 			if (isResizable()) {
-				setShellStyle(SWT.DIALOG_TRIM | SWT.MAX | SWT.RESIZE
-						| getDefaultOrientation());
-			} else {
+				setShellStyle(SWT.DIALOG_TRIM | SWT.MAX | SWT.RESIZE | getDefaultOrientation());
+			}
+			else {
 				setShellStyle(SWT.DIALOG_TRIM | getDefaultOrientation());
 			}
 		}
@@ -434,7 +419,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 		App getApp() {
 			return app;
 		}
-		
+
 		void setApp(App app) {
 			this.app = app;
 			infopart.setDomainObject(app);
@@ -450,24 +435,23 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 		}
 
 		void updateTitleInfo() {
-			getShell().setText("application information - " + app.getName());
-			setTitle("Application information");
-			setMessage("View and modify application informations of "
-					+ app.getName());
+			
+			getShell().setText(Messages.getFormattedString("HerokuAppManagerViewPart_Description", app.getName())); //$NON-NLS-1$
+			setTitle(Messages.getString("HerokuAppManagerViewPart_Title")); //$NON-NLS-1$
+			setMessage(Messages.getFormattedString("HerokuAppManagerViewPart_Message", app.getName())); //$NON-NLS-1$
 		}
-		
+
 		@Override
 		protected Control createDialogArea(Composite parent) {
 			Composite container = (Composite) super.createDialogArea(parent);
 
 			updateTitleInfo();
 
-			TabFolder folder = new TabFolder(container, SWT.TOP
-					| SWT.BORDER);
+			TabFolder folder = new TabFolder(container, SWT.TOP | SWT.BORDER);
 
 			{
 				TabItem item = new TabItem(folder, SWT.NONE);
-				item.setText("Application Info");
+				item.setText(Messages.getString("HerokuAppManagerViewPart_AppInfo")); //$NON-NLS-1$
 				infopart = new ApplicationInfoPart(viewPart);
 				item.setControl(infopart.createUI(folder));
 				infopart.setDomainObject(app);
@@ -475,7 +459,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 
 			{
 				TabItem item = new TabItem(folder, SWT.NONE);
-				item.setText("Collaborators");
+				item.setText(Messages.getString("HerokuAppManagerViewPart_Collaborators")); //$NON-NLS-1$
 				collabpart = new CollaboratorsPart();
 				item.setControl(collabpart.createUI(folder));
 				collabpart.setDomainObject(app);
@@ -483,7 +467,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 
 			{
 				TabItem item = new TabItem(folder, SWT.NONE);
-				item.setText("Environment Variables");
+				item.setText(Messages.getString("HerokuAppManagerViewPart_EnvironmentVariables")); //$NON-NLS-1$
 				envpart = new EnvironmentVariablesPart();
 				item.setControl(envpart.createUI(folder));
 				envpart.setDomainObject(app);
@@ -503,15 +487,15 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements
 
 		@Override
 		protected void createButtonsForButtonBar(Composite parent) {
-			createButton(parent, IDialogConstants.CLOSE_ID,
-					IDialogConstants.CLOSE_LABEL, true);
+			createButton(parent, IDialogConstants.CLOSE_ID, IDialogConstants.CLOSE_LABEL, true);
 		}
 
 		@Override
 		protected void buttonPressed(int buttonId) {
 			if (buttonId == IDialogConstants.CLOSE_ID) {
 				close();
-			} else {
+			}
+			else {
 				super.buttonPressed(buttonId);
 			}
 		}

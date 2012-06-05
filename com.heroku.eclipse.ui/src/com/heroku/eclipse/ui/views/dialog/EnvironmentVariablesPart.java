@@ -11,7 +11,16 @@ import org.eclipse.swt.widgets.Composite;
 import com.heroku.api.App;
 import com.heroku.eclipse.ui.Messages;
 
+/**
+ * View part responsible for displaying environment variables for Heroku Apps
+ * @author udo.rader@bestsolution.at
+ */
 public class EnvironmentVariablesPart {
+	/**
+	 * Creates the UI
+	 * @param parent
+	 * @return the container with the UI stuff inside
+	 */
 	public Composite createUI(Composite parent) {
 		Composite container = new Composite(parent, SWT.NONE);
 		container.setLayout(new GridLayout(2,false));
