@@ -8,6 +8,7 @@ import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.Key;
+import com.heroku.api.Proc;
 import com.heroku.api.exception.RequestFailedException;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
@@ -248,6 +249,15 @@ public class RestHerokuSession implements HerokuSession {
 		checkValid();
 		try {
 			api.transferApp(app.getName(), newOwner);
+		} catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
+	public List<Proc> listProcesses(App app) throws HerokuServiceException {
+		checkValid();
+		try {
+			return api.listProcesses(app.getName());
 		} catch (RequestFailedException e) {
 			throw checkException(e);
 		}

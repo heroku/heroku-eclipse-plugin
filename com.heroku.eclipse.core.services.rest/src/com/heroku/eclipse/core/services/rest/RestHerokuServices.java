@@ -54,6 +54,7 @@ import org.osgi.service.prefs.BackingStoreException;
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.api.HerokuAPI;
+import com.heroku.api.Proc;
 import com.heroku.api.exception.LoginFailedException;
 import com.heroku.api.exception.RequestFailedException;
 import com.heroku.eclipse.core.constants.PreferenceConstants;
@@ -636,5 +637,9 @@ public class RestHerokuServices implements HerokuServices {
 
 		Event event = new Event(TOPIC_APPLICATION_TRANSFERED, map);
 		eventAdmin.postEvent(event);
+	}
+	
+	public List<Proc> listProcesses(App app) throws HerokuServiceException {
+		return getOrCreateHerokuSession().listProcesses(app);
 	}
 }

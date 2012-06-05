@@ -5,6 +5,7 @@ import java.util.List;
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.api.Key;
+import com.heroku.api.Proc;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 
 /**
@@ -141,4 +142,6 @@ public interface HerokuSession {
 			throws HerokuServiceException;
 	
 	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
+	
+	public List<Proc> listProcesses(App app) throws HerokuServiceException;
 }
