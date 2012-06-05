@@ -81,31 +81,33 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 						// then materialize
 						try {
 							service.materializeGitApp(app, destinationDir, timeout,
-									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), new NullProgressMonitor(), cred); //$NON-NLS-1$
+									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, new NullProgressMonitor()); //$NON-NLS-1$
 						}
 						catch (HerokuServiceException e) {
 							if (e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
 								namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
 								namePage.setVisible(true);
 							}
+							else if ( e.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION ) {
+								HerokuUtils.userError(getShell(), Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("replacements)HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir+System.getProperty("path.separator")+app.getName()));  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+							}
 							else {
 								e.printStackTrace();
 								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
-//								HerokuUtils.internalError(getShell(), e);
+								HerokuUtils.internalError(getShell(), e);
 							}
-
 						}
 					}
 				}
 			});
 		}
 		catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
+			HerokuUtils.internalError(getShell(), e);
 		}
 		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
+			HerokuUtils.internalError(getShell(), e);
 		}
 
 		return true;

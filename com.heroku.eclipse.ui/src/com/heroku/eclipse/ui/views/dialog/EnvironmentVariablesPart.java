@@ -9,8 +9,18 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
 import com.heroku.api.App;
+import com.heroku.eclipse.ui.Messages;
 
+/**
+ * View part responsible for displaying environment variables for Heroku Apps
+ * @author udo.rader@bestsolution.at
+ */
 public class EnvironmentVariablesPart {
+	/**
+	 * Creates the UI
+	 * @param parent
+	 * @return the container with the UI stuff inside
+	 */
 	public Composite createUI(Composite parent) {
 		Composite container = new Composite(parent, SWT.NONE);
 		container.setLayout(new GridLayout(2,false));
@@ -26,13 +36,13 @@ public class EnvironmentVariablesPart {
 			
 			{
 				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
-				column.getColumn().setText("Key");
+				column.getColumn().setText(Messages.getString("HerokuAppInformationEnvironment_Key")); //$NON-NLS-1$
 				column.getColumn().setWidth(200);
 			}
 			
 			{
 				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
-				column.getColumn().setText("Value");
+				column.getColumn().setText(Messages.getString("HerokuAppInformationEnvironment_Value")); //$NON-NLS-1$
 				column.getColumn().setWidth(200);
 			}
 			
@@ -45,19 +55,19 @@ public class EnvironmentVariablesPart {
 			
 			{
 				Button b = new Button(controls, SWT.PUSH);
-				b.setText("+");	
+				b.setText("+");	 //$NON-NLS-1$
 				b.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			}
 			
 			{
 				Button b = new Button(controls, SWT.PUSH);
-				b.setText("-");
+				b.setText("-"); //$NON-NLS-1$
 				b.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			}
 			
 			{
 				Button b = new Button(controls, SWT.PUSH);
-				b.setText("Save");	
+				b.setText(Messages.getString("HerokuAppInformationEnvironment_Save")); //$NON-NLS-1$	
 				b.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			}
 		}
