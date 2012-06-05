@@ -1,5 +1,7 @@
 package com.heroku.eclipse.ui.utils;
 
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 
 public class WorkbenchOperations {
@@ -13,6 +15,16 @@ public class WorkbenchOperations {
 			@Override
 			public void run(String argument) {
 				part.setPartName(argument);
+			}
+		};
+	}
+	
+	public static RunnableWithParameter<IEditorPart> close(final IWorkbenchPage page) {
+		return new RunnableWithParameter<IEditorPart>() {
+			
+			@Override
+			public void run(IEditorPart argument) {
+				page.closeEditor(argument, false);
 			}
 		};
 	}

@@ -561,7 +561,7 @@ public class RestHerokuServices implements HerokuServices {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(KEY_APPLICATION_ID, app.getId());
 
-		Event event = new Event(TOPIC_APPLICATION_NEW, map);
+		Event event = new Event(TOPIC_APPLICATION_DESTROYED, map);
 		eventAdmin.postEvent(event);
 	}
 	

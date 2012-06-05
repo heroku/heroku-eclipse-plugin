@@ -14,6 +14,7 @@ public class ApplicationEditorInput implements IEditorInput {
 		this.app = app;
 	}
 
+	@SuppressWarnings("rawtypes")
 	@Override
 	public Object getAdapter(Class adapter) {
 		return null;

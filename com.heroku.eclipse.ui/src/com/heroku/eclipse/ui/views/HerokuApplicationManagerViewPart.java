@@ -321,12 +321,21 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				refreshApplications();
 			}
 		};
+		
+		EventHandler destroyedApplicationHandler = new EventHandler() {
+
+			@Override
+			public void handleEvent(Event event) {
+				refreshApplications();
+			}
+		};
 
 		handlerRegistrations = new ArrayList<ServiceRegistration<EventHandler>>();
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(sessionInvalidationHandler, HerokuServices.TOPIC_SESSION_INVALID));
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(newApplicationHandler, HerokuServices.TOPIC_APPLICATION_NEW));
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(renameApplicationHandler, HerokuServices.TOPIC_APPLICATION_RENAMED));
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(transferApplicationHandler, HerokuServices.TOPIC_APPLICATION_TRANSFERED));
+		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(destroyedApplicationHandler, HerokuServices.TOPIC_APPLICATION_DESTROYED));
 	}
 
 	private void refreshApplications() {

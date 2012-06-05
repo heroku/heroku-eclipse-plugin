@@ -75,6 +75,12 @@ public interface HerokuServices {
 			+ "transfered";
 
 	/**
+	 * Event topic fired if an application is destroyed
+	 */
+	public static final String TOPIC_APPLICATION_DESTROYED = TOPIC_APPLICATION
+			+ "destroyed";
+	
+	/**
 	 * Base topic fired if a collaborators of an applications are changed
 	 */
 	public static final String TOPIC_APPLICATION_COLLABORATORS = TOPIC_APPLICATION

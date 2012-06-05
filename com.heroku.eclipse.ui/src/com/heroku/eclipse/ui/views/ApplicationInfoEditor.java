@@ -128,9 +128,21 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 			}
 		};
 		
+		EventHandler destroyedApplicationHandler = new EventHandler() {
+
+			@Override
+			public void handleEvent(Event event) {
+				if( getApp().getId().equals(event.getProperty(HerokuServices.KEY_APPLICATION_ID))) {
+					HerokuUtils.runOnDisplay(true,folder, ApplicationInfoEditor.this, WorkbenchOperations.close(getSite().getWorkbenchWindow().getActivePage()));
+				}
+			}
+		};
+
+		
 		handlerRegistrations = new ArrayList<ServiceRegistration<EventHandler>>();
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(renameApplicationHandler, HerokuServices.TOPIC_APPLICATION_RENAMED));
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(transferApplicationHandler, HerokuServices.TOPIC_APPLICATION_TRANSFERED));
+		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(destroyedApplicationHandler, HerokuServices.TOPIC_APPLICATION_DESTROYED));
 	}
 	
 	public void dispose() {
