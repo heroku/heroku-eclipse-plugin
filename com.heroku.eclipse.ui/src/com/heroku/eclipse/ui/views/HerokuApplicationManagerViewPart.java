@@ -24,6 +24,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
+import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -105,6 +106,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		viewer.setContentProvider(new ContentProviderImpl());
 		viewer.getTree().setHeaderVisible(true);
 		viewer.getTree().setLinesVisible(true);
+		viewer.setComparer(new ElementComparerImpl());
 
 		{
 			TreeViewerColumn column = new TreeViewerColumn(viewer, SWT.NONE);
@@ -170,7 +172,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				refreshApplications();
 			}
 		};
-		refreshTimer.schedule(refreshTask, 10000);
+		refreshTimer.schedule(refreshTask, 20000);
 	}
 	
 	App getSelectedApp() {
@@ -610,6 +612,29 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 
 			return rv;
+		}
+	}
+	
+	static class ElementComparerImpl implements IElementComparer {
+
+		@Override
+		public boolean equals(Object a, Object b) {
+			if( a instanceof Proc && b instanceof Proc ) {
+				return hashCode(a) == hashCode(b);
+			} else if( a instanceof App && b instanceof App ) {
+				return hashCode(a) == hashCode(b);
+			}
+			return a.equals(b);
+		}
+
+		@Override
+		public int hashCode(Object element) {
+			if( element instanceof App ) {
+				return ((App) element).getId().hashCode();
+			} else if( element instanceof Proc ) {
+				return ((Proc) element).getUpid().hashCode();
+			}
+			return element.hashCode();
 		}
 	}
 }
