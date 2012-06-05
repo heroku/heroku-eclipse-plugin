@@ -64,5 +64,15 @@
             project="true">
       </wizard>
    </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="com.heroku.eclipse.ui.views.ApplicationInfoEditor"
+            default="true"
+            icon="icons/16_16/ApplicationInfoEditor.png"
+            id="com.heroku.eclipse.ui.appinfoeditor"
+            name="Application Info Editor">
+      </editor>
+   </extension>
 
 </plugin>

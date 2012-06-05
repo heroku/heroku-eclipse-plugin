@@ -4,11 +4,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -21,9 +18,7 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.dialogs.TitleAreaDialog;
 import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -33,13 +28,9 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
@@ -58,12 +49,8 @@ import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
-import com.heroku.eclipse.ui.utils.RunnableWithParameter;
 import com.heroku.eclipse.ui.utils.RunnableWithReturn;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
-import com.heroku.eclipse.ui.views.dialog.ApplicationInfoPart;
-import com.heroku.eclipse.ui.views.dialog.CollaboratorsPart;
-import com.heroku.eclipse.ui.views.dialog.EnvironmentVariablesPart;
 import com.heroku.eclipse.ui.views.dialog.WebsiteOpener;
 
 /**
@@ -84,10 +71,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	private List<ServiceRegistration<EventHandler>> handlerRegistrations;
 
-	private Set<DialogImpl> openDialogs = new HashSet<HerokuApplicationManagerViewPart.DialogImpl>();
-
-	private boolean inDispose;
-	
 	private Map<String, List<Proc>> appProcesses = new HashMap<String, List<Proc>>();
 	
 	private Timer refreshTimer = new Timer(true);
@@ -147,15 +130,13 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			public void open(OpenEvent event) {
 				App app = getSelectedApp();
 				if (app != null) {
-					DialogImpl d = getDialogForApp(app);
-					if (d == null) {
-						DialogImpl dialog = new DialogImpl(getShell(), app, HerokuApplicationManagerViewPart.this);
-						dialog.setBlockOnOpen(false);
-						dialog.open();
-					}
-					else {
-						d.getShell().setActive();
-					}
+					try {
+						getSite().getWorkbenchWindow().getActivePage().openEditor(
+								new ApplicationEditorInput(app), ApplicationInfoEditor.ID, true);
+					} catch (PartInitException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}					
 				}
 			}
 		});
@@ -374,28 +355,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					appProcesses.put(a.getId(), herokuService.listProcesses(a));
 				}
 				HerokuUtils.runOnDisplay(true, viewer, applications, ViewerOperations.input(viewer));
-
-				// Update the open dialogs
-				HashSet<DialogImpl> copy = new HashSet<DialogImpl>(openDialogs);
-				Iterator<DialogImpl> it = copy.iterator();
-
-				while (it.hasNext()) {
-					DialogImpl d = it.next();
-					for (App app : applications) {
-						if (app.getId().equals(d.getApp().getId())) {
-							d.setApp(app);
-							it.remove();
-							d = null;
-							break;
-						}
-					}
-				}
-
-				// Close dialogs for remain apps because they don't seem to
-				// exist anymore
-				for (DialogImpl d : copy) {
-					d.close();
-				}
 			}
 			else {
 				HerokuUtils.runOnDisplay(true, viewer, new Object[0], ViewerOperations.input(viewer));
@@ -428,32 +387,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		}
 
-		// Close all open dialogs and avoid CCM by setting flag
-		inDispose = true;
-		for (DialogImpl d : openDialogs) {
-			d.close();
-		}
-
 		super.dispose();
-	}
-
-	void dialogClosed(DialogImpl dialog) {
-		if (!inDispose) {
-			openDialogs.remove(dialog);
-		}
-	}
-
-	void dialogOpened(DialogImpl dialog) {
-		openDialogs.add(dialog);
-	}
-
-	DialogImpl getDialogForApp(App app) {
-		for (DialogImpl d : openDialogs) {
-			if (d.getApp().getId().equals(app.getId())) {
-				return d;
-			}
-		}
-		return null;
 	}
 
 	class ContentProviderImpl implements ITreeContentProvider {
@@ -496,125 +430,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		
 	}
 	
-	static class DialogImpl extends TitleAreaDialog {
-		private App app;
-		private ApplicationInfoPart infopart;
-		private CollaboratorsPart collabpart;
-		private EnvironmentVariablesPart envpart;
-		private HerokuApplicationManagerViewPart viewPart;
-
-		public DialogImpl(Shell parentShell, App app, HerokuApplicationManagerViewPart viewPart) {
-			super(parentShell);
-			this.app = app;
-			this.viewPart = viewPart;
-			if (isResizable()) {
-				setShellStyle(SWT.DIALOG_TRIM | SWT.MAX | SWT.RESIZE | getDefaultOrientation());
-			}
-			else {
-				setShellStyle(SWT.DIALOG_TRIM | getDefaultOrientation());
-			}
-		}
-
-		App getApp() {
-			return app;
-		}
-
-		void setApp(App app) {
-			this.app = app;
-			infopart.setDomainObject(app);
-			collabpart.setDomainObject(app);
-			envpart.setDomainObject(app);
-			HerokuUtils.runOnDisplay(true, getShell(), app, new RunnableWithParameter<App>() {
-
-				@Override
-				public void run(App argument) {
-					updateTitleInfo();
-				}
-			});
-		}
-
-		void updateTitleInfo() {
-			
-			getShell().setText(Messages.getFormattedString("HerokuAppManagerViewPart_Description", app.getName())); //$NON-NLS-1$
-			setTitle(Messages.getString("HerokuAppManagerViewPart_Title")); //$NON-NLS-1$
-			setMessage(Messages.getFormattedString("HerokuAppManagerViewPart_Message", app.getName())); //$NON-NLS-1$
-		}
-
-		@Override
-		protected Control createDialogArea(Composite parent) {
-			Composite container = (Composite) super.createDialogArea(parent);
-
-			updateTitleInfo();
-
-			TabFolder folder = new TabFolder(container, SWT.TOP | SWT.BORDER);
-
-			{
-				TabItem item = new TabItem(folder, SWT.NONE);
-				item.setText(Messages.getString("HerokuAppManagerViewPart_AppInfo")); //$NON-NLS-1$
-				infopart = new ApplicationInfoPart(viewPart);
-				item.setControl(infopart.createUI(folder));
-				infopart.setDomainObject(app);
-			}
-
-			{
-				TabItem item = new TabItem(folder, SWT.NONE);
-				item.setText(Messages.getString("HerokuAppManagerViewPart_Collaborators")); //$NON-NLS-1$
-				collabpart = new CollaboratorsPart();
-				item.setControl(collabpart.createUI(folder));
-				collabpart.setDomainObject(app);
-			}
-
-			{
-				TabItem item = new TabItem(folder, SWT.NONE);
-				item.setText(Messages.getString("HerokuAppManagerViewPart_EnvironmentVariables")); //$NON-NLS-1$
-				envpart = new EnvironmentVariablesPart();
-				item.setControl(envpart.createUI(folder));
-				envpart.setDomainObject(app);
-			}
-
-			folder.setSelection(0);
-			folder.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-			return container;
-		}
-
-		@Override
-		public int open() {
-			viewPart.dialogOpened(this);
-			return super.open();
-		}
-
-		@Override
-		protected void createButtonsForButtonBar(Composite parent) {
-			createButton(parent, IDialogConstants.CLOSE_ID, IDialogConstants.CLOSE_LABEL, true);
-		}
-
-		@Override
-		protected void buttonPressed(int buttonId) {
-			if (buttonId == IDialogConstants.CLOSE_ID) {
-				close();
-			}
-			else {
-				super.buttonPressed(buttonId);
-			}
-		}
-
-		@Override
-		public boolean close() {
-			boolean rv = super.close();
-
-			if (rv) {
-				infopart.dispose();
-				collabpart.dispose();
-				envpart.dispose();
-				// unregister the view
-				viewPart.dialogClosed(this);
-			}
-
-			return rv;
-		}
-	}
-	
 	static class ElementComparerImpl implements IElementComparer {
 
 		@Override
@@ -637,4 +452,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			return element.hashCode();
 		}
 	}
+	
+	
 }
