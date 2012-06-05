@@ -1,9 +1,6 @@
 package com.heroku.eclipse.ui.utils;
 
 import java.util.List;
-import java.util.Map;
-
-import javax.swing.Icon;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -28,7 +25,8 @@ public class LabelProviderFactory {
 					return app.getName();	
 				} else if( element instanceof Proc ) {
 					Proc proc = (Proc) element;
-					return proc.getProcess();
+					String rv = proc.getProcess() + " (" + proc.getState() + "/" + proc.getAction() + ")"; 
+					return rv;
 				}
 				return "";
 			}

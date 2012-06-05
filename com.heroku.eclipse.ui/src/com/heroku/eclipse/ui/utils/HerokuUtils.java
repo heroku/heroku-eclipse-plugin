@@ -124,7 +124,7 @@ public class HerokuUtils {
 	}
 	
 	public static <A> void runOnDisplay(boolean async, Control control, final A argument, final RunnableWithParameter<A> runnable) {
-		if( control.getDisplay() != null && ! control.getDisplay().isDisposed() ) {
+		if( ! control.isDisposed() && control.getDisplay() != null && ! control.getDisplay().isDisposed() ) {
 			if( async ) {
 				control.getDisplay().asyncExec(new Runnable() {
 					

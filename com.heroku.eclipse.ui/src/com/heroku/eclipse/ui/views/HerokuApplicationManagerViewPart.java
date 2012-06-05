@@ -9,6 +9,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -43,7 +45,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.progress.UIJob;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
@@ -87,7 +88,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private boolean inDispose;
 	
 	private Map<String, List<Proc>> appProcesses = new HashMap<String, List<Proc>>();
+	
+	private Timer refreshTimer = new Timer(true);
 
+	private TimerTask refreshTask;
+	
 	@Override
 	public void init(IViewSite site, IMemento memento) throws PartInitException {
 		super.init(site, memento);
@@ -157,6 +162,17 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		subscribeToEvents();
 	}
 
+	private void scheduleRefresh() {
+		refreshTask = new TimerTask() {
+			
+			@Override
+			public void run() {
+				refreshApplications();
+			}
+		};
+		refreshTimer.schedule(refreshTask, 10000);
+	}
+	
 	App getSelectedApp() {
 		IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
 		
@@ -331,7 +347,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	}
 
 	private void refreshApplications() {
-		Job o = new Job("Refresh applications") {
+		final Job o = new Job("Refresh applications") {
 			
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
@@ -378,11 +394,16 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				for (DialogImpl d : copy) {
 					d.close();
 				}
-
 			}
 			else {
 				HerokuUtils.runOnDisplay(true, viewer, new Object[0], ViewerOperations.input(viewer));
 			}
+			
+			if( refreshTask != null ) {
+				refreshTask.cancel();
+			}
+			
+			scheduleRefresh();
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -397,6 +418,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	@Override
 	public void dispose() {
 		appProcesses.clear();
+		refreshTimer.cancel();
 		
 		if (handlerRegistrations != null) {
 			for (ServiceRegistration<EventHandler> r : handlerRegistrations) {
