@@ -3,11 +3,19 @@ package com.heroku.eclipse.ui.views;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -16,12 +24,13 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TitleAreaDialog;
-import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.OpenEvent;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.TreeViewerColumn;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -41,6 +50,7 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 
 import com.heroku.api.App;
+import com.heroku.api.Proc;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
@@ -48,6 +58,7 @@ import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.RunnableWithParameter;
+import com.heroku.eclipse.ui.utils.RunnableWithReturn;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
 import com.heroku.eclipse.ui.views.dialog.ApplicationInfoPart;
 import com.heroku.eclipse.ui.views.dialog.CollaboratorsPart;
@@ -66,7 +77,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	 */
 	public static final String ID = "com.heroku.eclipse.ui.views.HerokuApplicationManager"; //$NON-NLS-1$
 
-	private TableViewer viewer;
+	private TreeViewer viewer;
 
 	private HerokuServices herokuService;
 
@@ -75,7 +86,13 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private Set<DialogImpl> openDialogs = new HashSet<HerokuApplicationManagerViewPart.DialogImpl>();
 
 	private boolean inDispose;
+	
+	private Map<String, List<Proc>> appProcesses = new HashMap<String, List<Proc>>();
+	
+	private Timer refreshTimer = new Timer(true);
 
+	private TimerTask refreshTask;
+	
 	@Override
 	public void init(IViewSite site, IMemento memento) throws PartInitException {
 		super.init(site, memento);
@@ -84,34 +101,33 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	}
 
 	public void createPartControl(Composite parent) {
-		viewer = new TableViewer(parent, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
-		viewer.setContentProvider(ArrayContentProvider.getInstance());
-		viewer.getTable().setHeaderVisible(true);
-		viewer.getTable().setLinesVisible(true);
+		viewer = new TreeViewer(parent, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+		viewer.setContentProvider(new ContentProviderImpl());
+		viewer.getTree().setHeaderVisible(true);
+		viewer.getTree().setLinesVisible(true);
 
 		{
-			TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
-			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_AppStatus")); //$NON-NLS-1$
-			column.setLabelProvider(LabelProviderFactory.createApp_Status());
-			column.getColumn().pack();
-		}
-
-		{
-			TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
+			TreeViewerColumn column = new TreeViewerColumn(viewer, SWT.NONE);
 			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_Name")); //$NON-NLS-1$
-			column.setLabelProvider(LabelProviderFactory.createApp_Name());
+			column.setLabelProvider(LabelProviderFactory.createName(new RunnableWithReturn<List<Proc>, App>() {
+				
+				@Override
+				public List<Proc> run(App argument) {
+					return appProcesses.get(argument.getId());
+				}
+			}));
 			column.getColumn().setWidth(200);
 		}
 
 		{
-			TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
+			TreeViewerColumn column = new TreeViewerColumn(viewer, SWT.NONE);
 			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_GitUrl")); //$NON-NLS-1$
 			column.setLabelProvider(LabelProviderFactory.createApp_GitUrl());
 			column.getColumn().setWidth(200);
 		}
 
 		{
-			TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
+			TreeViewerColumn column = new TreeViewerColumn(viewer, SWT.NONE);
 			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_AppUrl")); //$NON-NLS-1$
 			column.setLabelProvider(LabelProviderFactory.createApp_Url());
 			column.getColumn().setWidth(200);
@@ -146,9 +162,21 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		subscribeToEvents();
 	}
 
+	private void scheduleRefresh() {
+		refreshTask = new TimerTask() {
+			
+			@Override
+			public void run() {
+				refreshApplications();
+			}
+		};
+		refreshTimer.schedule(refreshTask, 10000);
+	}
+	
 	App getSelectedApp() {
 		IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
-		return !s.isEmpty() ? (App) s.getFirstElement() : null;
+		
+		return !s.isEmpty() && s.getFirstElement() instanceof App ? (App) s.getFirstElement() : null;
 	}
 
 	Shell getShell() {
@@ -319,9 +347,30 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	}
 
 	private void refreshApplications() {
+		final Job o = new Job("Refresh applications") {
+			
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				try {
+					saveRefreshApplications();	
+				} catch (Throwable e) {
+					// TODO: handle exception
+				}
+				
+				return Status.OK_STATUS;
+			}
+		};
+		o.schedule();
+	}
+	
+	private void saveRefreshApplications() {
 		try {
+			appProcesses.clear();
 			if (herokuService.canObtainHerokuSession()) {
 				List<App> applications = herokuService.listApps();
+				for( App a : applications ) {
+					appProcesses.put(a.getId(), herokuService.listProcesses(a));
+				}
 				HerokuUtils.runOnDisplay(true, viewer, applications, ViewerOperations.input(viewer));
 
 				// Update the open dialogs
@@ -345,11 +394,16 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				for (DialogImpl d : copy) {
 					d.close();
 				}
-
 			}
 			else {
 				HerokuUtils.runOnDisplay(true, viewer, new Object[0], ViewerOperations.input(viewer));
 			}
+			
+			if( refreshTask != null ) {
+				refreshTask.cancel();
+			}
+			
+			scheduleRefresh();
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -363,6 +417,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	@Override
 	public void dispose() {
+		appProcesses.clear();
+		refreshTimer.cancel();
+		
 		if (handlerRegistrations != null) {
 			for (ServiceRegistration<EventHandler> r : handlerRegistrations) {
 				r.unregister();
@@ -397,6 +454,46 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		return null;
 	}
 
+	class ContentProviderImpl implements ITreeContentProvider {
+		
+		
+		@Override
+		public void dispose() {
+		}
+
+		@Override
+		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {	
+		}
+
+		@Override
+		public Object[] getElements(Object inputElement) {
+			return ((List<?>)inputElement).toArray();
+		}
+
+		@Override
+		public Object[] getChildren(Object parentElement) {
+			if( parentElement instanceof App ) {
+				List<Proc> l = appProcesses.get(((App)parentElement).getId());
+				if( l != null ) {
+					return l.toArray();
+				}
+			}
+			return new Object[0];
+		}
+
+		@Override
+		public Object getParent(Object element) {
+			//TODO We could implement this but it is not required
+			return null;
+		}
+
+		@Override
+		public boolean hasChildren(Object element) {
+			return element instanceof App;
+		}
+		
+	}
+	
 	static class DialogImpl extends TitleAreaDialog {
 		private App app;
 		private ApplicationInfoPart infopart;

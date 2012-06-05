@@ -9,6 +9,7 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
+import com.heroku.api.Proc;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 
@@ -343,4 +344,12 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
+	
+	/**
+	 * Get all processes of an app
+	 * @param app
+	 * @return all processes
+	 * @throws HerokuServiceException
+	 */
+	public List<Proc> listProcesses(App app) throws HerokuServiceException;
 }
