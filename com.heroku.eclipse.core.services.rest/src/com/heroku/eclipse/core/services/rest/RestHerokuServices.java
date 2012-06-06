@@ -557,7 +557,7 @@ public class RestHerokuServices implements HerokuServices {
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(KEY_APPLICATION_ID, app.getId());
 
-		Event event = new Event(TOPIC_APPLICATION_NEW, map);
+		Event event = new Event(TOPIC_APPLICATION_DESTROYED, map);
 		eventAdmin.postEvent(event);
 	}
 	
@@ -568,7 +568,8 @@ public class RestHerokuServices implements HerokuServices {
 		
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(KEY_APPLICATION_ID, application.getId());
-
+		map.put(KEY_APPLICATION_NAME, newName);
+		
 		Event event = new Event(TOPIC_APPLICATION_RENAMED, map);
 		eventAdmin.postEvent(event);
 	}
@@ -637,5 +638,9 @@ public class RestHerokuServices implements HerokuServices {
 	
 	public List<Proc> listProcesses(App app) throws HerokuServiceException {
 		return getOrCreateHerokuSession().listProcesses(app);
+	}
+	
+	public App getApp( String appName ) throws HerokuServiceException {
+		return getOrCreateHerokuSession().getApp(appName);
 	}
 }

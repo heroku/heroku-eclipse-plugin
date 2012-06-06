@@ -139,6 +139,11 @@ public class RestHerokuSession implements HerokuSession {
 			throw checkException(e);
 		}
 	}
+	
+	@Override
+	public void destroyApp(App app) throws HerokuServiceException {
+		destroyApp(app.getName());
+	}
 
 	@Override
 	public App createApp(App app) throws HerokuServiceException {
@@ -198,16 +203,6 @@ public class RestHerokuSession implements HerokuSession {
 		checkValid();
 		try {
 			api.restart(app.getName());
-		} catch (RequestFailedException e) {
-			throw checkException(e);
-		}
-	}
-	
-	@Override
-	public void destroyApp(App app) throws HerokuServiceException {
-		checkValid();
-		try {
-			api.destroyApp(app.getName());
 		} catch (RequestFailedException e) {
 			throw checkException(e);
 		}

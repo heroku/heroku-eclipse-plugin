@@ -105,4 +105,9 @@ public class ApplicationInfoPart {
 	public void dispose() {
 		
 	}
+
+	public void setFocus() {
+		// TODO Auto-generated method stub
+		
+	}
 }

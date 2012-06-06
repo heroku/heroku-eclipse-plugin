@@ -69,6 +69,11 @@ public interface HerokuServices {
 	public static final String TOPIC_APPLICATION_TRANSFERED = TOPIC_APPLICATION + "transfered";
 
 	/**
+	 * Event topic fired if an application is destroyed
+	 */
+	public static final String TOPIC_APPLICATION_DESTROYED = TOPIC_APPLICATION + "destroyed";
+
+	/**
 	 * Base topic fired if a collaborators of an applications are changed
 	 */
 	public static final String TOPIC_APPLICATION_COLLABORATORS = TOPIC_APPLICATION + "collaborators/";
@@ -101,6 +106,8 @@ public interface HerokuServices {
 	public static final String KEY_APPLICATION_OWNER = "applicationOwner";
 
 	public static final String KEY_COLLABORATORS_LIST = "collaborators";
+
+	public static final String KEY_APPLICATION_NAME = "applicationName";
 
 	/**
 	 * Logs into the Heroku account and if successful, returns the user's
@@ -234,7 +241,7 @@ public interface HerokuServices {
 	 * @param appName
 	 * @param templateName
 	 * @param pm
-	 * 				the progress monitor
+	 *            the progress monitor
 	 * @return the newly created App
 	 * @throws HerokuServiceException
 	 *             if an app with the same name already exists in the user's
@@ -248,30 +255,34 @@ public interface HerokuServices {
 	 * workspace
 	 * 
 	 * @param app
-	 *            	the App instance to materialize
-	 * @param workingDir 
-	 * 				the directory where the project will be materialized
-	 * @param timeout 
-	 * @param progressTitle 
-	 * 				the dialog title to display during the materialization process
+	 *            the App instance to materialize
+	 * @param workingDir
+	 *            the directory where the project will be materialized
+	 * @param timeout
+	 * @param progressTitle
+	 *            the dialog title to display during the materialization process
 	 * @param cred
-	 * 				the CredentialsProvider containing everything we need to authenticate  
+	 *            the CredentialsProvider containing everything we need to
+	 *            authenticate
 	 * @param pm
-	 *            	the progress monitor to use
+	 *            the progress monitor to use
 	 * @return true, if the materialization was successful, otherwise false the
 	 *         App instance to materialize
 	 * @throws HerokuServiceException
 	 */
-	public boolean materializeGitApp(App app, String workingDir, int timeout, String progressTitle, CredentialsProvider cred, IProgressMonitor pm) throws HerokuServiceException;
-	
+	public boolean materializeGitApp(App app, String workingDir, int timeout, String progressTitle, CredentialsProvider cred, IProgressMonitor pm)
+			throws HerokuServiceException;
+
 	/**
 	 * Materializes the given app in the user's local git repository
+	 * 
 	 * @param projectName
-	 * @param projectPath 
-	 * @param repoDir 
+	 * @param projectPath
+	 * @param repoDir
 	 * @param pm
 	 *            the progress monitor to use
-	 * @return the outcome of the creation process in the form of an IStatus object
+	 * @return the outcome of the creation process in the form of an IStatus
+	 *         object
 	 * @throws HerokuServiceException
 	 */
 	public IStatus createProject(final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm) throws HerokuServiceException;
@@ -314,6 +325,7 @@ public interface HerokuServices {
 
 	/**
 	 * Retrieves all registered collaborators for the given Heroku App
+	 * 
 	 * @param app
 	 * @return the list of collaborators
 	 * @throws HerokuServiceException
@@ -322,6 +334,7 @@ public interface HerokuServices {
 
 	/**
 	 * Adds a collaborator to the given Heroku App
+	 * 
 	 * @param app
 	 * @param email
 	 * @throws HerokuServiceException
@@ -330,26 +343,40 @@ public interface HerokuServices {
 
 	/**
 	 * Removes one or more collaborators from an App
+	 * 
 	 * @param app
 	 * @param email
-	 * 				a variable length String array
+	 *            a variable length String array
 	 * @throws HerokuServiceException
 	 */
 	public void removeCollaborators(App app, String... email) throws HerokuServiceException;
 
 	/**
-	 * Transfers the given app to a new owner, identified by his/her dmail address
+	 * Transfers the given app to a new owner, identified by his/her dmail
+	 * address
+	 * 
 	 * @param app
 	 * @param newOwner
 	 * @throws HerokuServiceException
 	 */
 	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
-	
+
 	/**
 	 * Get all processes of an app
+	 * 
 	 * @param app
 	 * @return all processes
 	 * @throws HerokuServiceException
 	 */
 	public List<Proc> listProcesses(App app) throws HerokuServiceException;
+
+	/**
+	 * Get application with given name
+	 * 
+	 * @param appName
+	 *            the application name
+	 * @return the app
+	 * @throws HerokuServiceException
+	 */
+	public App getApp(String appName) throws HerokuServiceException;
 }

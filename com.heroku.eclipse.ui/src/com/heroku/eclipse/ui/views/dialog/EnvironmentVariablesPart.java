@@ -82,4 +82,9 @@ public class EnvironmentVariablesPart {
 	public void dispose() {
 		
 	}
+
+	public void setFocus() {
+		// TODO Auto-generated method stub
+		
+	}
 }
