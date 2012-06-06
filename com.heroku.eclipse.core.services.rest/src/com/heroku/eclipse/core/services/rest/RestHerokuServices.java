@@ -112,13 +112,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	public HerokuSession getOrCreateHerokuSession() throws HerokuServiceException {
-		String apiKey = null;
-		try {
-			apiKey = getSecurePreferences().get(PreferenceConstants.P_API_KEY, null);
-		}
-		catch (StorageException e) {
-			throw new HerokuServiceException(HerokuServiceException.SECURE_STORE_ERROR, "unable to access secure store", null); //$NON-NLS-1$
-		}
+		String apiKey = getAPIKey();
 
 		if (apiKey == null) {
 			throw new HerokuServiceException(HerokuServiceException.NO_API_KEY, "No API-Key configured", null); //$NON-NLS-1$
