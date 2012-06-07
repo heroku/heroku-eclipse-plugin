@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
@@ -30,24 +31,32 @@ import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.RunnableWithReturn;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
 
+/**
+ * @author tom.schindl@bestsolution.at
+ */
 public class CollaboratorsPart {
 	private TableViewer viewer;
 	private App domainObject;
 	private Button addButton;
 	private Button removeButton;
 	private Button makeOwner;
+	private Composite parent;
 	// private Button saveButton;
 
 	private List<Collaborator> collaboratorsList;
 	private Collaborator currentOwner;
 
+	/**
+	 * @param parent
+	 * @return the UI composite
+	 */
 	public Composite createUI(Composite parent) {
+		this.parent = parent;
 		Composite container = new Composite(parent, SWT.NONE);
 		container.setLayout(new GridLayout(2, false));
 
 		{
-			viewer = new TableViewer(container, SWT.MULTI | SWT.H_SCROLL
-					| SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
+			viewer = new TableViewer(container, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
 			GridData gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = 300;
 			viewer.getControl().setLayoutData(gd);
@@ -56,27 +65,23 @@ public class CollaboratorsPart {
 			viewer.setContentProvider(new ArrayContentProvider());
 
 			{
-				TableViewerColumn column = new TableViewerColumn(viewer,
-						SWT.NONE);
+				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 				column.getColumn().setText(Messages.getString("HerokuAppInformationCollaborators_Owner")); //$NON-NLS-1$
 				column.getColumn().pack();
-				column.setLabelProvider(LabelProviderFactory
-						.createCollaborator_Owner(new RunnableWithReturn<Boolean, Collaborator>() {
+				column.setLabelProvider(LabelProviderFactory.createCollaborator_Owner(new RunnableWithReturn<Boolean, Collaborator>() {
 
-							@Override
-							public Boolean run(Collaborator argument) {
-								return currentOwner == argument;
-							}
-						}));
+					@Override
+					public Boolean run(Collaborator argument) {
+						return currentOwner == argument;
+					}
+				}));
 			}
 
 			{
-				TableViewerColumn column = new TableViewerColumn(viewer,
-						SWT.NONE);
+				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 				column.getColumn().setText(Messages.getString("HerokuAppInformationCollaborators_Email")); //$NON-NLS-1$"
 				column.getColumn().setWidth(200);
-				column.setLabelProvider(LabelProviderFactory
-						.createCollaborator_Email());
+				column.setLabelProvider(LabelProviderFactory.createCollaborator_Email());
 			}
 		}
 
@@ -99,18 +104,17 @@ public class CollaboratorsPart {
 			{
 				removeButton = new Button(controls, SWT.PUSH);
 				removeButton.setText("-"); //$NON-NLS-1$
-				removeButton.setLayoutData(new GridData(
-						GridData.FILL_HORIZONTAL));
+				removeButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				removeButton.addSelectionListener(new SelectionAdapter() {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						@SuppressWarnings("unchecked")
-						List<Collaborator> collabs = ((IStructuredSelection) viewer
-								.getSelection()).toList();
+						List<Collaborator> collabs = ((IStructuredSelection) viewer.getSelection()).toList();
 						if (collabs.contains(currentOwner)) {
-							// TODO Show message that this is not possible
-							System.err.println("Can't remove owner");
-						} else {
+							Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "collaborators list to remove contains application owner, rejecting!"); //$NON-NLS-1$
+							HerokuUtils.userError(removeButton.getShell(), Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner_Title"), Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner")); //$NON-NLS-1$ //$NON-NLS-2$
+						}
+						else {
 							handleRemove(removeButton.getShell(), collabs);
 						}
 					}
@@ -125,20 +129,26 @@ public class CollaboratorsPart {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
-						if( s.size() == 1 ) {
+						if (s.size() == 1) {
 							Collaborator c = (Collaborator) s.getFirstElement();
-							if( c != currentOwner ) {
-								if( MessageDialog.openQuestion(makeOwner.getShell(), Messages.getString("HerokuAppInformationCollaborators_Transfer_Title"), Messages.getFormattedString("HerokuAppInformationCollaborators_Transfer_Message", c.getEmail()))) {  //$NON-NLS-1$//$NON-NLS-2$
+							if (c != currentOwner) {
+								if (MessageDialog.openQuestion(
+										makeOwner.getShell(),
+										Messages.getString("HerokuAppInformationCollaborators_Transfer_Title"), Messages.getFormattedString("HerokuAppInformationCollaborators_Transfer_Message", c.getEmail()))) { //$NON-NLS-1$//$NON-NLS-2$
 									try {
+										Activator.getDefault().getLogger().log(LogService.LOG_INFO, "trying to transfer app '"+domainObject.getName()+"' to new owner '"+c.getEmail()+"'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 										Activator.getDefault().getService().transferApplication(domainObject, c.getEmail());
-									} catch (HerokuServiceException e1) {
-										// TODO Auto-generated catch block
+										Activator.getDefault().getLogger().log(LogService.LOG_INFO, "transfer of app '"+domainObject.getName()+"' complete"); //$NON-NLS-1$ //$NON-NLS-2$
+									}
+									catch (HerokuServiceException e1) {
 										e1.printStackTrace();
+										Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to change owner", e1); //$NON-NLS-1$
+										HerokuUtils.internalError(makeOwner.getShell(), e1);
 									}
 								}
-							}									
+							}
 						}
-						
+
 					}
 				});
 			}
@@ -158,9 +168,9 @@ public class CollaboratorsPart {
 		String message;
 
 		if (collaborators.size() == 1) {
-			
 			message = Messages.getFormattedString("HerokuAppInformationCollaborators_Remove_QuestionSingle", collaborators.get(0).getEmail()); //$NON-NLS-1$
-		} else {
+		}
+		else {
 			String removed = ""; //$NON-NLS-1$
 			for (Collaborator c : collaborators) {
 				removed += "* " + c.getEmail() + "\n"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -175,25 +185,27 @@ public class CollaboratorsPart {
 					emails[i] = collaborators.get(i).getEmail();
 				}
 
-				Activator.getDefault().getService()
-						.removeCollaborators(domainObject, emails);
+				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "about to remove of "+collaborators.size()+" collaborator"); //$NON-NLS-1$ //$NON-NLS-2$
+				Activator.getDefault().getService().removeCollaborators(domainObject, emails);
+				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "removal of "+collaborators.size()+" collaborators complete"); //$NON-NLS-1$ //$NON-NLS-2$
 				refreshCollaboratorList();
-			} catch (HerokuServiceException e) {
-				// TODO Auto-generated catch block
+			}
+			catch (HerokuServiceException e) {
 				e.printStackTrace();
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to remove collaborator", e); //$NON-NLS-1$
+				HerokuUtils.internalError(shell, e);
 			}
 		}
 	}
 
-	void handleAdd(Shell shell) {
+	void handleAdd(final Shell shell) {
 		TrayDialog d = new TrayDialog(shell) {
 
 			private Text emailField;
 
 			@Override
 			protected Control createDialogArea(Composite parent) {
-				Composite container = (Composite) super
-						.createDialogArea(parent);
+				Composite container = (Composite) super.createDialogArea(parent);
 				getShell().setText(Messages.getString("HerokuAppInformationCollaborators_Add_Title")); //$NON-NLS-1$
 
 				Composite area = new Composite(container, SWT.NONE);
@@ -205,8 +217,7 @@ public class CollaboratorsPart {
 					l.setText(Messages.getString("HerokuAppInformationCollaborators_Add_Email")); //$NON-NLS-1$
 
 					emailField = new Text(area, SWT.BORDER);
-					emailField.setLayoutData(new GridData(
-							GridData.FILL_HORIZONTAL));
+					emailField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 				}
 
 				return container;
@@ -216,22 +227,21 @@ public class CollaboratorsPart {
 			protected void okPressed() {
 				for (Collaborator u : collaboratorsList) {
 					if (u.getEmail().equals(emailField.getText().trim())) {
-						// TODO Show warning - already exists
+						Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "rejecting to add already existing collaborator '"+u.getEmail()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
+						HerokuUtils.userError(shell, Messages.getString("HerokuAppInformationCollaborators_Error_CollaboratorAlreadyExists_Title"), Messages.getFormattedString("HerokuAppInformationCollaborators_Error_CollaboratorAlreadyExists", u.getEmail())); //$NON-NLS-1$ //$NON-NLS-2$
 						return;
 					}
 				}
 
 				try {
-					Activator
-							.getDefault()
-							.getService()
-							.addCollaborator(domainObject,
-									emailField.getText().trim());
+					Activator.getDefault().getService().addCollaborator(domainObject, emailField.getText().trim());
 					super.okPressed();
 					refreshCollaboratorList();
-				} catch (HerokuServiceException e) {
-					// TODO Auto-generated catch block
+				}
+				catch (HerokuServiceException e) {
+					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to add new collaborator", e); //$NON-NLS-1$
 					e.printStackTrace();
+					HerokuUtils.internalError(shell, e);
 				}
 			}
 		};
@@ -246,8 +256,7 @@ public class CollaboratorsPart {
 
 	private void refreshCollaboratorList() {
 		try {
-			collaboratorsList = Activator.getDefault().getService()
-					.getCollaborators(domainObject);
+			collaboratorsList = Activator.getDefault().getService().getCollaborators(domainObject);
 
 			if (domainObject.getOwnerEmail() != null) {
 				for (Collaborator c : collaboratorsList) {
@@ -256,15 +265,17 @@ public class CollaboratorsPart {
 						break;
 					}
 				}
-			} else {
+			}
+			else {
 				currentOwner = null;
 			}
 
-			HerokuUtils.runOnDisplay(true, viewer, collaboratorsList,
-					ViewerOperations.input(viewer));
-		} catch (HerokuServiceException e) {
-			// TODO Auto-generated catch block
+			HerokuUtils.runOnDisplay(true, viewer, collaboratorsList, ViewerOperations.input(viewer));
+		}
+		catch (HerokuServiceException e) {
 			e.printStackTrace();
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
+			HerokuUtils.internalError(parent.getShell(), e);
 		}
 	}
 
@@ -274,6 +285,6 @@ public class CollaboratorsPart {
 
 	public void setFocus() {
 		// TODO Auto-generated method stub
-		
+
 	}
 }
