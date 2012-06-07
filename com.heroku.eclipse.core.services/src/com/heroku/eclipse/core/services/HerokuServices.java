@@ -33,12 +33,12 @@ public interface HerokuServices {
 	/**
 	 * Base topic for all session related events
 	 */
-	public static final String TOPIC_SESSION = ROOT_CORE_TOPIC + "session/";
+	public static final String TOPIC_SESSION = ROOT_CORE_TOPIC + "session/"; //$NON-NLS-1$
 
 	/**
 	 * Base topic for all session related events
 	 */
-	public static final String TOPIC_APPLICATION = ROOT_CORE_TOPIC + "application/";
+	public static final String TOPIC_APPLICATION = ROOT_CORE_TOPIC + "application/"; //$NON-NLS-1$
 
 	/**
 	 * Event topic fired if a session is invalidated
@@ -56,37 +56,37 @@ public interface HerokuServices {
 	/**
 	 * Event topic fired if a new application is successfully created
 	 */
-	public static final String TOPIC_APPLICATION_NEW = TOPIC_APPLICATION + "new";
+	public static final String TOPIC_APPLICATION_NEW = TOPIC_APPLICATION + "new"; //$NON-NLS-1$
 
 	/**
 	 * Event topic fired if an existing application is renamed
 	 */
-	public static final String TOPIC_APPLICATION_RENAMED = TOPIC_APPLICATION + "renamed";
+	public static final String TOPIC_APPLICATION_RENAMED = TOPIC_APPLICATION + "renamed"; //$NON-NLS-1$
 
 	/**
 	 * Event topic fired if an application is transfered to another user
 	 */
-	public static final String TOPIC_APPLICATION_TRANSFERED = TOPIC_APPLICATION + "transfered";
+	public static final String TOPIC_APPLICATION_TRANSFERED = TOPIC_APPLICATION + "transfered"; //$NON-NLS-1$
 
 	/**
 	 * Event topic fired if an application is destroyed
 	 */
-	public static final String TOPIC_APPLICATION_DESTROYED = TOPIC_APPLICATION + "destroyed";
+	public static final String TOPIC_APPLICATION_DESTROYED = TOPIC_APPLICATION + "destroyed"; //$NON-NLS-1$
 
 	/**
 	 * Base topic fired if a collaborators of an applications are changed
 	 */
-	public static final String TOPIC_APPLICATION_COLLABORATORS = TOPIC_APPLICATION + "collaborators/";
+	public static final String TOPIC_APPLICATION_COLLABORATORS = TOPIC_APPLICATION + "collaborators/"; //$NON-NLS-1$
 
 	/**
 	 * Event topic fired after collaborators are added to an application
 	 */
-	public static final String TOPIC_APPLICATION_COLLABORATORS_ADDED = TOPIC_APPLICATION_COLLABORATORS + "added";
+	public static final String TOPIC_APPLICATION_COLLABORATORS_ADDED = TOPIC_APPLICATION_COLLABORATORS + "added"; //$NON-NLS-1$
 
 	/**
 	 * Event topic fired after collaborators are removed from an application
 	 */
-	public static final String TOPIC_APPLICATION_COLLABORATORS_REMOVED = TOPIC_APPLICATION_COLLABORATORS + "removed";
+	public static final String TOPIC_APPLICATION_COLLABORATORS_REMOVED = TOPIC_APPLICATION_COLLABORATORS + "removed"; //$NON-NLS-1$
 
 	/**
 	 * Key used for all widgets of the project
@@ -101,13 +101,13 @@ public interface HerokuServices {
 	 */
 	public static final String KEY_SESSION_INSTANCE = "session"; //$NON-NLS-1$
 
-	public static final String KEY_APPLICATION_ID = "applicationId";
+	public static final String KEY_APPLICATION_ID = "applicationId"; //$NON-NLS-1$
 
-	public static final String KEY_APPLICATION_OWNER = "applicationOwner";
+	public static final String KEY_APPLICATION_OWNER = "applicationOwner"; //$NON-NLS-1$
 
-	public static final String KEY_COLLABORATORS_LIST = "collaborators";
+	public static final String KEY_COLLABORATORS_LIST = "collaborators"; //$NON-NLS-1$
 
-	public static final String KEY_APPLICATION_NAME = "applicationName";
+	public static final String KEY_APPLICATION_NAME = "applicationName"; //$NON-NLS-1$
 
 	/**
 	 * Logs into the Heroku account and if successful, returns the user's

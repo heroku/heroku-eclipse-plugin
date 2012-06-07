@@ -65,7 +65,8 @@ public class HerokuServiceException extends Exception {
 
 	/**
 	 * error code indicating that we were not allowed to perform an action on a
-	 * network resource
+	 * network resource, for example when we assign an application name that already
+	 * exists.
 	 */
 	public static final int NOT_ACCEPTABLE = 11;
 
