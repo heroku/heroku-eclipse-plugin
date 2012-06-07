@@ -61,7 +61,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 
 	@Override
 	public boolean performFinish() {
-		boolean rv = false;
+		boolean rv = true;
 
 		final String appName = namePage.getAppName();
 		final AppTemplate template = templatePage.getAppTemplate();
@@ -88,8 +88,10 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 								namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
 								namePage.setVisible(true);
 							}
-							else if ( e.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION ) {
-								HerokuUtils.userError(getShell(), Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("replacements)HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir+System.getProperty("path.separator")+app.getName()));  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+							else if (e.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION) {
+								HerokuUtils.userError(
+										getShell(),
+										Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("replacements)HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir + System.getProperty("path.separator") + app.getName())); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
 							}
 							else {
 								e.printStackTrace();
@@ -110,7 +112,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 			HerokuUtils.internalError(getShell(), e);
 		}
 
-		return true;
+		return rv;
 	}
 
 	/**
@@ -130,13 +132,13 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 					if (e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
 						getContainer().showPage(namePage);
 						Activator.getDefault().getLogger()
-								.log(LogService.LOG_WARNING, "Application '" + app.getName() + "' already exists, denying creation", e); //$NON-NLS-1$ //$NON-NLS-2$
+								.log(LogService.LOG_WARNING, "Application '" + appName + "' already exists, denying creation", e); //$NON-NLS-1$ //$NON-NLS-2$
 						namePage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
 					}
 					else {
 						e.printStackTrace();
 						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
-						// HerokuUtils.internalError(getShell(), e);
+						 HerokuUtils.herokuError(getShell(), e);
 					}
 
 				}

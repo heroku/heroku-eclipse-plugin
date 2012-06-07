@@ -301,13 +301,13 @@ public class RestHerokuServices implements HerokuServices {
 				sshKey = getSSHKey();
 
 				if (sshKey == null || sshKey.trim().isEmpty()) {
-					throw new HerokuServiceException(HerokuServiceException.INVALID_PREFERENCES, "Heroku preferences missing or invalid!"); //$NON-NLS-1$
+					return false;
 				}
 			}
 			catch (HerokuServiceException e) {
 				// hide "no api key" behind "invalid preferences"
 				if (e.getErrorCode() == HerokuServiceException.NO_API_KEY) {
-					throw new HerokuServiceException(HerokuServiceException.INVALID_PREFERENCES, "Heroku preferences missing or invalid!", e); //$NON-NLS-1$
+					return false;
 				}
 				else {
 					throw e;
@@ -528,21 +528,6 @@ public class RestHerokuServices implements HerokuServices {
 		}
 
 		return egitUtils;
-	}
-	
-	@Override
-	public boolean canObtainHerokuSession() {
-		if( herokuSession != null ) {
-			return true;
-		}
-		
-		//TODO We should store a NONE secure preference to know if an API-Key is configured!
-		String key = null;
-		try {
-			key = getAPIKey();
-		} catch (HerokuServiceException e) {
-		}
-		return key != null && ! key.trim().isEmpty();
 	}
 	
 	@Override

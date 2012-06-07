@@ -4,7 +4,6 @@
 package com.heroku.eclipse.ui.wizards;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -289,18 +288,16 @@ public class HerokuAppCreateTemplatePage extends WizardPage {
 						Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid_Title"), Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$ //$NON-NLS-2$
 				return false;
 			}
-			else if (e.getErrorCode() == HerokuServiceException.INVALID_PREFERENCES) {
-				HerokuUtils
-						.userError(
-								parent.getShell(),
-								Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
-				return false;
-			}
 			else {
 				e.printStackTrace();
 				HerokuUtils.internalError(parent.getShell(), e);
 				return false;
 			}
+		}
+		
+		if (!isOk) {
+			HerokuUtils.userError(parent.getShell(),
+					Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 		return isOk;

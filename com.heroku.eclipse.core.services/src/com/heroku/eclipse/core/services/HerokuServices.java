@@ -288,13 +288,6 @@ public interface HerokuServices {
 	public IStatus createProject(final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm) throws HerokuServiceException;
 
 	/**
-	 * Checks if the service is configured so that a session can be created
-	 * 
-	 * @return <code>true</code> if configured so that a session can be created
-	 */
-	public boolean canObtainHerokuSession();
-
-	/**
 	 * Restart an application
 	 * 
 	 * @param app

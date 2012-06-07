@@ -26,7 +26,6 @@ import com.heroku.api.App;
 import com.heroku.eclipse.core.constants.AppImportConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
-import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
@@ -39,7 +38,7 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
 public class HerokuAppImportWizardPage extends WizardPage {
 	private HerokuServices service;
 	private App app = null;
-	
+
 	/**
 	 * 
 	 */
@@ -53,11 +52,11 @@ public class HerokuAppImportWizardPage extends WizardPage {
 	@Override
 	public void createControl(Composite parent) {
 		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening app import wizard"); //$NON-NLS-1$
-		
+
 		Composite group = new Composite(parent, SWT.NONE);
 		group.setLayout(new GridLayout(1, false));
 		setControl(group);
-		
+
 		group.setEnabled(true);
 		setErrorMessage(null);
 		setPageComplete(false);
@@ -72,7 +71,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 			TableViewer viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
 			viewer.setContentProvider(ArrayContentProvider.getInstance());
 			viewer.setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.V_APPS_LIST);
-			
+
 			Table table = viewer.getTable();
 			GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
 
@@ -114,7 +113,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 				TableColumn tc = vc.getColumn();
 				tc.setWidth(100);
 				tc.setText(Messages.getString("HerokuAppImportWizardPage_AppUrl")); //$NON-NLS-1$
-				
+
 				vc.setLabelProvider(new ColumnLabelProvider() {
 					@Override
 					public String getText(Object element) {
@@ -123,7 +122,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 					}
 				});
 			}
-			
+
 			List<App> apps = new ArrayList<App>();
 			try {
 				apps = service.listApps();
@@ -132,18 +131,18 @@ public class HerokuAppImportWizardPage extends WizardPage {
 				e.printStackTrace();
 				HerokuUtils.internalError(parent.getShell(), e);
 			}
-			
-			if ( apps.size() == 0 ) {
+
+			if (apps.size() == 0) {
 				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no applications found"); //$NON-NLS-1$
 				setPageComplete(false);
 			}
 			else {
-				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "found "+apps.size()+" applications, displaying"); //$NON-NLS-1$ //$NON-NLS-2$
+				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "found " + apps.size() + " applications, displaying"); //$NON-NLS-1$ //$NON-NLS-2$
 			}
-			
+
 			viewer.setInput(apps);
 			viewer.addSelectionChangedListener(new ISelectionChangedListener() {
-				
+
 				@Override
 				public void selectionChanged(SelectionChangedEvent event) {
 					final IStructuredSelection s = (IStructuredSelection) event.getSelection();
@@ -151,13 +150,14 @@ public class HerokuAppImportWizardPage extends WizardPage {
 					setPageComplete(true);
 				}
 			});
-			
+
 		}
 
 	}
 
 	/**
 	 * Ensures that the preferences are setup
+	 * 
 	 * @param parent
 	 * @return true, if the prefs are OK, false if not
 	 */
@@ -174,13 +174,6 @@ public class HerokuAppImportWizardPage extends WizardPage {
 						Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid_Title"), Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$ //$NON-NLS-2$
 				return false;
 			}
-			else if (e.getErrorCode() == HerokuServiceException.INVALID_PREFERENCES) {
-				HerokuUtils
-						.userError(
-								parent.getShell(),
-								Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
-				return false;
-			}
 			else {
 				e.printStackTrace();
 				HerokuUtils.internalError(parent.getShell(), e);
@@ -188,12 +181,18 @@ public class HerokuAppImportWizardPage extends WizardPage {
 			}
 		}
 
+		if (!isOk) {
+			HerokuUtils.userError(parent.getShell(),
+					Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+
 		return isOk;
 	}
-	
+
 	/**
-	 * Return the selected app
-	 * @return
+	 * Returns the selected app
+	 * 
+	 * @return the selected app
 	 */
 	public App getSelectedApp() {
 		return app;
