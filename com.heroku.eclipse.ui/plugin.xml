@@ -16,7 +16,7 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            name="Heroku"
+            name="%HerokuUI.heroku"
             class="com.heroku.eclipse.ui.preferences.HerokuPreferencePage"
             id="com.heroku.eclipse.ui.preferences.HerokuPreferencePage">
       </page>
@@ -24,11 +24,11 @@
    <extension
          point="org.eclipse.ui.views">
       <category
-            name="Heroku"
+            name="%HerokuUI.heroku"
             id="com.heroku.eclipse.ui">
       </category>
       <view
-            name="My Heroku Applications"
+            name="%HerokuUI.viewName"
             icon="icons/sample.gif"
             category="com.heroku.eclipse.ui"
             class="com.heroku.eclipse.ui.views.HerokuApplicationManagerViewPart"
@@ -39,28 +39,28 @@
          point="org.eclipse.ui.importWizards">
       <category
             id="com.heroku.eclipse.ui.heroku"
-            name="Heroku">
+            name="%HerokuUI.heroku">
       </category>
       <wizard
             category="com.heroku.eclipse.ui.heroku"
             class="com.heroku.eclipse.ui.wizards.HerokuAppImport"
             icon="icons/16_16/ImportExistingApp.png"
             id="com.heroku.eclipse.ui.herokuappwizard"
-            name="Import existing Heroku App">
+            name="%HerokuUI.ImportWizardName">
       </wizard>
    </extension>
    <extension
          point="org.eclipse.ui.newWizards">
       <category
             id="com.heroku.eclipse.ui.heroku"
-            name="Heroku">
+            name="%HerokuUI.heroku">
       </category>
       <wizard
             category="com.heroku.eclipse.ui.heroku"
             class="com.heroku.eclipse.ui.wizards.HerokuAppCreate"
             icon="icons/16_16/CloneTemplate.png"
             id="com.heroku.eclipse.ui.herokunewappwizard"
-            name="Create Heroku App from Template"
+            name="%HerokuUI.CreateWizardName"
             project="true">
       </wizard>
    </extension>
@@ -71,7 +71,7 @@
             default="true"
             icon="icons/16_16/ApplicationInfoEditor.png"
             id="com.heroku.eclipse.ui.appinfoeditor"
-            name="Application Info Editor">
+            name="%HerokuUI.AppEditorName">
       </editor>
    </extension>
 
