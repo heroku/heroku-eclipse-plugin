@@ -10,7 +10,7 @@ public class AllTests {
 		
 		s.addTestSuite(HerokuSessionSimpleTest.class);
 		s.addTestSuite(HerokuSessionSshKeyTest.class);
-		s.addTestSuite(HerokuSessionAppTest.class);
+		s.addTestSuite(HerokuServiceAppTest.class);
 		return s;
 	}
 }

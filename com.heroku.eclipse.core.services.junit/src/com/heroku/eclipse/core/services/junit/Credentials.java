@@ -2,10 +2,13 @@ package com.heroku.eclipse.core.services.junit;
 
 public class Credentials {
 
-	static final String VALID_JUNIT_USER = System.getProperty("heroku.junit.user") == null ? System.getenv("HEROKU_TEST_USERNAME") : System.getProperty("heroku.junit.user");
-	static final String VALID_JUNIT_PWD = System.getProperty("heroku.junit.pwd") == null ?  System.getenv("HEROKU_TEST_PWD") : System.getProperty("heroku.junit.pwd");
-	static final String VALID_JUNIT_APIKEY = System.getProperty("heroku.junit.apikey") == null ?  System.getenv("HEROKU_TEST_APIKEY") : System.getProperty("heroku.junit.apikey");
-
+	static final String VALID_JUNIT_USER1 = System.getProperty("heroku.junit.user1") == null ? System.getenv("HEROKU_TEST_USERNAME_1") : System.getProperty("heroku.junit.user1");
+	static final String VALID_JUNIT_PWD1 = System.getProperty("heroku.junit.pwd1") == null ? System.getenv("HEROKU_TEST_PWD_1") : System.getProperty("heroku.junit.pwd1");
+	static final String VALID_JUNIT_APIKEY1 = System.getProperty("heroku.junit.apikey1") == null ? System.getenv("HEROKU_TEST_APIKEY_1") : System.getProperty("heroku.junit.apikey1");
+	
+	static final String VALID_JUNIT_USER2 = System.getProperty("heroku.junit.user2") == null ? System.getenv("HEROKU_TEST_USERNAME_2") : System.getProperty("heroku.junit.user2");
+	static final String VALID_JUNIT_PWD2 = System.getProperty("heroku.junit.pwd2") == null ? System.getenv("HEROKU_TEST_PWD_2") : System.getProperty("heroku.junit.pwd2");
+	static final String VALID_JUNIT_APIKEY2 = System.getProperty("heroku.junit.apikey2") == null ? System.getenv("HEROKU_TEST_APIKEY_2") : System.getProperty("heroku.junit.apikey2");
 	
 	static final String INVALID_PUBLIC_SSH_KEY1 = "invalidsshkey";
 	

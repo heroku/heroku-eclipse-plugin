@@ -28,7 +28,7 @@ public abstract class HerokuSessionTest extends TestCase {
 	
 	protected HerokuSession getSession() {
 		try {
-			getService().setAPIKey(Credentials.VALID_JUNIT_APIKEY);
+			getService().setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
 			return getService().getOrCreateHerokuSession();
 		}
 		catch (Exception e) {

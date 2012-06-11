@@ -8,7 +8,7 @@ public class HerokuSessionSimpleTest extends HerokuSessionTest {
 	public void testGetAPIKey() {
 		HerokuSession session = getSession();
 		String apiKey = session.getAPIKey();
-		assertEquals("The returned api key must be the same as the provided api key.", Credentials.VALID_JUNIT_APIKEY, apiKey);
+		assertEquals("The returned api key must be the same as the provided api key.", Credentials.VALID_JUNIT_APIKEY1, apiKey);
 	}
 	
 	public void testIsValid() {
