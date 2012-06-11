@@ -119,17 +119,6 @@ public class RestHerokuSession implements HerokuSession {
 	}
 
 	@Override
-	public App createApp() throws HerokuServiceException {
-		checkValid();
-		try {
-			return api.createApp();
-		}
-		catch (RequestFailedException e) {
-			throw checkException(e);
-		}
-	}
-
-	@Override
 	public void destroyApp(String name) throws HerokuServiceException {
 		checkValid();
 		try {
@@ -182,17 +171,16 @@ public class RestHerokuSession implements HerokuSession {
 	public App getApp(String appName) throws HerokuServiceException {
 		checkValid();
 		try {
-			// HerokuAPI.getApp is currently buggy: it does not deliver the git
-			// URL for an App, so we use listApps instead
-			// return api.getApp(appName);
+			 return api.getApp(appName);
+			 
 
-			List<App> apps = listApps();
-			for (App app : apps) {
-				if (app.getName().equals(appName)) {
-					return app;
-				}
-			}
-			return null;
+//			List<App> apps = listApps();
+//			for (App app : apps) {
+//				if (app.getName().equals(appName)) {
+//					return app;
+//				}
+//			}
+//			return null;
 		}
 		catch (RequestFailedException e) {
 			throw checkException(e);

@@ -65,15 +65,6 @@ public interface HerokuSession {
 	public String getAPIKey();
 	
 	/**
-	 * creates a new App.
-	 * 
-	 * @return the newly created App
-	 * @throws HerokuServiceException
-	 * 				if {@link #isValid()} is false
-	 */
-	public App createApp() throws HerokuServiceException;
-	
-	/**
 	 * creates a new app.
 	 * 
 	 * @param app an {@link App} object with name and or stack filled.

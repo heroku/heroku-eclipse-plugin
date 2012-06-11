@@ -61,7 +61,7 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 			e.printStackTrace();
 		}
 	}
-
+	
 	@Override
 	public boolean performFinish() {
 		final App app = listPage.getSelectedApp();

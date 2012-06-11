@@ -1,5 +1,6 @@
 package com.heroku.eclipse.ui.views;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -11,14 +12,17 @@ import java.util.TimerTask;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.egit.ui.UIPreferences;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -40,13 +44,16 @@ import org.eclipse.ui.part.ViewPart;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
+import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
 import com.heroku.api.Proc;
+import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
+import com.heroku.eclipse.ui.git.HerokuCredentialsProvider;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.RunnableWithReturn;
@@ -72,11 +79,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private List<ServiceRegistration<EventHandler>> handlerRegistrations;
 
 	private Map<String, List<Proc>> appProcesses = new HashMap<String, List<Proc>>();
-	
+
 	private Timer refreshTimer = new Timer(true);
 
 	private TimerTask refreshTask;
-	
+
 	@Override
 	public void init(IViewSite site, IMemento memento) throws PartInitException {
 		super.init(site, memento);
@@ -95,7 +102,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			TreeViewerColumn column = new TreeViewerColumn(viewer, SWT.NONE);
 			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_Name")); //$NON-NLS-1$
 			column.setLabelProvider(LabelProviderFactory.createName(new RunnableWithReturn<List<Proc>, App>() {
-				
+
 				@Override
 				public List<Proc> run(App argument) {
 					return appProcesses.get(argument.getId());
@@ -131,12 +138,12 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				App app = getSelectedApp();
 				if (app != null) {
 					try {
-						getSite().getWorkbenchWindow().getActivePage().openEditor(
-								new ApplicationEditorInput(app), ApplicationInfoEditor.ID, true);
-					} catch (PartInitException e) {
+						getSite().getWorkbenchWindow().getActivePage().openEditor(new ApplicationEditorInput(app), ApplicationInfoEditor.ID, true);
+					}
+					catch (PartInitException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
-					}					
+					}
 				}
 			}
 		});
@@ -147,7 +154,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	private void scheduleRefresh() {
 		refreshTask = new TimerTask() {
-			
+
 			@Override
 			public void run() {
 				refreshApplications();
@@ -155,10 +162,10 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		};
 		refreshTimer.schedule(refreshTask, 20000);
 	}
-	
+
 	App getSelectedApp() {
 		IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
-		
+
 		return !s.isEmpty() && s.getFirstElement() instanceof App ? (App) s.getFirstElement() : null;
 	}
 
@@ -177,7 +184,22 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		final Action importApp = new Action(Messages.getString("HerokuAppManagerViewPart_Import")) { //$NON-NLS-1$
 			@Override
 			public void run() {
-
+				App app = getSelectedApp();
+				if (app != null) {
+					if (MessageDialog
+							.openQuestion(
+									getShell(),
+									Messages.getString("HerokuAppManagerViewPart_Import"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Import", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
+						try {
+							importApp(app);
+						}
+						catch (HerokuServiceException e) {
+							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
+							e.printStackTrace();
+							HerokuUtils.internalError(getShell(), e);
+						}
+					}
+				}
 			}
 		};
 
@@ -196,11 +218,15 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			public void run() {
 				App app = getSelectedApp();
 				if (app != null) {
-					if (MessageDialog.openQuestion(getShell(), Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Restart", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
+					if (MessageDialog
+							.openQuestion(
+									getShell(),
+									Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Restart", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 						try {
 							herokuService.restartApplication(app);
 						}
 						catch (HerokuServiceException e) {
+							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
 							e.printStackTrace();
 							HerokuUtils.internalError(getShell(), e);
 						}
@@ -228,13 +254,25 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			public void run() {
 				App app = getSelectedApp();
 				if (app != null) {
-					if (MessageDialog.openQuestion(getShell(), Messages.getString("HerokuAppManagerViewPart_Destroy"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Destroy", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
+					if (MessageDialog
+							.openQuestion(
+									getShell(),
+									Messages.getString("HerokuAppManagerViewPart_Destroy"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Destroy", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 						try {
 							herokuService.destroyApplication(app);
 						}
 						catch (HerokuServiceException e) {
-							e.printStackTrace();
-							HerokuUtils.internalError(getShell(), e);
+							if (e.getErrorCode() == HerokuServiceException.NOT_ALLOWED) {
+								HerokuUtils
+										.userError(
+												getShell(),
+												Messages.getString("HerokuAppManagerViewPart_Error_DestroyOwner_Title"), Messages.getFormattedString("HerokuAppManagerViewPart_Error_DestroyOwner", app.getName(), app.getOwnerEmail())); //$NON-NLS-1$ //$NON-NLS-2$
+							}
+							else {
+								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to destroy app " + app.getName(), e); //$NON-NLS-1$
+								e.printStackTrace();
+								HerokuUtils.herokuError(getShell(), e);
+							}
 						}
 					}
 				}
@@ -321,7 +359,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				refreshApplications();
 			}
 		};
-		
+
 		EventHandler destroyedApplicationHandler = new EventHandler() {
 
 			@Override
@@ -340,27 +378,28 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	private void refreshApplications() {
 		final Job o = new Job(Messages.getString("HerokuAppManagerViewPart_RefreshApps")) { //$NON-NLS-1$
-			
+
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
 				try {
-					saveRefreshApplications();	
-				} catch (Throwable e) {
+					saveRefreshApplications();
+				}
+				catch (Throwable e) {
 					HerokuUtils.internalError(getShell(), e);
 				}
-				
+
 				return Status.OK_STATUS;
 			}
 		};
 		o.schedule();
 	}
-	
+
 	private void saveRefreshApplications() {
 		try {
 			appProcesses.clear();
 			if (herokuService.isReady()) {
 				List<App> applications = herokuService.listApps();
-				for( App a : applications ) {
+				for (App a : applications) {
 					appProcesses.put(a.getId(), herokuService.listProcesses(a));
 				}
 				HerokuUtils.runOnDisplay(true, viewer, applications, ViewerOperations.input(viewer));
@@ -368,11 +407,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			else {
 				HerokuUtils.runOnDisplay(true, viewer, new Object[0], ViewerOperations.input(viewer));
 			}
-			
-			if( refreshTask != null ) {
+
+			if (refreshTask != null) {
 				refreshTask.cancel();
 			}
-			
+
 			scheduleRefresh();
 		}
 		catch (HerokuServiceException e) {
@@ -389,7 +428,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	public void dispose() {
 		appProcesses.clear();
 		refreshTimer.cancel();
-		
+
 		if (handlerRegistrations != null) {
 			for (ServiceRegistration<EventHandler> r : handlerRegistrations) {
 				r.unregister();
@@ -400,26 +439,25 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	}
 
 	class ContentProviderImpl implements ITreeContentProvider {
-		
-		
+
 		@Override
 		public void dispose() {
 		}
 
 		@Override
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {	
+		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
 		}
 
 		@Override
 		public Object[] getElements(Object inputElement) {
-			return ((List<?>)inputElement).toArray();
+			return ((List<?>) inputElement).toArray();
 		}
 
 		@Override
 		public Object[] getChildren(Object parentElement) {
-			if( parentElement instanceof App ) {
-				List<Proc> l = appProcesses.get(((App)parentElement).getId());
-				if( l != null ) {
+			if (parentElement instanceof App) {
+				List<Proc> l = appProcesses.get(((App) parentElement).getId());
+				if (l != null) {
 					return l.toArray();
 				}
 			}
@@ -428,7 +466,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		@Override
 		public Object getParent(Object element) {
-			//TODO We could implement this but it is not required
+			// TODO We could implement this but it is not required
 			return null;
 		}
 
@@ -436,16 +474,17 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		public boolean hasChildren(Object element) {
 			return element instanceof App;
 		}
-		
+
 	}
-	
+
 	static class ElementComparerImpl implements IElementComparer {
 
 		@Override
 		public boolean equals(Object a, Object b) {
-			if( a instanceof Proc && b instanceof Proc ) {
+			if (a instanceof Proc && b instanceof Proc) {
 				return hashCode(a) == hashCode(b);
-			} else if( a instanceof App && b instanceof App ) {
+			}
+			else if (a instanceof App && b instanceof App) {
 				return hashCode(a) == hashCode(b);
 			}
 			return a.equals(b);
@@ -453,14 +492,39 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		@Override
 		public int hashCode(Object element) {
-			if( element instanceof App ) {
+			if (element instanceof App) {
 				return ((App) element).getId().hashCode();
-			} else if( element instanceof Proc ) {
+			}
+			else if (element instanceof Proc) {
 				return ((Proc) element).getUpid().hashCode();
 			}
 			return element.hashCode();
 		}
 	}
-	
-	
+
+	private void importApp(final App app) throws HerokuServiceException {
+		if (app != null) {
+			final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
+			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
+			final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
+			try {
+				herokuService.materializeGitApp(app, destinationDir, timeout,
+						Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, new NullProgressMonitor()); //$NON-NLS-1$
+			}
+			catch (HerokuServiceException e) {
+				if (e.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION) {
+					HerokuUtils
+							.userError(
+									getShell(),
+									Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("replacements)HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir + System.getProperty("path.separator") + app.getName())); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+				}
+				else {
+					e.printStackTrace();
+					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
+					HerokuUtils.internalError(getShell(), e);
+				}
+			}
+		}
+
+	}
 }

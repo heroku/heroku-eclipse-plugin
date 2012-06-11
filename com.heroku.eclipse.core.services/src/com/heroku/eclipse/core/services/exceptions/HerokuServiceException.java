@@ -59,7 +59,7 @@ public class HerokuServiceException extends Exception {
 
 	/**
 	 * error code indicating that we were not allowed to access a network
-	 * resource
+	 * resource or perform a specific operation
 	 */
 	public static final int NOT_ALLOWED = 10;
 

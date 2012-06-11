@@ -245,8 +245,9 @@ public interface HerokuServices {
 	 * @return the newly created App
 	 * @throws HerokuServiceException
 	 *             if an app with the same name already exists in the user's
-	 *             account if the template name is invalid if there are network
-	 *             problems
+	 *             account 
+	 *             if the template name is invalid 
+	 *             if there are network problems
 	 */
 	public App createAppFromTemplate(String appName, String templateName, IProgressMonitor pm) throws HerokuServiceException;
 
@@ -300,8 +301,10 @@ public interface HerokuServices {
 	 * Destroy an application
 	 * 
 	 * @param app
-	 *            the application to destroy
+	 *				the application to destroy
 	 * @throws HerokuServiceException
+	 * 				if the user lacks rights
+	 * 				if "anything else" goes wrong
 	 */
 	public void destroyApplication(App app) throws HerokuServiceException;
 

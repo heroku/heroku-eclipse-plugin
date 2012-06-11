@@ -56,7 +56,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 		Composite group = new Composite(parent, SWT.NONE);
 		group.setLayout(new GridLayout(1, false));
 		setControl(group);
-
+		
 		group.setEnabled(true);
 		setErrorMessage(null);
 		setPageComplete(false);
@@ -74,7 +74,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 
 			Table table = viewer.getTable();
 			GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
-
+			gd_table.heightHint=100;
 			table.setLayoutData(gd_table);
 			table.setHeaderVisible(true);
 
