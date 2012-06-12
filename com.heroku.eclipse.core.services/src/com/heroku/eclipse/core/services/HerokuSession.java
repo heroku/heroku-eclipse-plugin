@@ -6,6 +6,7 @@ import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.api.Key;
 import com.heroku.api.Proc;
+import com.heroku.api.User;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 
 /**
@@ -120,6 +121,15 @@ public interface HerokuSession {
 	 * 				if the request fails
 	 */
 	public App getApp( String appName ) throws HerokuServiceException;
+	
+	/**
+	 * Delivers all known user information for the currently active session 
+	 * @return a User object
+	 * @throws HerokuServiceException
+	 * 				if {@link #isValid()} is false
+	 * 				if the request fails
+	 */
+	public User getUserInfo() throws HerokuServiceException;
 	
 	public void restart(App app) throws HerokuServiceException;
 

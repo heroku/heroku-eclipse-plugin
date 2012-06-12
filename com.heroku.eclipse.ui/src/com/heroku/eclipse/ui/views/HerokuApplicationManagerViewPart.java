@@ -1,6 +1,5 @@
 package com.heroku.eclipse.ui.views;
 
-import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -22,7 +21,6 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -141,8 +139,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						getSite().getWorkbenchWindow().getActivePage().openEditor(new ApplicationEditorInput(app), ApplicationInfoEditor.ID, true);
 					}
 					catch (PartInitException e) {
-						// TODO Auto-generated catch block
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to open editor for app " + app.getName(), e); //$NON-NLS-1$
 						e.printStackTrace();
+						HerokuUtils.internalError(getShell(), e);
 					}
 				}
 			}
@@ -295,12 +294,28 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
 
 				boolean enabled = !s.isEmpty();
+
 				importApp.setEnabled(enabled);
 				open.setEnabled(enabled);
 				restart.setEnabled(enabled);
 				viewLogs.setEnabled(enabled);
-				scale.setEnabled(enabled);
-				destroy.setEnabled(enabled);
+				
+				// owner restricted actions
+				scale.setEnabled(false);
+				destroy.setEnabled(false);
+				if ( enabled ) {
+					App app = (App)s.getFirstElement();
+					try {
+						if ( herokuService.isOwnApp(app)) {
+							scale.setEnabled(true);
+							destroy.setEnabled(true);
+						}
+					}
+					catch (HerokuServiceException e) {
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to determine if app " + app.getName()+" is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
+						HerokuUtils.herokuError(getShell(), e);
+					}
+				}
 			}
 		});
 

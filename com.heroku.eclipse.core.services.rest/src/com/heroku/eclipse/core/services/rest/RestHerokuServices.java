@@ -55,6 +55,7 @@ import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.Proc;
+import com.heroku.api.User;
 import com.heroku.api.exception.LoginFailedException;
 import com.heroku.api.exception.RequestFailedException;
 import com.heroku.eclipse.core.constants.PreferenceConstants;
@@ -627,5 +628,14 @@ public class RestHerokuServices implements HerokuServices {
 	
 	public App getApp( String appName ) throws HerokuServiceException {
 		return getOrCreateHerokuSession().getApp(appName);
+	}
+
+	@Override
+	public boolean isOwnApp(App app) throws HerokuServiceException {
+		User user = getOrCreateHerokuSession().getUserInfo();
+		if ( user != null && user.getEmail().trim().equalsIgnoreCase(app.getOwnerEmail() )) {
+			return true;
+		}
+		return false;
 	}
 }

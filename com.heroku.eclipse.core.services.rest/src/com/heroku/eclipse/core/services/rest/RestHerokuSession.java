@@ -9,6 +9,7 @@ import com.heroku.api.Collaborator;
 import com.heroku.api.HerokuAPI;
 import com.heroku.api.Key;
 import com.heroku.api.Proc;
+import com.heroku.api.User;
 import com.heroku.api.exception.RequestFailedException;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
@@ -172,15 +173,17 @@ public class RestHerokuSession implements HerokuSession {
 		checkValid();
 		try {
 			 return api.getApp(appName);
-			 
-
-//			List<App> apps = listApps();
-//			for (App app : apps) {
-//				if (app.getName().equals(appName)) {
-//					return app;
-//				}
-//			}
-//			return null;
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+	
+	@Override
+	public User getUserInfo() throws HerokuServiceException {
+		checkValid();
+		try {
+			 return api.getUserInfo();
 		}
 		catch (RequestFailedException e) {
 			throw checkException(e);

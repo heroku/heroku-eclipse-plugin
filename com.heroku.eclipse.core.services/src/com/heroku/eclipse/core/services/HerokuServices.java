@@ -375,4 +375,15 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public App getApp(String appName) throws HerokuServiceException;
+	
+	/**
+	 * Determines if the given app is owned by the currently logged in user
+	 * 
+	 * @param app
+	 *            the App to investigate
+	 * @return the outcome ...
+	 * @throws HerokuServiceException
+	 */
+	public boolean isOwnApp(App app) throws HerokuServiceException;
+	
 }
