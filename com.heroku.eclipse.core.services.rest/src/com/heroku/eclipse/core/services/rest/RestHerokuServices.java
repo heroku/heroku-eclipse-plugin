@@ -238,7 +238,7 @@ public class RestHerokuServices implements HerokuServices {
 			try {
 				DatatypeConverter.parseBase64Binary(parts[1]);
 			}
-			catch (IllegalArgumentException e) {
+			catch (Exception e) {
 				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "SSH key '" + sshKey + "' is invalid", e); //$NON-NLS-1$ //$NON-NLS-2$
 				throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, "validation of SSH key failed!"); //$NON-NLS-1$
 			}
@@ -315,15 +315,10 @@ public class RestHerokuServices implements HerokuServices {
 				}
 			}
 		}
-		
+
 		return isReady;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.heroku.eclipse.core.services.HerokuServices#listTemplates()
-	 */
 	@Override
 	public List<AppTemplate> listTemplates() throws HerokuServiceException {
 		List<AppTemplate> templates = new ArrayList<AppTemplate>();
@@ -365,38 +360,38 @@ public class RestHerokuServices implements HerokuServices {
 	public App createAppFromTemplate(String appName, String templateName, IProgressMonitor pm) throws HerokuServiceException {
 		App app = null;
 		try {
-			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new Heroku App '"+appName+"' from template '"+templateName+"'" ); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new Heroku App '" + appName + "' from template '" + templateName + "'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			app = getOrCreateHerokuSession().cloneTemplate(templateName);
 			getOrCreateHerokuSession().renameApp(app.getName(), appName);
 			app = getOrCreateHerokuSession().getApp(appName);
-			
+
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put(KEY_APPLICATION_ID, app.getId());
 
 			Event event = new Event(TOPIC_APPLICATION_NEW, map);
 			eventAdmin.postEvent(event);
-
-			return app;
 		}
 		catch (HerokuServiceException e) {
 			// remove dead cloned template
-			if ( e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE && app != null ) {
+			if (e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE && app != null) {
 				destroyApplication(app);
+				throw e;
 			}
 			else {
-				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "unknown error when creating '"+app.getName()+"', dying ..." ); //$NON-NLS-1$ //$NON-NLS-2$
+				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "unknown error when creating '" + app.getName() + "', dying ..."); //$NON-NLS-1$ //$NON-NLS-2$
 				throw e;
 			}
 		}
-		
+
 		return app;
 	}
 
 	@Override
-	public boolean materializeGitApp(App app, String gitLocation, int timeout, String dialogTitle, CredentialsProvider cred, IProgressMonitor pm) throws HerokuServiceException {
+	public boolean materializeGitApp(App app, String gitLocation, int timeout, String dialogTitle, CredentialsProvider cred, IProgressMonitor pm)
+			throws HerokuServiceException {
 		boolean rv = false;
 
-		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '"+app.getName()+"' in workspace" ); //$NON-NLS-1$ //$NON-NLS-2$
+		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '" + app.getName() + "' in workspace"); //$NON-NLS-1$ //$NON-NLS-2$
 		try {
 			URIish uri = new URIish(app.getGitUrl());
 
@@ -407,11 +402,12 @@ public class RestHerokuServices implements HerokuServices {
 				created = workdir.mkdirs();
 			}
 			// whine if the git location is non empty
-			else if ( workdir.isDirectory() ) {
+			else if (workdir.isDirectory()) {
 				String[] entries = workdir.list();
-				if ( entries != null && entries.length > 0 ) {
-					Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "git location already exists, unable to check out: " + gitLocation ); //$NON-NLS-1$
-					throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION, "git location already exists, unable to check out: " + gitLocation); //$NON-NLS-1$
+				if (entries != null && entries.length > 0) {
+					Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "git location already exists, unable to check out: " + gitLocation); //$NON-NLS-1$
+					throw new HerokuServiceException(HerokuServiceException.INVALID_LOCAL_GIT_LOCATION,
+							"git location already exists, unable to check out: " + gitLocation); //$NON-NLS-1$
 				}
 			}
 
@@ -422,7 +418,7 @@ public class RestHerokuServices implements HerokuServices {
 
 			CloneOperation cloneOp = new CloneOperation(uri, true, null, workdir,
 					HerokuProperties.getString("heroku.eclipse.git.defaultRefs"), HerokuProperties.getString("heroku.eclipse.git.defaultOrigin"), timeout); //$NON-NLS-1$ //$NON-NLS-2$
-			
+
 			cloneOp.setCredentialsProvider(cred);
 			cloneOp.setCloneSubmodules(true);
 			runAsJob(uri, cloneOp, app, dialogTitle);
@@ -491,27 +487,27 @@ public class RestHerokuServices implements HerokuServices {
 					IFile pom = prj.getFile(IMavenConstants.POM_FILE_NAME);
 					// add maven nature, if this is a maven project
 					if (pom.exists()) {
-						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Detected Java Maven application" ); //$NON-NLS-1$
-								try {
-									ResolverConfiguration configuration = new ResolverConfiguration();
-									configuration.setResolveWorkspaceProjects(false);
-//									configuration.setSelectedProfiles(""); //$NON-NLS-1$
+						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Detected Java Maven application"); //$NON-NLS-1$
+						try {
+							ResolverConfiguration configuration = new ResolverConfiguration();
+							configuration.setResolveWorkspaceProjects(false);
+							//									configuration.setSelectedProfiles(""); //$NON-NLS-1$
 
-									boolean hasMavenNature = prj.hasNature(IMavenConstants.NATURE_ID);
+							boolean hasMavenNature = prj.hasNature(IMavenConstants.NATURE_ID);
 
-									IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
+							IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
 
-									configurationManager.enableMavenNature(prj, configuration, actMonitor);
+							configurationManager.enableMavenNature(prj, configuration, actMonitor);
 
-									if (!hasMavenNature) {
-										configurationManager.updateProjectConfiguration(prj, actMonitor);
-									}
-								}
-								catch (CoreException ex) {
-									ex.printStackTrace();
-								}
+							if (!hasMavenNature) {
+								configurationManager.updateProjectConfiguration(prj, actMonitor);
+							}
+						}
+						catch (CoreException ex) {
+							ex.printStackTrace();
+						}
 					}
-					Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Heroku application import completed" ); //$NON-NLS-1$
+					Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Heroku application import completed"); //$NON-NLS-1$
 					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
 				}
 			};
@@ -530,12 +526,12 @@ public class RestHerokuServices implements HerokuServices {
 
 		return egitUtils;
 	}
-	
+
 	@Override
 	public void restartApplication(App app) throws HerokuServiceException {
 		getOrCreateHerokuSession().restart(app);
 	}
-	
+
 	@Override
 	public void destroyApplication(App app) throws HerokuServiceException {
 		getOrCreateHerokuSession().destroyApp(app);
@@ -546,56 +542,55 @@ public class RestHerokuServices implements HerokuServices {
 		Event event = new Event(TOPIC_APPLICATION_DESTROYED, map);
 		eventAdmin.postEvent(event);
 	}
-	
+
 	@Override
-	public void renameApp(App application, String newName)
-			throws HerokuServiceException {
+	public void renameApp(App application, String newName) throws HerokuServiceException {
 		getOrCreateHerokuSession().renameApp(application.getName(), newName);
-		
+
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(KEY_APPLICATION_ID, application.getId());
 		map.put(KEY_APPLICATION_NAME, newName);
-		
+
 		Event event = new Event(TOPIC_APPLICATION_RENAMED, map);
 		eventAdmin.postEvent(event);
 	}
-	
+
 	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException {
 		return getOrCreateHerokuSession().getCollaborators(app);
 	}
-	
+
 	@Override
-	public void addCollaborator(App app, String email)
-			throws HerokuServiceException {
+	public void addCollaborator(App app, String email) throws HerokuServiceException {
 		getOrCreateHerokuSession().addCollaborator(app, email);
-		
+
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(KEY_APPLICATION_ID, app.getId());
-		map.put(KEY_COLLABORATORS_LIST, new String[] {email});
+		map.put(KEY_COLLABORATORS_LIST, new String[] { email });
 
 		Event event = new Event(TOPIC_APPLICATION_COLLABORATORS_ADDED, map);
 		eventAdmin.postEvent(event);
 	}
 
 	@Override
-	public void removeCollaborators(App app, String... emails) 
-			throws HerokuServiceException {
+	public void removeCollaborators(App app, String... emails) throws HerokuServiceException {
 		HerokuSession s = getOrCreateHerokuSession();
-		
+
 		List<String> notremove = new ArrayList<String>();
 		List<String> removed = new ArrayList<String>();
-		
-		for( String e : emails ) {
+
+		for (String e : emails) {
 			try {
 				s.removeCollaborator(app, e);
 				removed.add(e);
-			} catch (HerokuServiceException ex) {
-				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Could not remove collaborator '"+e+"' from application '"+app.getName()+"'", ex);
+			}
+			catch (HerokuServiceException ex) {
+				Activator.getDefault().getLogger()
+						.log(LogService.LOG_INFO, "Could not remove collaborator '" + e + "' from application '" + app.getName() + "'", ex);
 				notremove.add(e);
 			}
 		}
-		
-		if( ! removed.isEmpty() ) {
+
+		if (!removed.isEmpty()) {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put(KEY_APPLICATION_ID, app.getId());
 			map.put(KEY_COLLABORATORS_LIST, emails);
@@ -603,17 +598,16 @@ public class RestHerokuServices implements HerokuServices {
 			Event event = new Event(TOPIC_APPLICATION_COLLABORATORS_ADDED, map);
 			eventAdmin.postEvent(event);
 		}
-		
-		if( ! notremove.isEmpty() ) {
-			//TODO Throw exception with 
+
+		if (!notremove.isEmpty()) {
+			// TODO Throw exception with
 		}
 	}
-	
+
 	@Override
-	public void transferApplication(App app, String newOwner)
-			throws HerokuServiceException {
+	public void transferApplication(App app, String newOwner) throws HerokuServiceException {
 		getOrCreateHerokuSession().transferApplication(app, newOwner);
-		
+
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(KEY_APPLICATION_ID, app.getId());
 		map.put(KEY_APPLICATION_OWNER, newOwner);
@@ -621,21 +615,26 @@ public class RestHerokuServices implements HerokuServices {
 		Event event = new Event(TOPIC_APPLICATION_TRANSFERED, map);
 		eventAdmin.postEvent(event);
 	}
-	
+
 	public List<Proc> listProcesses(App app) throws HerokuServiceException {
 		return getOrCreateHerokuSession().listProcesses(app);
 	}
-	
-	public App getApp( String appName ) throws HerokuServiceException {
+
+	public App getApp(String appName) throws HerokuServiceException {
 		return getOrCreateHerokuSession().getApp(appName);
 	}
 
 	@Override
 	public boolean isOwnApp(App app) throws HerokuServiceException {
 		User user = getOrCreateHerokuSession().getUserInfo();
-		if ( user != null && user.getEmail().trim().equalsIgnoreCase(app.getOwnerEmail() )) {
+		if (user != null && user.getEmail().trim().equalsIgnoreCase(app.getOwnerEmail())) {
 			return true;
 		}
 		return false;
+	}
+
+	@Override
+	public User getUserInfo() throws HerokuServiceException {
+		return getOrCreateHerokuSession().getUserInfo();
 	}
 }

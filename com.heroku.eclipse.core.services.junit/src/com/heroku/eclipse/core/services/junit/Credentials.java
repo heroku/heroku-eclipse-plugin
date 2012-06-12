@@ -11,6 +11,8 @@ public class Credentials {
 	static final String VALID_JUNIT_APIKEY2 = System.getProperty("heroku.junit.apikey2") == null ? System.getenv("HEROKU_TEST_APIKEY_2") : System.getProperty("heroku.junit.apikey2");
 	
 	static final String INVALID_PUBLIC_SSH_KEY1 = "invalidsshkey";
+	static final String INVALID_PUBLIC_SSH_KEY2 = "somewhere over the rainbow";
+	static final String INVALID_PUBLIC_SSH_KEY3 = "what äö&| this";
 	
 	static final String VALID_PUBLIC_SSH_KEY1 = "ssh-dss AAAAB3NzaC1kc3MAAACBALIP8L272zL/On5jZOwaDRyQ7a4RdPFzTV3LVSldv/7E2PWMYAfIcSw7ZcObFcUU9MkqZbGCntbaYWvv2ay7M35SuyiSbKurs7LeL3tdiGGDRH3htVVfntpVEBT3qYyHk54c6ozUHfesPDmIgxw0md8uN+sH+5qXiZdbi3dlWZiJAAAAFQCcnPT/VzkWw6ph2YkESKyPNw17vwAAAIAJ5dqvb6l/CFxr4tKILvshST35poaDQKIyran0NAgV0TXldmso1dJUCOFYtrsduIRorcYXdMVrVzJc9wTH9rPrkOgPmzFf6wMaJgkREsfiNFViJVuyKh3bhMFhIaF/AISBLzFdpU3h+yI4WYjDpVwNHfc0u1MAuE7w2LvGNi4V0gAAAIBODauAy96FbIHksOvPVa2phxD6ruRx4iSrcU3RRYGor4O/jdSN+JyfPr0Twh4LozzrmKB8MWMcqw9CmBikXR4bScw90ByvTg97Ca0GSGtpyy/o3+rpju/Y1/qPMPy869FNFiszlc/sYdRtNL+xZuaQ4MK7+i1rv8107lsfoMnCtg== valid_key1";
 	static final String VALID_PUBLIC_SSH_KEY1_DESCRIPTION = "valid_key1";

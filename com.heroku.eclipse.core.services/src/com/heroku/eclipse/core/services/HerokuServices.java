@@ -10,6 +10,7 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.api.Proc;
+import com.heroku.api.User;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 
@@ -385,5 +386,12 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public boolean isOwnApp(App app) throws HerokuServiceException;
+	
+	/**
+	 * Delivers information about the currently logged in user
+	 * @return the Heroku user info
+	 * @throws HerokuServiceException
+	 */
+	public User getUserInfo() throws HerokuServiceException;
 	
 }

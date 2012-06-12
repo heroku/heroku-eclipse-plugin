@@ -6,11 +6,11 @@ import junit.framework.TestSuite;
 public class AllTests {
 	public static Test suite() {
 		TestSuite s = new TestSuite("Core Services Tests"); //$NON-NLS-1$
-		s.addTestSuite(HerokuServicesTest.class);
+		s.addTestSuite(HerokuServiceSimpleTest.class);
+		s.addTestSuite(HerokuServiceOwnAppTest.class);
+		s.addTestSuite(HerokuServiceForeignAppTest.class);
 		
 		s.addTestSuite(HerokuSessionSimpleTest.class);
-		s.addTestSuite(HerokuSessionSshKeyTest.class);
-		s.addTestSuite(HerokuServiceAppTest.class);
 		return s;
 	}
 }
