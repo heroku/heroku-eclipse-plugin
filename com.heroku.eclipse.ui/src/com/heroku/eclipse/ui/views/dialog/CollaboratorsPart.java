@@ -233,15 +233,21 @@ public class CollaboratorsPart {
 					}
 				}
 
+				String email = emailField.getText().trim();
 				try {
-					Activator.getDefault().getService().addCollaborator(domainObject, emailField.getText().trim());
+					Activator.getDefault().getService().addCollaborator(domainObject, email);
 					super.okPressed();
 					refreshCollaboratorList();
 				}
 				catch (HerokuServiceException e) {
-					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to add new collaborator", e); //$NON-NLS-1$
-					e.printStackTrace();
-					HerokuUtils.internalError(shell, e);
+					if ( e.getErrorCode() == HerokuServiceException.REQUEST_FAILED ) {
+						HerokuUtils.userError(shell, Messages.getString("HerokuAppInformationCollaborators_Error_CollaboratorInvalid_Title"), Messages.getFormattedString("HerokuAppInformationCollaborators_Error_CollaboratorInvalid", email)); //$NON-NLS-1$ //$NON-NLS-2$
+					}
+					else {
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to add new collaborator", e); //$NON-NLS-1$
+						e.printStackTrace();
+						HerokuUtils.herokuError(shell, e);
+					}
 				}
 			}
 		};
