@@ -1,5 +1,7 @@
 package com.heroku.eclipse.ui.views;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -29,6 +31,7 @@ import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jgit.util.IO;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
@@ -38,6 +41,13 @@ import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleConstants;
+import org.eclipse.ui.console.IConsoleView;
+import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.console.MessageConsoleStream;
+import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.part.ViewPart;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
@@ -237,7 +247,66 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		final Action viewLogs = new Action(Messages.getString("HerokuAppManagerViewPart_ViewLogs")) { //$NON-NLS-1$
 			@Override
 			public void run() {
-
+				final App app = getSelectedApp();
+				if (app != null) {
+					
+					MessageConsole console = HerokuUtils.getConsole(app.getName());
+					 
+//					try {
+//						IPageBookViewPage p = console.createPage((IConsoleView) getSite().getWorkbenchWindow().getActivePage().showView(IConsoleConstants.ID_CONSOLE_VIEW));
+//						System.err.println(p);
+//						
+//						IPageBookViewPage p2 = console.createPage((IConsoleView) getSite().getWorkbenchWindow().getActivePage().showView(IConsoleConstants.ID_CONSOLE_VIEW));
+//						System.err.println(p2);
+//						
+//						IPageBookViewPage p3 = console.createPage((IConsoleView) getSite().getWorkbenchWindow().getActivePage().showView(IConsoleConstants.ID_CONSOLE_VIEW));
+//						System.err.println(p3);
+//						
+//						ConsolePlugin.getDefault().getConsoleManager().showConsoleView(console);
+//						console.activate();
+//					}
+//					catch (PartInitException e1) {
+//						// TODO Auto-generated catch block
+//						e1.printStackTrace();
+//					}
+					
+					ConsolePlugin.getDefault().getConsoleManager().showConsoleView(console);
+					console.activate();
+					final MessageConsoleStream out = console.newMessageStream();
+					
+					String streamName = "logstream-"+app.getName(); //$NON-NLS-1$
+					
+					
+					Thread t = new Thread(streamName){
+						@Override
+						public void run() {
+							byte[] buffer = new byte[1024];
+							int bytesRead;
+							try {
+								InputStream is = herokuService.getApplicationLogStream(app);
+								while ((bytesRead = is.read(buffer)) != -1) {
+									if ( out.isClosed() ) {
+										break;
+									}
+									out.write(buffer, 0, bytesRead);
+								}
+							}
+							catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							catch (HerokuServiceException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+					};
+					
+					t.setDaemon(true);
+					
+//					Thread t = HerokuUtils.getLogViewerThread(streamName, console, app);
+					t.start();
+				}
 			}
 		};
 
@@ -299,20 +368,21 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				open.setEnabled(enabled);
 				restart.setEnabled(enabled);
 				viewLogs.setEnabled(enabled);
-				
+
 				// owner restricted actions
 				scale.setEnabled(false);
 				destroy.setEnabled(false);
-				if ( enabled ) {
-					App app = (App)s.getFirstElement();
+				if (enabled) {
+					App app = (App) s.getFirstElement();
 					try {
-						if ( herokuService.isOwnApp(app)) {
+						if (herokuService.isOwnApp(app)) {
 							scale.setEnabled(true);
 							destroy.setEnabled(true);
 						}
 					}
 					catch (HerokuServiceException e) {
-						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to determine if app " + app.getName()+" is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
+						Activator.getDefault().getLogger()
+								.log(LogService.LOG_ERROR, "unknown error when trying to determine if app " + app.getName() + " is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
 						HerokuUtils.herokuError(getShell(), e);
 					}
 				}
@@ -400,6 +470,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					saveRefreshApplications();
 				}
 				catch (Throwable e) {
+					e.printStackTrace();
 					HerokuUtils.internalError(getShell(), e);
 				}
 

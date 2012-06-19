@@ -1,5 +1,6 @@
 package com.heroku.eclipse.core.services;
 
+import java.io.InputStream;
 import java.util.List;
 
 import com.heroku.api.App;
@@ -39,7 +40,8 @@ public interface HerokuSession {
 	 * Removes the given SSH2 key from the Heroku account
 	 * 
 	 * @param sshKey
-	 *            the SSH-Key to remove from the account (the description of the key e.g. username@hostname)
+	 *            the SSH-Key to remove from the account (the description of the
+	 *            key e.g. username@hostname)
 	 * @throws HerokuServiceException
 	 *             if removing the key fails or {@link #isValid()} is false
 	 */
@@ -50,11 +52,10 @@ public interface HerokuSession {
 	 * 
 	 * @return the registered keys
 	 * @throws HerokuServiceException
-	 * 				if {@link #isValid()} is false
+	 *             if {@link #isValid()} is false
 	 */
 	public List<Key> listSSHKeys() throws HerokuServiceException;
-	
-	
+
 	/**
 	 * @return <code>true</code> if the session is valid
 	 */
@@ -64,85 +65,110 @@ public interface HerokuSession {
 	 * @return the API key attached to this session
 	 */
 	public String getAPIKey();
-	
+
 	/**
 	 * creates a new app.
 	 * 
-	 * @param app an {@link App} object with name and or stack filled.
+	 * @param app
+	 *            an {@link App} object with name and or stack filled.
 	 * @return the newly created app
 	 * @throws HerokuServiceException
-	 *              if {@link #isValid()} is false
+	 *             if {@link #isValid()} is false
 	 */
 	public App createApp(App app) throws HerokuServiceException;
-	
+
 	/**
 	 * renames an app.
 	 * 
-	 * @param currentName the current name of the app
-	 * @param newName the new name of the app
+	 * @param currentName
+	 *            the current name of the app
+	 * @param newName
+	 *            the new name of the app
 	 * @return the new name of the app
 	 * @throws HerokuServiceException
-	 * 				if {@link #isValid()} is false
-	 * 				if newName is already used
-	 * 				if currentName does not exist
-	 * 				if the request fails
+	 *             if {@link #isValid()} is false if newName is already used if
+	 *             currentName does not exist if the request fails
 	 */
 	public String renameApp(String currentName, String newName) throws HerokuServiceException;
-	
+
 	/**
 	 * destroys an App identified by name.
 	 * 
-	 * @param name the app to destroy.
+	 * @param name
+	 *            the app to destroy.
 	 * @throws HerokuServiceException
-	 * 				if {@link #isValid()} is false
-	 * 				if name is invalid
-	 * 				if the request fails
+	 *             if {@link #isValid()} is false if name is invalid if the
+	 *             request fails
 	 */
 	public void destroyApp(String name) throws HerokuServiceException;
-	
+
 	/**
 	 * Clones the given template and delivers it as a ready to use Heroku App
+	 * 
 	 * @param templateName
 	 * @return the newly created App
 	 * @throws HerokuServiceException
-	 * 				if {@link #isValid()} is false
-	 * 				if name is invalid
-	 * 				if the request fails
+	 *             if {@link #isValid()} is false if name is invalid if the
+	 *             request fails
 	 */
-	public App cloneTemplate( String templateName ) throws HerokuServiceException;
-	
+	public App cloneTemplate(String templateName) throws HerokuServiceException;
+
 	/**
 	 * Retrieves the named, existing app from the user's Heroku account
+	 * 
 	 * @param appName
 	 * @return the already existing App
 	 * @throws HerokuServiceException
-	 * 				if {@link #isValid()} is false
-	 * 				if name is invalid
-	 * 				if the request fails
+	 *             if {@link #isValid()} is false if name is invalid if the
+	 *             request fails
 	 */
-	public App getApp( String appName ) throws HerokuServiceException;
-	
+	public App getApp(String appName) throws HerokuServiceException;
+
 	/**
-	 * Delivers all known user information for the currently active session 
+	 * Delivers all known user information for the currently active session.
+	 * 
 	 * @return a User object
 	 * @throws HerokuServiceException
-	 * 				if {@link #isValid()} is false
-	 * 				if the request fails
+	 *             if {@link #isValid()} is false if the request fails
 	 */
 	public User getUserInfo() throws HerokuServiceException;
-	
+
+	/**
+	 * Delivers the log stream for the given App
+	 * 
+	 * The stream remains open as long as it is not closed, so a "tail -f" style
+	 * log viewer is possible
+	 * 
+	 * @param app
+	 * @return the log InputStream
+	 * @throws HerokuServiceException
+	 */
+	public InputStream getApplicationLogStream(App app) throws HerokuServiceException;
+
+	/**
+	 * Delivers the log stream for the given process of the given App.
+	 * 
+	 * The stream remains open as long as it is not closed, so a "tail -f" style
+	 * log viewer is possible
+	 * 
+	 * @param app
+	 * @param processName
+	 * @return the log InputStream
+	 * @throws HerokuServiceException
+	 */
+	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException;
+
 	public void restart(App app) throws HerokuServiceException;
 
 	public void destroyApp(App app) throws HerokuServiceException;
-	
+
 	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException;
-	
+
 	public void addCollaborator(App app, String email) throws HerokuServiceException;
-	
-	public void removeCollaborator(App app, String email)
-			throws HerokuServiceException;
-	
+
+	public void removeCollaborator(App app, String email) throws HerokuServiceException;
+
 	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
-	
+
 	public List<Proc> listProcesses(App app) throws HerokuServiceException;
 }

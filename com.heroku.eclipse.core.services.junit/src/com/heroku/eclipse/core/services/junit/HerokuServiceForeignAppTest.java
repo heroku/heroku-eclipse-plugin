@@ -68,7 +68,7 @@ public class HerokuServiceForeignAppTest extends HerokuServicesTest {
 		destroyAllOwnApps(service);
 	}
 	
-	public void testListApps() throws Exception {
+	public void testListForeignApps() throws Exception {
 		HerokuServices service = getService();
 		
 		try {

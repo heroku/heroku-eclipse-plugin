@@ -1,6 +1,7 @@
 package com.heroku.eclipse.core.services;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -394,4 +395,29 @@ public interface HerokuServices {
 	 */
 	public User getUserInfo() throws HerokuServiceException;
 	
+	/**
+	 * Delivers the log stream for the given App.
+	 * 
+	 * The stream remains open as long as it is not closed, so a "tail -f" style
+	 * log viewer is possible
+	 * 
+	 * @param app
+	 * @return the log InputStream
+	 * @throws HerokuServiceException
+	 */
+	public InputStream getApplicationLogStream(App app) throws HerokuServiceException;
+
+	/**
+	 * Delivers the log stream for the given process of the given App.
+	 * 
+	 * The stream remains open as long as it is not closed, so a "tail -f" style
+	 * log viewer is possible
+	 * 
+	 * @param app
+	 * @param processName
+	 * @return the log InputStream
+	 * @throws HerokuServiceException
+	 */
+	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException;
+
 }

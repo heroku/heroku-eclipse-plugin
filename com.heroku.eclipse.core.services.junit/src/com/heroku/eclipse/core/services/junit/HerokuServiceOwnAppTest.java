@@ -3,10 +3,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.junit.Ignore;
-import org.junit.Test;
 
 import com.heroku.api.App;
+import com.heroku.api.Collaborator;
 import com.heroku.api.User;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
@@ -215,10 +214,12 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 		}
 	}
 	
-	public void testAddCollaborator() {
+	public void testAddAndListCollaborators() {
 		HerokuServices service = getService();
 		try {
 			service.addCollaborator(getValidDummyApp(), Credentials.VALID_JUNIT_USER2);
+			List<Collaborator> collaborators = service.getCollaborators(getValidDummyApp());
+			assertEquals("expecting to have exactly 1 collaborator", 1, collaborators.size());
 		}
 		catch (HerokuServiceException e) {
 			fail("expecting adding collaborator to succeed: "+e.getMessage());
@@ -237,8 +238,45 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 		}
 	}
 	
+	public void testRemoveCollaborator() {
+		HerokuServices service = getService();
+		try {
+			service.addCollaborator(getValidDummyApp(), Credentials.VALID_JUNIT_USER2);
+			service.removeCollaborators(getValidDummyApp(), Credentials.VALID_JUNIT_USER2);
+		}
+		catch (HerokuServiceException e) {
+			e.printStackTrace();
+			fail("adding and removing valid collaborator must succeed: "+e.getMessage());
+		}
+	}
+	
+	public void testRemoveUnknownCollaborator() {
+		HerokuServices service = getService();
+		try {
+			service.removeCollaborators(getValidDummyApp(), Credentials.VALID_JUNIT_USER2);
+			fail("removal of unknown collaborator must fail");
+		}
+		catch (HerokuServiceException e) {
+			assertEquals("expecting removal of unknown collaborator to die with NOT FOUND", HerokuServiceException.NOT_FOUND, e.getErrorCode());
+		}
+	}
+	
+	public void testRestartApplication() {
+		HerokuServices service = getService();
+		try {
+			service.restartApplication(getValidDummyApp());
+		}
+		catch (HerokuServiceException e) {
+			e.printStackTrace();
+			fail("expecting app restart to succeed: "+e.getMessage());
+		}
+	}
 
-//	public void testMaterializeGitApp() {
+//	public void testMaterializeGitMavenApp() {
+//
+//	}
+//
+//	public void testMaterializeGitGeneralApp() {
 //
 //	}
 //
@@ -246,16 +284,15 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 //
 //	}
 //
-//	public void testRestartApplication() {
-//
-//	}
-//
-//	public void testDestroyApplication() {
-//
-//	}
-//	
 //	public void testViewLogs() {
 //		
 //	}
-
+//
+//	public void testScaleApp() {
+//
+//	}
+//
+//	public void testTransferApplication() {
+//		
+//	}
 }

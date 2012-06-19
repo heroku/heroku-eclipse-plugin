@@ -2,6 +2,7 @@ package com.heroku.eclipse.core.services.rest;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -636,5 +637,15 @@ public class RestHerokuServices implements HerokuServices {
 	@Override
 	public User getUserInfo() throws HerokuServiceException {
 		return getOrCreateHerokuSession().getUserInfo();
+	}
+
+	@Override
+	public InputStream getApplicationLogStream(App app) throws HerokuServiceException {
+		return getOrCreateHerokuSession().getApplicationLogStream(app);
+	}
+
+	@Override
+	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException {
+		return getOrCreateHerokuSession().getProcessLogStream(app, processName);
 	}
 }

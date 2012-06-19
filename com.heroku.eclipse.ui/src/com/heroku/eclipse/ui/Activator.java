@@ -1,6 +1,7 @@
 package com.heroku.eclipse.ui;
 
 import java.util.Dictionary;
+import java.util.HashMap;
 import java.util.Hashtable;
 
 import org.eclipse.equinox.log.ExtendedLogService;
@@ -26,12 +27,15 @@ public class Activator extends AbstractUIPlugin {
 	// The plug-in ID
 	public static final String PLUGIN_ID = "com.heroku.eclipse.ui"; //$NON-NLS-1$
 
+	// The plug-in ID
+	public static final String CONSOLE_NAME = "Heroku"; //$NON-NLS-1$
+	
 	// The shared instance
 	private static Activator plugin;
 	
 	private ServiceTracker<ExtendedLogService, ExtendedLogService> logServiceTracker;
 	private ExtendedLogService logService;
-
+	
 	/**
 	 * The constructor
 	 */

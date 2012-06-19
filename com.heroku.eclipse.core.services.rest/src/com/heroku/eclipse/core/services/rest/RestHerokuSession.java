@@ -1,5 +1,6 @@
 package com.heroku.eclipse.core.services.rest;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -11,6 +12,8 @@ import com.heroku.api.Key;
 import com.heroku.api.Proc;
 import com.heroku.api.User;
 import com.heroku.api.exception.RequestFailedException;
+import com.heroku.api.request.log.Log.LogRequestBuilder;
+import com.heroku.api.request.log.LogStreamResponse;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 
@@ -129,7 +132,7 @@ public class RestHerokuSession implements HerokuSession {
 			throw checkException(e);
 		}
 	}
-	
+
 	@Override
 	public void destroyApp(App app) throws HerokuServiceException {
 		destroyApp(app.getName());
@@ -172,79 +175,106 @@ public class RestHerokuSession implements HerokuSession {
 	public App getApp(String appName) throws HerokuServiceException {
 		checkValid();
 		try {
-			 return api.getApp(appName);
+			return api.getApp(appName);
 		}
 		catch (RequestFailedException e) {
 			throw checkException(e);
 		}
 	}
-	
+
 	@Override
 	public User getUserInfo() throws HerokuServiceException {
 		checkValid();
 		try {
-			 return api.getUserInfo();
+			return api.getUserInfo();
 		}
 		catch (RequestFailedException e) {
 			throw checkException(e);
 		}
 	}
-	
+
 	public void restart(App app) throws HerokuServiceException {
 		checkValid();
 		try {
 			api.restart(app.getName());
-		} catch (RequestFailedException e) {
+		}
+		catch (RequestFailedException e) {
 			throw checkException(e);
 		}
 	}
-	
+
 	@Override
-	public List<Collaborator> getCollaborators(App app)
-			throws HerokuServiceException {
+	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException {
 		checkValid();
 		try {
 			return api.listCollaborators(app.getName());
-		} catch (RequestFailedException e) {
+		}
+		catch (RequestFailedException e) {
 			throw checkException(e);
 		}
 	}
-	
+
 	public void addCollaborator(App app, String email) throws HerokuServiceException {
 		checkValid();
 		try {
 			api.addCollaborator(app.getName(), email);
-		} catch (RequestFailedException e) {
+		}
+		catch (RequestFailedException e) {
 			throw checkException(e);
 		}
 	}
-	
-	public void removeCollaborator(App app, String email)
-			throws HerokuServiceException {
+
+	public void removeCollaborator(App app, String email) throws HerokuServiceException {
 		checkValid();
 		try {
 			api.removeCollaborator(app.getName(), email);
-		} catch (RequestFailedException e) {
+		}
+		catch (RequestFailedException e) {
 			throw checkException(e);
 		}
 	}
-	
+
 	@Override
-	public void transferApplication(App app, String newOwner)
-			throws HerokuServiceException {
+	public void transferApplication(App app, String newOwner) throws HerokuServiceException {
 		checkValid();
 		try {
 			api.transferApp(app.getName(), newOwner);
-		} catch (RequestFailedException e) {
+		}
+		catch (RequestFailedException e) {
 			throw checkException(e);
 		}
 	}
-	
+
 	public List<Proc> listProcesses(App app) throws HerokuServiceException {
 		checkValid();
 		try {
 			return api.listProcesses(app.getName());
-		} catch (RequestFailedException e) {
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	@Override
+	public InputStream getApplicationLogStream(App app) throws HerokuServiceException {
+		checkValid();
+		try {
+			LogStreamResponse stream = api.getLogs(new LogRequestBuilder().app(app.getName()).tail(true));
+			return stream.openStream();
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	@Override
+	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException {
+		checkValid();
+		try {
+			LogStreamResponse stream = api.getLogs(new LogRequestBuilder().app(app.getName()).ps(processName).tail(true));
+			return stream.openStream();
+		}
+		catch (RequestFailedException e) {
 			throw checkException(e);
 		}
 	}
