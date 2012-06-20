@@ -6,6 +6,7 @@ package com.heroku.eclipse.ui.wizards;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -13,6 +14,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
@@ -48,7 +50,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 		setTitle(Messages.getString("HerokuAppImportWizardPage_Description")); //$NON-NLS-1$
 		service = Activator.getDefault().getService();
 	}
-
+	
 	@Override
 	public void createControl(Composite parent) {
 		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening app import wizard"); //$NON-NLS-1$
@@ -150,9 +152,9 @@ public class HerokuAppImportWizardPage extends WizardPage {
 					setPageComplete(true);
 				}
 			});
-
+			
+			WizardDialog d = (WizardDialog) getWizard().getContainer();
 		}
-
 	}
 
 	/**

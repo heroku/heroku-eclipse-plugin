@@ -66,6 +66,7 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.RunnableWithReturn;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
+import com.heroku.eclipse.ui.views.console.HerokuConsoleViewer;
 import com.heroku.eclipse.ui.views.dialog.WebsiteOpener;
 
 /**
@@ -250,62 +251,15 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				final App app = getSelectedApp();
 				if (app != null) {
 					
-					MessageConsole console = HerokuUtils.getConsole(app.getName());
-					 
-//					try {
-//						IPageBookViewPage p = console.createPage((IConsoleView) getSite().getWorkbenchWindow().getActivePage().showView(IConsoleConstants.ID_CONSOLE_VIEW));
-//						System.err.println(p);
-//						
-//						IPageBookViewPage p2 = console.createPage((IConsoleView) getSite().getWorkbenchWindow().getActivePage().showView(IConsoleConstants.ID_CONSOLE_VIEW));
-//						System.err.println(p2);
-//						
-//						IPageBookViewPage p3 = console.createPage((IConsoleView) getSite().getWorkbenchWindow().getActivePage().showView(IConsoleConstants.ID_CONSOLE_VIEW));
-//						System.err.println(p3);
-//						
-//						ConsolePlugin.getDefault().getConsoleManager().showConsoleView(console);
-//						console.activate();
-//					}
-//					catch (PartInitException e1) {
-//						// TODO Auto-generated catch block
-//						e1.printStackTrace();
-//					}
-					
-					ConsolePlugin.getDefault().getConsoleManager().showConsoleView(console);
-					console.activate();
-					final MessageConsoleStream out = console.newMessageStream();
-					
-					String streamName = "logstream-"+app.getName(); //$NON-NLS-1$
-					
-					
-					Thread t = new Thread(streamName){
-						@Override
-						public void run() {
-							byte[] buffer = new byte[1024];
-							int bytesRead;
-							try {
-								InputStream is = herokuService.getApplicationLogStream(app);
-								while ((bytesRead = is.read(buffer)) != -1) {
-									if ( out.isClosed() ) {
-										break;
-									}
-									out.write(buffer, 0, bytesRead);
-								}
-							}
-							catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							catch (HerokuServiceException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
-					};
-					
-					t.setDaemon(true);
-					
-//					Thread t = HerokuUtils.getLogViewerThread(streamName, console, app);
-					t.start();
+					try {
+						ConsoleViewPart console = (ConsoleViewPart) getSite().getWorkbenchWindow().getActivePage().showView(ConsoleViewPart.ID);
+						console.openLog(app);
+					}
+					catch (PartInitException e1) {
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display log for app " + app.getName(), e1); //$NON-NLS-1$
+						e1.printStackTrace();
+						HerokuUtils.internalError(getShell(), e1);
+					}
 				}
 			}
 		};

@@ -30,6 +30,27 @@ import com.heroku.eclipse.ui.Messages;
  */
 public class HerokuUtils {
 	private static HashMap<String,Thread> logReaders = new HashMap<String, Thread>();
+	
+	private static class ErrorData {
+		final Shell shell;
+		final IStatus status;
+		final String title;
+		final String message;
+		
+		public ErrorData( Shell shell, IStatus status, String title, String message ) {
+			this.shell = shell;
+			this.status = status;
+			this.title = title;
+			this.message = message;
+		}
+	}
+	
+	private static class ErrorRunnable implements RunnableWithParameter<ErrorData> {
+		@Override
+		public void run(ErrorData e) {
+			ErrorDialog.openError(e.shell, e.title, e.message, e.status);			
+		}
+	}
 
 	/**
 	 * Displays an internal, "really" unexpected error
@@ -37,9 +58,9 @@ public class HerokuUtils {
 	 * @param shell
 	 * @param t
 	 */
-	public static void internalError(Shell shell, Throwable t) {
-		Status status;
-		String message;
+	public static void internalError(final Shell shell, Throwable t) {
+		final Status status;
+		final String message;
 
 		if (t == null) {
 			status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("Heroku_Common_Error_InternalError")); //$NON-NLS-1$
@@ -49,8 +70,8 @@ public class HerokuUtils {
 			status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("Heroku_Common_Error_InternalError"), t); //$NON-NLS-1$
 			message = Messages.getString("Heroku_Common_Error_InternalError"); //$NON-NLS-1$
 		}
-
-		ErrorDialog.openError(shell, Messages.getString("Heroku_Common_Error_InternalError_Title"), message, status); //$NON-NLS-1$
+		
+		runOnDisplay(true, shell, new ErrorData(shell, status, Messages.getString("Heroku_Common_Error_InternalError_Title"), message), new ErrorRunnable()); //$NON-NLS-1$
 	}
 
 	/**
@@ -72,7 +93,7 @@ public class HerokuUtils {
 			message = Messages.getString("Heroku_Common_Error_HerokuError"); //$NON-NLS-1$
 		}
 
-		ErrorDialog.openError(shell, Messages.getString("Heroku_Common_Error_HerokuError_Title"), message, status); //$NON-NLS-1$
+		runOnDisplay(true, shell, new ErrorData(shell, status, Messages.getString("Heroku_Common_Error_HerokuError_Title"), message), new ErrorRunnable()); //$NON-NLS-1$
 	}
 
 	/**
@@ -86,7 +107,7 @@ public class HerokuUtils {
 	public static void userError(Shell shell, String title, String message) {
 		Status status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, message);
 
-		ErrorDialog.openError(shell, title, null, status);
+		runOnDisplay(true, shell, new ErrorData(shell, status, title, null), new ErrorRunnable());
 	}
 
 	/**

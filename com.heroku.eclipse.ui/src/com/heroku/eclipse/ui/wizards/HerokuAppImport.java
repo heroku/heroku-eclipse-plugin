@@ -8,6 +8,8 @@ import org.eclipse.egit.ui.UIPreferences;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.jface.wizard.WizardDialog;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.IWorkbench;
 import org.osgi.service.log.LogService;
@@ -60,6 +62,7 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 	}
 	
 	@Override
@@ -100,8 +103,7 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 				HerokuUtils.internalError(getShell(), e);
 			}
 		}
-
 		return true;
 	}
-
+	
 }

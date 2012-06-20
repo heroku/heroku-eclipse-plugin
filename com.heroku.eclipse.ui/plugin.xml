@@ -36,9 +36,9 @@
       </view>
       <view
             category="com.heroku.eclipse.ui"
-            class="com.heroku.eclipse.ui.views.HerokuConsole"
-            id="com.heroku.eclipse.ui.console"
-            name="name"
+            class="com.heroku.eclipse.ui.views.ConsoleViewPart"
+            id="com.heroku.eclipse.ui.HerokuLogConsoles"
+            name="%HerokuUI.ConsoleName"
             restorable="true">
       </view>
    </extension>
