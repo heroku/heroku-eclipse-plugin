@@ -34,6 +34,13 @@
             class="com.heroku.eclipse.ui.views.HerokuApplicationManagerViewPart"
             id="com.heroku.eclipse.ui.views.HerokuApplicationManager">
       </view>
+      <view
+            category="com.heroku.eclipse.ui"
+            class="com.heroku.eclipse.ui.views.HerokuConsole"
+            id="com.heroku.eclipse.ui.console"
+            name="name"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.importWizards">

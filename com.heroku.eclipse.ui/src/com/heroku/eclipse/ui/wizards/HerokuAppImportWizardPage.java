@@ -74,7 +74,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 
 			Table table = viewer.getTable();
 			GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
-			gd_table.heightHint=100;
+			gd_table.heightHint=table.getItemHeight()*15;
 			table.setLayoutData(gd_table);
 			table.setHeaderVisible(true);
 
