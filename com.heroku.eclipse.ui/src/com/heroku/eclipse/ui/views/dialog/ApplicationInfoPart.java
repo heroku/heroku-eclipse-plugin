@@ -55,14 +55,21 @@ public class ApplicationInfoPart {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					try {
-						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "about to rename app from '"+domainObject.getName()+"' to '"+appName.getText()+"'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						Activator.getDefault().getLogger()
+								.log(LogService.LOG_INFO, "about to rename app from '" + domainObject.getName() + "' to '" + appName.getText() + "'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						Activator.getDefault().getService().renameApp(domainObject, appName.getText());
 						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "app rename complete"); //$NON-NLS-1$
 					}
 					catch (HerokuServiceException e1) {
-						if ( e1.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE ) {
-							Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "new app name '"+appName.getText()+"' either already exists or is invalid, rejecting rename!"); //$NON-NLS-1$ //$NON-NLS-2$
-							HerokuUtils.userError(renameApp.getShell(), Messages.getString("HerokuAppInformationPart_Error_NameAlreadyExists_Title"), Messages.getString("HerokuAppInformationPart_Error_NameAlreadyExists")); //$NON-NLS-1$ //$NON-NLS-2$
+						if (e1.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
+							Activator
+									.getDefault()
+									.getLogger()
+									.log(LogService.LOG_WARNING,
+											"new app name '" + appName.getText() + "' either already exists or is invalid, rejecting rename!"); //$NON-NLS-1$ //$NON-NLS-2$
+							HerokuUtils.userError(
+									renameApp.getShell(),
+									Messages.getString("HerokuAppInformationPart_Error_NameAlreadyExists_Title"), Messages.getString("HerokuAppInformationPart_Error_NameAlreadyExists")); //$NON-NLS-1$ //$NON-NLS-2$
 						}
 						else {
 							HerokuUtils.herokuError(renameApp.getShell(), e1);

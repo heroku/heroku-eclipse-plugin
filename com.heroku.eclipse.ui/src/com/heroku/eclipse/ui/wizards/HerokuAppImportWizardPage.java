@@ -14,6 +14,7 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
@@ -40,6 +41,7 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
 public class HerokuAppImportWizardPage extends WizardPage {
 	private HerokuServices service;
 	private App app = null;
+	private TableViewerColumn nameColumn;
 
 	/**
 	 * 
@@ -73,6 +75,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 			TableViewer viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
 			viewer.setContentProvider(ArrayContentProvider.getInstance());
 			viewer.setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.V_APPS_LIST);
+//			viewer.setComparator(new ViewerComparator());
 
 			Table table = viewer.getTable();
 			GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
@@ -81,18 +84,19 @@ public class HerokuAppImportWizardPage extends WizardPage {
 			table.setHeaderVisible(true);
 
 			{
-				TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
-				TableColumn tc = vc.getColumn();
+				nameColumn = new TableViewerColumn(viewer, SWT.NONE);
+				TableColumn tc = nameColumn.getColumn();
 				tc.setWidth(150);
 				tc.setText(Messages.getString("HerokuAppImportWizardPage_Name")); //$NON-NLS-1$
 
-				vc.setLabelProvider(new ColumnLabelProvider() {
+				nameColumn.setLabelProvider(new ColumnLabelProvider() {
 					@Override
 					public String getText(Object element) {
 						App app = (App) element;
 						return app.getName();
 					}
 				});
+				
 			}
 
 			{
@@ -153,7 +157,8 @@ public class HerokuAppImportWizardPage extends WizardPage {
 				}
 			});
 			
-			WizardDialog d = (WizardDialog) getWizard().getContainer();
+			viewer.getTable().setSortColumn(nameColumn.getColumn());
+			viewer.getTable().setSortDirection(SWT.UP);
 		}
 	}
 

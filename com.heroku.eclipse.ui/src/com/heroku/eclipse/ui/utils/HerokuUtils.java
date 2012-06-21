@@ -1,7 +1,5 @@
 package com.heroku.eclipse.ui.utils;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -14,11 +12,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
-import org.eclipse.ui.console.IOConsoleOutputStream;
 import org.eclipse.ui.console.MessageConsole;
 
 import com.heroku.api.App;
-import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
 
@@ -29,26 +25,26 @@ import com.heroku.eclipse.ui.Messages;
  * 
  */
 public class HerokuUtils {
-	private static HashMap<String,Thread> logReaders = new HashMap<String, Thread>();
-	
+	private static HashMap<String, Thread> logReaders = new HashMap<String, Thread>();
+
 	private static class ErrorData {
 		final Shell shell;
 		final IStatus status;
 		final String title;
 		final String message;
-		
-		public ErrorData( Shell shell, IStatus status, String title, String message ) {
+
+		public ErrorData(Shell shell, IStatus status, String title, String message) {
 			this.shell = shell;
 			this.status = status;
 			this.title = title;
 			this.message = message;
 		}
 	}
-	
+
 	private static class ErrorRunnable implements RunnableWithParameter<ErrorData> {
 		@Override
 		public void run(ErrorData e) {
-			ErrorDialog.openError(e.shell, e.title, e.message, e.status);			
+			ErrorDialog.openError(e.shell, e.title, e.message, e.status);
 		}
 	}
 
@@ -59,19 +55,7 @@ public class HerokuUtils {
 	 * @param t
 	 */
 	public static void internalError(final Shell shell, Throwable t) {
-		final Status status;
-		final String message;
-
-		if (t == null) {
-			status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("Heroku_Common_Error_InternalError")); //$NON-NLS-1$
-			message = null;
-		}
-		else {
-			status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("Heroku_Common_Error_InternalError"), t); //$NON-NLS-1$
-			message = Messages.getString("Heroku_Common_Error_InternalError"); //$NON-NLS-1$
-		}
-		
-		runOnDisplay(true, shell, new ErrorData(shell, status, Messages.getString("Heroku_Common_Error_InternalError_Title"), message), new ErrorRunnable()); //$NON-NLS-1$
+		showError(shell, t, "Heroku_Common_Error_InternalError"); //$NON-NLS-1$
 	}
 
 	/**
@@ -81,19 +65,23 @@ public class HerokuUtils {
 	 * @param t
 	 */
 	public static void herokuError(Shell shell, Throwable t) {
+		showError(shell, t, "Heroku_Common_Error_HerokuError"); //$NON-NLS-1$
+	}
+
+	private static void showError(Shell shell, Throwable t, String messageKey) {
 		Status status;
 		String message;
 
 		if (t == null) {
-			status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("Heroku_Common_Error_HerokuError")); //$NON-NLS-1$
+			status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString(messageKey));
 			message = null;
 		}
 		else {
-			status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString("Heroku_Common_Error_HerokuError"), t); //$NON-NLS-1$
-			message = Messages.getString("Heroku_Common_Error_HerokuError"); //$NON-NLS-1$
+			status = new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.getString(messageKey), t);
+			message = Messages.getString(messageKey);
 		}
 
-		runOnDisplay(true, shell, new ErrorData(shell, status, Messages.getString("Heroku_Common_Error_HerokuError_Title"), message), new ErrorRunnable()); //$NON-NLS-1$
+		runOnDisplay(true, shell, new ErrorData(shell, status, Messages.getString(messageKey + "_Title"), message), new ErrorRunnable()); //$NON-NLS-1$
 	}
 
 	/**
@@ -132,69 +120,90 @@ public class HerokuUtils {
 	}
 
 	/**
-	 * Returns the console used by the plugin, allowing to contribute messages to Eclipse's console view  
+	 * Returns the console used by the plugin, allowing to contribute messages
+	 * to Eclipse's console view
+	 * 
+	 * @param appName
 	 * @return the MessageConsole
 	 */
 	public static MessageConsole getConsole(String appName) {
-		String consoleName = Activator.CONSOLE_NAME+" - "+appName; //$NON-NLS-1$
+		String consoleName = Activator.CONSOLE_NAME + " - " + appName; //$NON-NLS-1$
 		ConsolePlugin plugin = ConsolePlugin.getDefault();
 		IConsoleManager conMan = plugin.getConsoleManager();
-		
+
 		IConsole[] existing = conMan.getConsoles();
 		for (int i = 0; i < existing.length; i++) {
 			if (consoleName.equals(existing[i].getName())) {
 				return (MessageConsole) existing[i];
 			}
 		}
-		
+
 		// no console found, so create a new one
 		MessageConsole myConsole = new MessageConsole(consoleName, null);
 		conMan.addConsoles(new IConsole[] { myConsole });
-		
+
 		return myConsole;
 	}
-	
-	public static Thread getLogViewerThread( String viewerName, MessageConsole console, App app ) {
-		if ( logReaders.containsKey(viewerName) ) {
+
+	public static Thread getLogViewerThread(String viewerName, MessageConsole console, App app) {
+		if (logReaders.containsKey(viewerName)) {
 			return logReaders.get(viewerName);
 		}
 		else {
-			Thread t = new Thread(viewerName){
+			Thread t = new Thread(viewerName) {
 				@Override
 				public void run() {
-//					byte[] buffer = new byte[1024];
-//					int bytesRead;
-//					try {
-//						InputStream is = herokuService.getApplicationLogStream(app);
-//						while ((bytesRead = is.read(buffer)) != -1) {
-//							if ( out.isClosed() ) {
-//								break;
-//							}
-//							out.write(buffer, 0, bytesRead);
-//						}
-//					}
-//					catch (IOException e) {
-//					// 	TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
-//					catch (HerokuServiceException e) {
-//					// 	TODO Auto-generated catch block
-//						e.printStackTrace();
-//					}
+					// byte[] buffer = new byte[1024];
+					// int bytesRead;
+					// try {
+					// InputStream is =
+					// herokuService.getApplicationLogStream(app);
+					// while ((bytesRead = is.read(buffer)) != -1) {
+					// if ( out.isClosed() ) {
+					// break;
+					// }
+					// out.write(buffer, 0, bytesRead);
+					// }
+					// }
+					// catch (IOException e) {
+					// // TODO Auto-generated catch block
+					// e.printStackTrace();
+					// }
+					// catch (HerokuServiceException e) {
+					// // TODO Auto-generated catch block
+					// e.printStackTrace();
+					// }
 				}
 			};
-		
+
 			t.setDaemon(true);
 			logReaders.put(viewerName, t);
 			return t;
 		}
 	}
 
-
+	/**
+	 * Runs a Runnable synchronously in the display thread determined by the
+	 * given Viewer
+	 * 
+	 * @param viewer
+	 * @param argument
+	 * @param runnable
+	 * @return
+	 */
 	public static <R, A> R runOnDisplay(Viewer viewer, final A argument, final RunnableWithReturn<R, A> runnable) {
 		return runOnDisplay(viewer.getControl(), argument, runnable);
 	}
 
+	/**
+	 * Runs a Runnable synchronously in the display thread determined by the
+	 * given Control
+	 * 
+	 * @param control
+	 * @param argument
+	 * @param runnable
+	 * @return
+	 */
 	public static <R, A> R runOnDisplay(Control control, final A argument, final RunnableWithReturn<R, A> runnable) {
 		if (control.getDisplay() != null && !control.getDisplay().isDisposed()) {
 			if (control.getDisplay().getThread() == Thread.currentThread()) {
@@ -215,10 +224,28 @@ public class HerokuUtils {
 		return null;
 	}
 
+	/**
+	 * Runs a Runnable either asynchronously or synchronously in the display
+	 * thread determined by the given Viewer
+	 * 
+	 * @param async
+	 * @param viewer
+	 * @param argument
+	 * @param runnable
+	 */
 	public static <A> void runOnDisplay(boolean async, Viewer viewer, final A argument, final RunnableWithParameter<A> runnable) {
 		runOnDisplay(async, viewer.getControl(), argument, runnable);
 	}
 
+	/**
+	 * Runs a Runnable either asynchronously or synchronously in the display
+	 * thread determined by the given Control
+	 * 
+	 * @param async
+	 * @param control
+	 * @param argument
+	 * @param runnable
+	 */
 	public static <A> void runOnDisplay(boolean async, Control control, final A argument, final RunnableWithParameter<A> runnable) {
 		if (!control.isDisposed() && control.getDisplay() != null && !control.getDisplay().isDisposed()) {
 			if (async) {

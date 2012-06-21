@@ -1,7 +1,5 @@
 package com.heroku.eclipse.ui.views;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -31,23 +29,20 @@ import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jgit.util.IO;
+import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
-import org.eclipse.ui.console.ConsolePlugin;
-import org.eclipse.ui.console.IConsole;
-import org.eclipse.ui.console.IConsoleConstants;
-import org.eclipse.ui.console.IConsoleView;
-import org.eclipse.ui.console.MessageConsole;
-import org.eclipse.ui.console.MessageConsoleStream;
-import org.eclipse.ui.part.IPageBookViewPage;
 import org.eclipse.ui.part.ViewPart;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
@@ -66,7 +61,6 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.RunnableWithReturn;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
-import com.heroku.eclipse.ui.views.console.HerokuConsoleViewer;
 import com.heroku.eclipse.ui.views.dialog.WebsiteOpener;
 
 /**
@@ -81,6 +75,18 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	 */
 	public static final String ID = "com.heroku.eclipse.ui.views.HerokuApplicationManager"; //$NON-NLS-1$
 
+	/**
+	 * header cols
+	 * 
+	 * @author udo.rader@bestsolution.at
+	 * 
+	 */
+	public static enum TABLE_COLUMNS {
+		APP_NAME, APP_GIT_URL, APP_WEB_URL
+	}
+
+	private static final String COLUMN_IDENTIFIER = "COL_ID"; //$NON-NLS-1$
+
 	private TreeViewer viewer;
 
 	private HerokuServices herokuService;
@@ -92,6 +98,14 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private Timer refreshTimer = new Timer(true);
 
 	private TimerTask refreshTask;
+
+	private TreeViewerColumn urlColumn;
+
+	private TreeViewerColumn gitColumn;
+
+	private TreeViewerColumn nameColumn;
+
+	private ViewerComparator comparator;
 
 	@Override
 	public void init(IViewSite site, IMemento memento) throws PartInitException {
@@ -107,31 +121,45 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		viewer.getTree().setLinesVisible(true);
 		viewer.setComparer(new ElementComparerImpl());
 
-		{
-			TreeViewerColumn column = new TreeViewerColumn(viewer, SWT.NONE);
-			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_Name")); //$NON-NLS-1$
-			column.setLabelProvider(LabelProviderFactory.createName(new RunnableWithReturn<List<Proc>, App>() {
+		comparator = new AppComparator();
+		viewer.setComparator(comparator);
 
+		{
+			nameColumn = new TreeViewerColumn(viewer, SWT.NONE);
+			nameColumn.setLabelProvider(LabelProviderFactory.createName(new RunnableWithReturn<List<Proc>, App>() {
 				@Override
 				public List<Proc> run(App argument) {
 					return appProcesses.get(argument.getId());
 				}
 			}));
-			column.getColumn().setWidth(200);
+
+			TreeColumn col = nameColumn.getColumn();
+			col.setText(Messages.getString("HerokuAppManagerViewPart_Name")); //$NON-NLS-1$
+			col.setWidth(200);
+			col.addSelectionListener(getSelectionAdapter(col));
+			col.setData(COLUMN_IDENTIFIER, TABLE_COLUMNS.APP_NAME);
 		}
 
 		{
-			TreeViewerColumn column = new TreeViewerColumn(viewer, SWT.NONE);
-			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_GitUrl")); //$NON-NLS-1$
-			column.setLabelProvider(LabelProviderFactory.createApp_GitUrl());
-			column.getColumn().setWidth(200);
+			gitColumn = new TreeViewerColumn(viewer, SWT.NONE);
+			gitColumn.setLabelProvider(LabelProviderFactory.createApp_GitUrl());
+
+			TreeColumn col = gitColumn.getColumn();
+			col.setText(Messages.getString("HerokuAppManagerViewPart_GitUrl")); //$NON-NLS-1$
+			col.setWidth(200);
+			col.setData(COLUMN_IDENTIFIER, TABLE_COLUMNS.APP_GIT_URL);
+			col.addSelectionListener(getSelectionAdapter(col));
 		}
 
 		{
-			TreeViewerColumn column = new TreeViewerColumn(viewer, SWT.NONE);
-			column.getColumn().setText(Messages.getString("HerokuAppManagerViewPart_AppUrl")); //$NON-NLS-1$
-			column.setLabelProvider(LabelProviderFactory.createApp_Url());
-			column.getColumn().setWidth(200);
+			urlColumn = new TreeViewerColumn(viewer, SWT.NONE);
+			urlColumn.setLabelProvider(LabelProviderFactory.createApp_Url());
+
+			TreeColumn col = urlColumn.getColumn();
+			col.setText(Messages.getString("HerokuAppManagerViewPart_AppUrl")); //$NON-NLS-1$
+			col.setWidth(200);
+			col.setData(COLUMN_IDENTIFIER, TABLE_COLUMNS.APP_WEB_URL);
+			col.addSelectionListener(getSelectionAdapter(col));
 		}
 
 		{
@@ -158,8 +186,63 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		});
 
+		// sorting by name per default
+		viewer.getTree().setSortColumn(nameColumn.getColumn());
+		viewer.getTree().setSortDirection(SWT.UP);
+		viewer.refresh();
+
 		refreshApplications();
 		subscribeToEvents();
+	}
+
+	private SelectionAdapter getSelectionAdapter(final TreeColumn column) {
+		SelectionAdapter selectionAdapter = new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				int dir = viewer.getTree().getSortDirection();
+				if (viewer.getTree().getSortColumn() == column) {
+					dir = dir == SWT.UP ? SWT.DOWN : SWT.UP;
+				}
+				else {
+					dir = SWT.DOWN;
+				}
+
+				viewer.getTree().setSortColumn(column);
+				viewer.getTree().setSortDirection(dir);
+				viewer.refresh();
+			}
+		};
+		return selectionAdapter;
+	}
+
+	private class AppComparator extends ViewerComparator {
+		@Override
+		public int compare(Viewer viewer, Object e1, Object e2) {
+			int rv = 0;
+
+			App a = (App) e1;
+			App b = (App) e2;
+
+			switch ((TABLE_COLUMNS) ((TreeViewer) viewer).getTree().getSortColumn().getData(COLUMN_IDENTIFIER)) {
+				default:
+					rv = a.getName().compareTo(b.getName());
+					break;
+				case APP_GIT_URL:
+					rv = a.getGitUrl().compareTo(b.getGitUrl());
+					break;
+				case APP_WEB_URL:
+					rv = a.getWebUrl().compareTo(b.getWebUrl());
+					break;
+			}
+			
+			if (((TreeViewer) viewer).getTree().getSortDirection() == SWT.DOWN) {
+				rv = -rv;
+			}
+
+			return rv;
+		}
 	}
 
 	private void scheduleRefresh() {
@@ -177,6 +260,12 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
 
 		return !s.isEmpty() && s.getFirstElement() instanceof App ? (App) s.getFirstElement() : null;
+	}
+
+	Proc getSelectedProc() {
+		IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
+
+		return !s.isEmpty() && s.getFirstElement() instanceof Proc ? (Proc) s.getFirstElement() : null;
 	}
 
 	Shell getShell() {
@@ -250,15 +339,15 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			public void run() {
 				final App app = getSelectedApp();
 				if (app != null) {
-					
+
 					try {
 						ConsoleViewPart console = (ConsoleViewPart) getSite().getWorkbenchWindow().getActivePage().showView(ConsoleViewPart.ID);
 						console.openLog(app);
 					}
-					catch (PartInitException e1) {
-						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display log for app " + app.getName(), e1); //$NON-NLS-1$
-						e1.printStackTrace();
-						HerokuUtils.internalError(getShell(), e1);
+					catch (PartInitException e) {
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display log for app " + app.getName(), e); //$NON-NLS-1$
+						e.printStackTrace();
+						HerokuUtils.internalError(getShell(), e);
 					}
 				}
 			}
@@ -567,4 +656,5 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		}
 
 	}
+
 }
