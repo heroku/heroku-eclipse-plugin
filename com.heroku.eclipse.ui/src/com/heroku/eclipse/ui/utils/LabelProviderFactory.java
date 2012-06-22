@@ -9,59 +9,81 @@ import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.api.Proc;
 
+/**
+ * Factory reponsible for creating various labels for App and Proc instances
+ *  
+ * @author tom.schindl@bestsolution.at
+ */
 public class LabelProviderFactory {
 	/*
-	 * ==========================================
+	 * ========================================== 
 	 * App Element
 	 * ==========================================
 	 */
-	
+
 	public static ColumnLabelProvider createName(final RunnableWithReturn<List<Proc>, App> procListCallback) {
 		return new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if( element instanceof App ) {
+				if (element instanceof App) {
 					App app = (App) element;
-					return app.getName();	
-				} else if( element instanceof Proc ) {
+					return app.getName();
+				}
+				else if (element instanceof Proc) {
 					Proc proc = (Proc) element;
-					String rv = proc.getProcess() + " (" + proc.getState() + "/" + proc.getAction() + ")"; 
+					String rv = proc.getProcess() + " (" + proc.getState() + "/" + proc.getAction() + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					return rv;
 				}
-				return "";
+				return ""; //$NON-NLS-1$
 			}
-			
+
 			@Override
 			public Image getImage(Object element) {
-				if( element instanceof App ) {
+				if (element instanceof App) {
 					List<Proc> l = procListCallback.run((App) element);
-					if( l != null ) {
+					if (l != null) {
 						ProcessState total = ProcessState.UNKNOWN;
-						for( Proc p : l ) {
+						for (Proc p : l) {
 							ProcessState s = ProcessState.parseRest(p.getState());
-							if( s.ordinal() < total.ordinal() ) {
+							if (s.ordinal() < total.ordinal()) {
 								total = s;
 							}
 						}
 						return getStateIcon(total);
 					}
-				} else if( element instanceof Proc ) {
-					Proc p = (Proc)element;
+				}
+				else if (element instanceof Proc) {
+					Proc p = (Proc) element;
 					return getStateIcon(ProcessState.parseRest(p.getState()));
 				}
-				
+
 				// TODO Auto-generated method stub
 				return super.getImage(element);
 			}
-			
+
 			private Image getStateIcon(ProcessState state) {
-				if( state == ProcessState.IDLE ) {
+				if (state == ProcessState.IDLE) {
 					return IconKeys.getImage(IconKeys.ICON_PROCESS_IDLE);
-				} else if( state == ProcessState.UP ) {
+				}
+				else if (state == ProcessState.UP) {
 					return IconKeys.getImage(IconKeys.ICON_PROCESS_UP);
-				} else {
+				}
+				else {
 					return IconKeys.getImage(IconKeys.ICON_PROCESS_UNKNOWN);
 				}
+			}
+		};
+	}
+
+	public static ColumnLabelProvider createApp_Name() {
+		return new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				if (element instanceof App) {
+					App app = (App) element;
+					return app.getName();
+				}
+				return ""; //$NON-NLS-1$
 			}
 		};
 	}
@@ -70,34 +92,34 @@ public class LabelProviderFactory {
 		return new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if( element instanceof App ) {
+				if (element instanceof App) {
 					App app = (App) element;
-					return app.getGitUrl();	
+					return app.getGitUrl();
 				}
-				return "";
+				return ""; //$NON-NLS-1$
 			}
 		};
 	}
-	
+
 	public static ColumnLabelProvider createApp_Url() {
 		return new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				if( element instanceof App ) {
+				if (element instanceof App) {
 					App app = (App) element;
-					return app.getWebUrl();	
+					return app.getWebUrl();
 				}
-				return "";
+				return ""; //$NON-NLS-1$
 			}
 		};
 	}
-	
+
 	/*
-	 * ==========================================
+	 * ========================================== 
 	 * Contributor Element
 	 * ==========================================
 	 */
-	
+
 	public static ColumnLabelProvider createCollaborator_Email() {
 		return new ColumnLabelProvider() {
 			@Override
@@ -107,19 +129,19 @@ public class LabelProviderFactory {
 			}
 		};
 	}
-	
+
 	public static ColumnLabelProvider createCollaborator_Owner(final RunnableWithReturn<Boolean, Collaborator> ownerCheckCallback) {
 		return new ColumnLabelProvider() {
-			
+
 			@Override
 			public String getText(Object element) {
-				return "";
+				return ""; //$NON-NLS-1$
 			}
-			
+
 			@Override
 			public Image getImage(Object element) {
-				if( ownerCheckCallback.run((Collaborator) element) ) {
-					return IconKeys.getImage(IconKeys.ICON_APPLICATION_OWNER); 
+				if (ownerCheckCallback.run((Collaborator) element)) {
+					return IconKeys.getImage(IconKeys.ICON_APPLICATION_OWNER);
 				}
 				return super.getImage(element);
 			}

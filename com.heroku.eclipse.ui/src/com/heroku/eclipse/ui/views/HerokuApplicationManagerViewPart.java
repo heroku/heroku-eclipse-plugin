@@ -29,14 +29,12 @@ import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
-import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
@@ -53,10 +51,12 @@ import com.heroku.api.App;
 import com.heroku.api.Proc;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
+import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.git.HerokuCredentialsProvider;
+import com.heroku.eclipse.ui.utils.AppComparator;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.RunnableWithReturn;
@@ -74,18 +74,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	 * The ID of the view as specified by the extension.
 	 */
 	public static final String ID = "com.heroku.eclipse.ui.views.HerokuApplicationManager"; //$NON-NLS-1$
-
-	/**
-	 * header cols
-	 * 
-	 * @author udo.rader@bestsolution.at
-	 * 
-	 */
-	public static enum TABLE_COLUMNS {
-		APP_NAME, APP_GIT_URL, APP_WEB_URL
-	}
-
-	private static final String COLUMN_IDENTIFIER = "COL_ID"; //$NON-NLS-1$
 
 	private TreeViewer viewer;
 
@@ -105,8 +93,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	private TreeViewerColumn nameColumn;
 
-	private ViewerComparator comparator;
-
 	@Override
 	public void init(IViewSite site, IMemento memento) throws PartInitException {
 		super.init(site, memento);
@@ -120,9 +106,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		viewer.getTree().setHeaderVisible(true);
 		viewer.getTree().setLinesVisible(true);
 		viewer.setComparer(new ElementComparerImpl());
-
-		comparator = new AppComparator();
-		viewer.setComparator(comparator);
+		viewer.setComparator(new AppComparator());
 
 		{
 			nameColumn = new TreeViewerColumn(viewer, SWT.NONE);
@@ -137,7 +121,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			col.setText(Messages.getString("HerokuAppManagerViewPart_Name")); //$NON-NLS-1$
 			col.setWidth(200);
 			col.addSelectionListener(getSelectionAdapter(col));
-			col.setData(COLUMN_IDENTIFIER, TABLE_COLUMNS.APP_NAME);
+			col.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_NAME);
 		}
 
 		{
@@ -147,7 +131,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			TreeColumn col = gitColumn.getColumn();
 			col.setText(Messages.getString("HerokuAppManagerViewPart_GitUrl")); //$NON-NLS-1$
 			col.setWidth(200);
-			col.setData(COLUMN_IDENTIFIER, TABLE_COLUMNS.APP_GIT_URL);
+			col.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_GIT_URL);
 			col.addSelectionListener(getSelectionAdapter(col));
 		}
 
@@ -158,7 +142,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			TreeColumn col = urlColumn.getColumn();
 			col.setText(Messages.getString("HerokuAppManagerViewPart_AppUrl")); //$NON-NLS-1$
 			col.setWidth(200);
-			col.setData(COLUMN_IDENTIFIER, TABLE_COLUMNS.APP_WEB_URL);
+			col.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_WEB_URL);
 			col.addSelectionListener(getSelectionAdapter(col));
 		}
 
@@ -215,34 +199,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 		return selectionAdapter;
-	}
-
-	private class AppComparator extends ViewerComparator {
-		@Override
-		public int compare(Viewer viewer, Object e1, Object e2) {
-			int rv = 0;
-
-			App a = (App) e1;
-			App b = (App) e2;
-
-			switch ((TABLE_COLUMNS) ((TreeViewer) viewer).getTree().getSortColumn().getData(COLUMN_IDENTIFIER)) {
-				default:
-					rv = a.getName().compareTo(b.getName());
-					break;
-				case APP_GIT_URL:
-					rv = a.getGitUrl().compareTo(b.getGitUrl());
-					break;
-				case APP_WEB_URL:
-					rv = a.getWebUrl().compareTo(b.getWebUrl());
-					break;
-			}
-			
-			if (((TreeViewer) viewer).getTree().getSortDirection() == SWT.DOWN) {
-				rv = -rv;
-			}
-
-			return rv;
-		}
 	}
 
 	private void scheduleRefresh() {

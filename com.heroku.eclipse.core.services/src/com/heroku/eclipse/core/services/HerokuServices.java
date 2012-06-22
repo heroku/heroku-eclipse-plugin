@@ -110,6 +110,14 @@ public interface HerokuServices {
 	public static final String KEY_COLLABORATORS_LIST = "collaborators"; //$NON-NLS-1$
 
 	public static final String KEY_APPLICATION_NAME = "applicationName"; //$NON-NLS-1$
+	
+	/**
+	 * Enum representing some fields of an App
+	 * @author udo.rader@bestsolution.at
+	 */
+	public static enum APP_FIELDS {
+		APP_NAME, APP_GIT_URL, APP_WEB_URL
+	}
 
 	/**
 	 * Logs into the Heroku account and if successful, returns the user's

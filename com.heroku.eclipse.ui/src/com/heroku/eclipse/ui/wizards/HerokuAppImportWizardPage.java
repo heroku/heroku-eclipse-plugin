@@ -6,18 +6,16 @@ package com.heroku.eclipse.ui.wizards;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
-import org.eclipse.jface.viewers.ViewerComparator;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -28,10 +26,13 @@ import org.osgi.service.log.LogService;
 import com.heroku.api.App;
 import com.heroku.eclipse.core.constants.AppImportConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
+import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
+import com.heroku.eclipse.ui.utils.AppComparator;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
+import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 
 /**
  * 
@@ -42,6 +43,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 	private HerokuServices service;
 	private App app = null;
 	private TableViewerColumn nameColumn;
+	private TableViewer viewer;
 
 	/**
 	 * 
@@ -72,10 +74,10 @@ public class HerokuAppImportWizardPage extends WizardPage {
 			setErrorMessage(Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$
 		}
 		else {
-			TableViewer viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
+			viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
 			viewer.setContentProvider(ArrayContentProvider.getInstance());
 			viewer.setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.V_APPS_LIST);
-//			viewer.setComparator(new ViewerComparator());
+			viewer.setComparator(new AppComparator());
 
 			Table table = viewer.getTable();
 			GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
@@ -85,48 +87,37 @@ public class HerokuAppImportWizardPage extends WizardPage {
 
 			{
 				nameColumn = new TableViewerColumn(viewer, SWT.NONE);
+				nameColumn.setLabelProvider(LabelProviderFactory.createApp_Name());
+				
 				TableColumn tc = nameColumn.getColumn();
 				tc.setWidth(150);
 				tc.setText(Messages.getString("HerokuAppImportWizardPage_Name")); //$NON-NLS-1$
-
-				nameColumn.setLabelProvider(new ColumnLabelProvider() {
-					@Override
-					public String getText(Object element) {
-						App app = (App) element;
-						return app.getName();
-					}
-				});
-				
+				tc.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_NAME);
+				tc.addSelectionListener(getSelectionAdapter(tc));
 			}
 
 			{
 				TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
+				vc.setLabelProvider(LabelProviderFactory.createApp_GitUrl());
+				
 				TableColumn tc = vc.getColumn();
 				tc.setWidth(150);
 				tc.setText(Messages.getString("HerokuAppImportWizardPage_GitUrl")); //$NON-NLS-1$
+				tc.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_GIT_URL);
+				tc.addSelectionListener(getSelectionAdapter(tc));
 
-				vc.setLabelProvider(new ColumnLabelProvider() {
-					@Override
-					public String getText(Object element) {
-						App app = (App) element;
-						return app.getGitUrl();
-					}
-				});
 			}
 
 			{
 				TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
+				vc.setLabelProvider(LabelProviderFactory.createApp_Url());
+				
 				TableColumn tc = vc.getColumn();
 				tc.setWidth(100);
 				tc.setText(Messages.getString("HerokuAppImportWizardPage_AppUrl")); //$NON-NLS-1$
+				tc.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_WEB_URL);
+				tc.addSelectionListener(getSelectionAdapter(tc));
 
-				vc.setLabelProvider(new ColumnLabelProvider() {
-					@Override
-					public String getText(Object element) {
-						App app = (App) element;
-						return app.getWebUrl();
-					}
-				});
 			}
 
 			List<App> apps = new ArrayList<App>();
@@ -159,9 +150,32 @@ public class HerokuAppImportWizardPage extends WizardPage {
 			
 			viewer.getTable().setSortColumn(nameColumn.getColumn());
 			viewer.getTable().setSortDirection(SWT.UP);
+			viewer.refresh();
 		}
 	}
+	
+	private SelectionAdapter getSelectionAdapter(final TableColumn column) {
+		SelectionAdapter selectionAdapter = new SelectionAdapter() {
 
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+
+				int dir = viewer.getTable().getSortDirection();
+				if (viewer.getTable().getSortColumn() == column) {
+					dir = dir == SWT.UP ? SWT.DOWN : SWT.UP;
+				}
+				else {
+					dir = SWT.DOWN;
+				}
+
+				viewer.getTable().setSortColumn(column);
+				viewer.getTable().setSortDirection(dir);
+				viewer.refresh();
+			}
+		};
+		return selectionAdapter;
+	}
+	
 	/**
 	 * Ensures that the preferences are setup
 	 * 
