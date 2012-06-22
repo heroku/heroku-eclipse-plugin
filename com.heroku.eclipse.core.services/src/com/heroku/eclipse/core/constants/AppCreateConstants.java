@@ -4,7 +4,7 @@
 package com.heroku.eclipse.core.constants;
 
 /**
- * Constants representing IDs of widgets used during app creation process,
+ * Constants representing IDs of UI widgets used during app creation process,
  * used for service, GUI and testing purposes 
  * @author udo.rader@bestsolution.at
  */
