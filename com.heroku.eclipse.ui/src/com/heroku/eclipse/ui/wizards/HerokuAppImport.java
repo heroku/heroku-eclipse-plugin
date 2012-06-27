@@ -83,21 +83,25 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, new NullProgressMonitor()); //$NON-NLS-1$
 						}
 						catch (HerokuServiceException e) {
-							if ( e.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION ) {
-								HerokuUtils.userError(getShell(), Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir+System.getProperty("file.separator")+app.getName()));  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-							}
-							else {
-								e.printStackTrace();
-								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
-								HerokuUtils.internalError(getShell(), e);
-							}
+							throw new InvocationTargetException(e);
 						}
 					}
 				});
 			}
 			catch (InvocationTargetException e) {
-				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
-				HerokuUtils.internalError(getShell(), e);
+				if ( e.getCause() instanceof HerokuServiceException ) {
+					if ( ((HerokuServiceException)e.getCause()).getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION ) {
+						HerokuUtils.userError(getShell(), Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir+System.getProperty("file.separator")+app.getName()));  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+					}
+					else {
+						e.printStackTrace();
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
+						HerokuUtils.herokuError(getShell(), e);
+					}
+				}
+				else {
+					HerokuUtils.herokuError(getShell(), e);
+				}
 			}
 			catch (InterruptedException e) {
 				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
