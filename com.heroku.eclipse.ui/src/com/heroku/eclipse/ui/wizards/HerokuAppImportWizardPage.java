@@ -54,7 +54,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 		setTitle(Messages.getString("HerokuAppImportWizardPage_Description")); //$NON-NLS-1$
 		service = Activator.getDefault().getService();
 	}
-	
+
 	@Override
 	public void createControl(Composite parent) {
 		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening app import wizard"); //$NON-NLS-1$
@@ -62,98 +62,90 @@ public class HerokuAppImportWizardPage extends WizardPage {
 		Composite group = new Composite(parent, SWT.NONE);
 		group.setLayout(new GridLayout(1, false));
 		setControl(group);
-		
+
 		group.setEnabled(true);
 		setErrorMessage(null);
 		setPageComplete(false);
 
-		// ensure valid prefs
-		if (!verifyPreferences(group)) {
-			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "preferences are missing/invalid"); //$NON-NLS-1$
-			group.setEnabled(false);
-			setErrorMessage(Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$
+		viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
+		viewer.setContentProvider(ArrayContentProvider.getInstance());
+		viewer.setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.V_APPS_LIST);
+		viewer.setComparator(new AppComparator());
+
+		Table table = viewer.getTable();
+		GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
+		gd_table.heightHint = table.getItemHeight() * 15;
+		table.setLayoutData(gd_table);
+		table.setHeaderVisible(true);
+
+		{
+			nameColumn = new TableViewerColumn(viewer, SWT.NONE);
+			nameColumn.setLabelProvider(LabelProviderFactory.createApp_Name());
+
+			TableColumn tc = nameColumn.getColumn();
+			tc.setWidth(150);
+			tc.setText(Messages.getString("HerokuAppImportWizardPage_Name")); //$NON-NLS-1$
+			tc.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_NAME);
+			tc.addSelectionListener(getSelectionAdapter(tc));
+		}
+
+		{
+			TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
+			vc.setLabelProvider(LabelProviderFactory.createApp_GitUrl());
+
+			TableColumn tc = vc.getColumn();
+			tc.setWidth(150);
+			tc.setText(Messages.getString("HerokuAppImportWizardPage_GitUrl")); //$NON-NLS-1$
+			tc.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_GIT_URL);
+			tc.addSelectionListener(getSelectionAdapter(tc));
+
+		}
+
+		{
+			TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
+			vc.setLabelProvider(LabelProviderFactory.createApp_Url());
+
+			TableColumn tc = vc.getColumn();
+			tc.setWidth(100);
+			tc.setText(Messages.getString("HerokuAppImportWizardPage_AppUrl")); //$NON-NLS-1$
+			tc.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_WEB_URL);
+			tc.addSelectionListener(getSelectionAdapter(tc));
+
+		}
+
+		List<App> apps = new ArrayList<App>();
+		try {
+			apps = service.listApps();
+		}
+		catch (HerokuServiceException e) {
+			e.printStackTrace();
+			HerokuUtils.internalError(parent.getShell(), e);
+		}
+
+		if (apps.size() == 0) {
+			Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no applications found"); //$NON-NLS-1$
+			setPageComplete(false);
 		}
 		else {
-			viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
-			viewer.setContentProvider(ArrayContentProvider.getInstance());
-			viewer.setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.V_APPS_LIST);
-			viewer.setComparator(new AppComparator());
-
-			Table table = viewer.getTable();
-			GridData gd_table = new GridData(SWT.FILL, SWT.FILL, true, true, 3, 1);
-			gd_table.heightHint=table.getItemHeight()*15;
-			table.setLayoutData(gd_table);
-			table.setHeaderVisible(true);
-
-			{
-				nameColumn = new TableViewerColumn(viewer, SWT.NONE);
-				nameColumn.setLabelProvider(LabelProviderFactory.createApp_Name());
-				
-				TableColumn tc = nameColumn.getColumn();
-				tc.setWidth(150);
-				tc.setText(Messages.getString("HerokuAppImportWizardPage_Name")); //$NON-NLS-1$
-				tc.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_NAME);
-				tc.addSelectionListener(getSelectionAdapter(tc));
-			}
-
-			{
-				TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
-				vc.setLabelProvider(LabelProviderFactory.createApp_GitUrl());
-				
-				TableColumn tc = vc.getColumn();
-				tc.setWidth(150);
-				tc.setText(Messages.getString("HerokuAppImportWizardPage_GitUrl")); //$NON-NLS-1$
-				tc.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_GIT_URL);
-				tc.addSelectionListener(getSelectionAdapter(tc));
-
-			}
-
-			{
-				TableViewerColumn vc = new TableViewerColumn(viewer, SWT.NONE);
-				vc.setLabelProvider(LabelProviderFactory.createApp_Url());
-				
-				TableColumn tc = vc.getColumn();
-				tc.setWidth(100);
-				tc.setText(Messages.getString("HerokuAppImportWizardPage_AppUrl")); //$NON-NLS-1$
-				tc.setData(AppComparator.SORT_IDENTIFIER, APP_FIELDS.APP_WEB_URL);
-				tc.addSelectionListener(getSelectionAdapter(tc));
-
-			}
-
-			List<App> apps = new ArrayList<App>();
-			try {
-				apps = service.listApps();
-			}
-			catch (HerokuServiceException e) {
-				e.printStackTrace();
-				HerokuUtils.internalError(parent.getShell(), e);
-			}
-
-			if (apps.size() == 0) {
-				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no applications found"); //$NON-NLS-1$
-				setPageComplete(false);
-			}
-			else {
-				Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "found " + apps.size() + " applications, displaying"); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-
-			viewer.setInput(apps);
-			viewer.addSelectionChangedListener(new ISelectionChangedListener() {
-
-				@Override
-				public void selectionChanged(SelectionChangedEvent event) {
-					final IStructuredSelection s = (IStructuredSelection) event.getSelection();
-					app = (App) s.getFirstElement();
-					setPageComplete(true);
-				}
-			});
-			
-			viewer.getTable().setSortColumn(nameColumn.getColumn());
-			viewer.getTable().setSortDirection(SWT.UP);
-			viewer.refresh();
+			Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "found " + apps.size() + " applications, displaying"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
+
+		viewer.setInput(apps);
+		viewer.addSelectionChangedListener(new ISelectionChangedListener() {
+
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				final IStructuredSelection s = (IStructuredSelection) event.getSelection();
+				app = (App) s.getFirstElement();
+				setPageComplete(true);
+			}
+		});
+
+		viewer.getTable().setSortColumn(nameColumn.getColumn());
+		viewer.getTable().setSortDirection(SWT.UP);
+		viewer.refresh();
 	}
-	
+
 	private SelectionAdapter getSelectionAdapter(final TableColumn column) {
 		SelectionAdapter selectionAdapter = new SelectionAdapter() {
 
@@ -174,40 +166,6 @@ public class HerokuAppImportWizardPage extends WizardPage {
 			}
 		};
 		return selectionAdapter;
-	}
-	
-	/**
-	 * Ensures that the preferences are setup
-	 * 
-	 * @param parent
-	 * @return true, if the prefs are OK, false if not
-	 */
-	private boolean verifyPreferences(Composite parent) {
-		boolean isOk = true;
-
-		// ensure that we have valid prefs
-		try {
-			isOk = service.isReady();
-		}
-		catch (HerokuServiceException e) {
-			if (e.getErrorCode() == HerokuServiceException.SECURE_STORE_ERROR) {
-				HerokuUtils.userError(parent.getShell(),
-						Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid_Title"), Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$ //$NON-NLS-2$
-				return false;
-			}
-			else {
-				e.printStackTrace();
-				HerokuUtils.internalError(parent.getShell(), e);
-				return false;
-			}
-		}
-
-		if (!isOk) {
-			HerokuUtils.userError(parent.getShell(),
-					Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-
-		return isOk;
 	}
 
 	/**

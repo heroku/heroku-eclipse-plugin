@@ -6,6 +6,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -13,10 +15,15 @@ import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import com.heroku.api.App;
+import com.heroku.api.Proc;
+import com.heroku.eclipse.core.services.HerokuServices;
+import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
+import com.heroku.eclipse.ui.preferences.HerokuPreferencePage;
 
 /**
  * (Mostly) static container for various utility functionality
@@ -273,4 +280,72 @@ public class HerokuUtils {
 			}
 		}
 	}
+	
+	/**
+	 * Retrieves the process name of a process without the process counter.
+	 * So for a Proc.getProcess() returning foo.1, you will get only foo   
+	 * @param p
+	 * @return the process name stripped from the process counter
+	 */
+	public static String getProcessName( Proc p ) {
+		String[] pn = p.getProcess().split("."); //$NON-NLS-1$
+		
+		if ( pn.length > 0 ) {
+			return pn[pn.length-1];
+		}
+		else {
+			return pn[0];
+		}
+	}
+	
+	/**
+	 * Delivers a somewhat unique id for the given process, consisting of its
+	 * app name and its process name.
+	 * @param p
+	 * @return the crafted process id
+	 */
+	public static String getProcessId( Proc p ) {
+		return p.getAppName()+"<>"+getProcessName(p); //$NON-NLS-1$
+	}
+	
+	/**
+	 * Verifies that the preferences are valid and if not, asks the user if he/she
+	 * wants to setup the preferences, otherwise return null
+	 * 
+	 * @param service 
+	 * @param parent
+	 * @return true, if the prefs are OK, false if not
+	 */
+	public static boolean verifyPreferences(HerokuServices service, Shell parent) {
+		boolean isOk = true;
+		
+		// ensure that we have valid prefs
+		try {
+			while ( ! service.isReady() ) {
+				if ( MessageDialog.openQuestion(parent, Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Question")) ) { //$NON-NLS-1$ //$NON-NLS-2$
+					PreferenceDialog p = PreferencesUtil.createPreferenceDialogOn(null, HerokuPreferencePage.ID, null, null);
+					p.open();
+				}
+				else {
+					return false;
+				}
+			}
+		}
+		catch (HerokuServiceException e) {
+			if (e.getErrorCode() == HerokuServiceException.SECURE_STORE_ERROR) {
+				HerokuUtils.userError(parent,
+						Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid_Title"), Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$ //$NON-NLS-2$
+				return false;
+			}
+			else {
+				e.printStackTrace();
+				HerokuUtils.internalError(parent, e);
+				return false;
+			}
+		}
+
+		return isOk;
+	}
+
+
 }

@@ -581,7 +581,13 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				return ((App) element).getId().hashCode();
 			}
 			else if (element instanceof Proc) {
-				return ((Proc) element).getUpid().hashCode();
+				Proc p = (Proc) element;
+//				if ( p.getUpid() != null ) {
+//					return p.getUpid().hashCode();
+//				}
+//				else {
+					return HerokuUtils.getProcessId(p).hashCode();
+//				}
 			}
 			return element.hashCode();
 		}
@@ -612,5 +618,4 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		}
 
 	}
-
 }

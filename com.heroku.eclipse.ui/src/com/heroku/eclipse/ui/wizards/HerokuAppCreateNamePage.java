@@ -12,6 +12,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.dialogs.PreferenceLinkArea;
+import org.eclipse.ui.preferences.IWorkbenchPreferenceContainer;
 import org.osgi.service.log.LogService;
 
 import com.heroku.eclipse.core.constants.AppCreateConstants;
@@ -115,6 +117,13 @@ public class HerokuAppCreateNamePage extends WizardPage {
 		}
 
 		if (!isOk) {
+			PreferenceLinkArea p = new PreferenceLinkArea(parent, SWT.NONE,
+					"org.eclipse.jsch.ui.SSHPreferences", Messages.getString("HerokuPreferencePage_Generate"),//$NON-NLS-1$ //$NON-NLS-2$
+					(IWorkbenchPreferenceContainer) getContainer(), null);
+
+			p.getControl().setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 1, 1));
+
+
 			HerokuUtils.userError(parent.getShell(),
 					Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing")); //$NON-NLS-1$ //$NON-NLS-2$
 		}

@@ -31,8 +31,7 @@ public class LabelProviderFactory {
 				}
 				else if (element instanceof Proc) {
 					Proc proc = (Proc) element;
-					String rv = proc.getProcess() + " (" + proc.getState() + "/" + proc.getAction() + ")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					return rv;
+					return HerokuUtils.getProcessName(proc) + " (" + proc.getPrettyState() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				return ""; //$NON-NLS-1$
 			}

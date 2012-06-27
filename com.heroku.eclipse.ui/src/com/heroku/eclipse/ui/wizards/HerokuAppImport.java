@@ -8,8 +8,7 @@ import org.eclipse.egit.ui.UIPreferences;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
-import org.eclipse.jface.wizard.WizardDialog;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.IWorkbench;
 import org.osgi.service.log.LogService;
@@ -54,15 +53,17 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 	@Override
 	public void addPages() {
 		setNeedsProgressMonitor(false);
-
-		try {
-			listPage = new HerokuAppImportWizardPage();
-			addPage(listPage);
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}
 		
+		if ( HerokuUtils.verifyPreferences(service, Display.getCurrent().getActiveShell()) ) {
+			try {
+				listPage = new HerokuAppImportWizardPage();
+				addPage(listPage);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				HerokuUtils.internalError(Display.getCurrent().getActiveShell(), e);
+			}
+		}
 	}
 	
 	@Override
@@ -105,5 +106,4 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 		}
 		return true;
 	}
-	
 }

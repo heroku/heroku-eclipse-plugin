@@ -54,6 +54,10 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
  * @author udo.rader@bestsolution.at
  */
 public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPreferencePage {
+	/**
+	 * Preference page ID of our lovely page
+	 */
+	public static final String ID = "com.heroku.eclipse.ui.preferences.HerokuPreferencePage"; //$NON-NLS-1$
 
 	private static final String HEROKU_PREFERENCE_PAGE_CONTEXT = "com.heroku.eclipse.context"; //$NON-NLS-1$
 
