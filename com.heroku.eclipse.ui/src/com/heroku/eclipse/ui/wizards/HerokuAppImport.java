@@ -84,7 +84,7 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 						}
 						catch (HerokuServiceException e) {
 							if ( e.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION ) {
-								HerokuUtils.userError(getShell(), Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("replacements)HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir+System.getProperty("path.separator")+app.getName()));  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+								HerokuUtils.userError(getShell(), Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir+System.getProperty("file.separator")+app.getName()));  //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
 							}
 							else {
 								e.printStackTrace();

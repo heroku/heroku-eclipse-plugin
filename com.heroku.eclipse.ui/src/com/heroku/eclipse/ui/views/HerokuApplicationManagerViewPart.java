@@ -607,7 +607,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					HerokuUtils
 							.userError(
 									getShell(),
-									Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("replacements)HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir + System.getProperty("path.separator") + app.getName())); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+									Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir + System.getProperty("file.separator") + app.getName())); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
 				}
 				else {
 					e.printStackTrace();
