@@ -308,6 +308,15 @@ public interface HerokuServices {
 	public void restartApplication(App app) throws HerokuServiceException;
 
 	/**
+	 * Restart a process
+	 * 
+	 * @param proc
+	 *            the process to restart
+	 * @throws HerokuServiceException
+	 */
+	public void restartProcess(Proc proc) throws HerokuServiceException;
+
+	/**
 	 * Destroy an application
 	 * 
 	 * @param app
