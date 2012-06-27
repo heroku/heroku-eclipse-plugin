@@ -61,6 +61,9 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 				HerokuUtils.internalError(Display.getCurrent().getActiveShell(), e);
 			}
 		}
+		else {
+			Display.getDefault().getActiveShell().close();
+		}
 	}
 
 	@Override
