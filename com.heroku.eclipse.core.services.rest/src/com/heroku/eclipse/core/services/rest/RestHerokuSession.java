@@ -83,7 +83,12 @@ public class RestHerokuSession implements HerokuSession {
 			api.addKey(sshKey);
 		}
 		catch (RequestFailedException e) {
-			throw checkException(e);
+			if ( e.getStatusCode() == 422 ) {
+				throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, extractErrorField(e.getResponseBody()), e);
+			}
+			else {
+				throw checkException(e);
+			}
 		}
 	}
 

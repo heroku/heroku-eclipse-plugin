@@ -151,6 +151,7 @@ public class RestHerokuServices implements HerokuServices {
 		return getPreferences().get(PreferenceConstants.P_SSH_KEY, null);
 	}
 
+	@Override
 	public void setSSHKey(String sshKey) throws HerokuServiceException {
 		try {
 			IEclipsePreferences p = getPreferences();
