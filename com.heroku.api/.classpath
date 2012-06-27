@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="heroku-api-0.9.jar"/>
-	<classpathentry exported="true" kind="lib" path="heroku-http-apache-0.9.jar"/>
-	<classpathentry exported="true" kind="lib" path="heroku-json-jackson-0.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="heroku-api-0.11.jar"/>
+	<classpathentry exported="true" kind="lib" path="heroku-http-apache-0.11.jar"/>
+	<classpathentry exported="true" kind="lib" path="heroku-json-jackson-0.11.jar"/>
 	<classpathentry exported="true" kind="lib" path="heroku-eclipse-useragent-0.0.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="commons-codec-1.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="commons-logging-1.1.1.jar"/>
