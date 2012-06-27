@@ -287,6 +287,25 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						}
 					}
 				}
+				else {
+					Proc proc = getSelectedProc();
+					if (proc != null) {
+						if (MessageDialog
+								.openQuestion(
+										getShell(),
+										Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", HerokuUtils.getProcessName(proc)))) { //$NON-NLS-1$ //$NON-NLS-2$
+							try {
+								herokuService.restartProcess(proc);
+							}
+							catch (HerokuServiceException e) {
+								Activator.getDefault().getLogger()
+										.log(LogService.LOG_ERROR, "unknown error when trying to restart process " + proc.getProcess(), e); //$NON-NLS-1$
+								e.printStackTrace();
+								HerokuUtils.internalError(getShell(), e);
+							}
+						}
+					}
+				}
 			}
 		};
 
@@ -372,17 +391,36 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				scale.setEnabled(false);
 				destroy.setEnabled(false);
 				if (enabled) {
-					App app = (App) s.getFirstElement();
-					try {
-						if (herokuService.isOwnApp(app)) {
-							scale.setEnabled(true);
-							destroy.setEnabled(true);
+					if (s.getFirstElement() instanceof App) {
+						App app = (App) s.getFirstElement();
+						try {
+							if (herokuService.isOwnApp(app)) {
+								scale.setEnabled(true);
+								destroy.setEnabled(true);
+							}
+						}
+						catch (HerokuServiceException e) {
+							Activator.getDefault().getLogger()
+									.log(LogService.LOG_ERROR, "unknown error when trying to determine if app " + app.getName() + " is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
+							HerokuUtils.herokuError(getShell(), e);
 						}
 					}
-					catch (HerokuServiceException e) {
-						Activator.getDefault().getLogger()
-								.log(LogService.LOG_ERROR, "unknown error when trying to determine if app " + app.getName() + " is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
-						HerokuUtils.herokuError(getShell(), e);
+					else if (s.getFirstElement() instanceof Proc) {
+						Proc proc = (Proc) s.getFirstElement();
+						importApp.setEnabled(false);
+						open.setEnabled(false);
+						try {
+							App app = herokuService.getApp(proc.getAppName());
+							if (herokuService.isOwnApp(app)) {
+								scale.setEnabled(true);
+							}
+						}
+						catch (HerokuServiceException e) {
+							Activator.getDefault().getLogger()
+									.log(LogService.LOG_ERROR, "unknown error when trying to determine if app " + proc.getAppName() + " is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
+							HerokuUtils.herokuError(getShell(), e);
+						}
+
 					}
 				}
 			}
@@ -582,12 +620,12 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 			else if (element instanceof Proc) {
 				Proc p = (Proc) element;
-//				if ( p.getUpid() != null ) {
-//					return p.getUpid().hashCode();
-//				}
-//				else {
-					return HerokuUtils.getProcessId(p).hashCode();
-//				}
+				// if ( p.getUpid() != null ) {
+				// return p.getUpid().hashCode();
+				// }
+				// else {
+				return HerokuUtils.getProcessId(p).hashCode();
+				// }
 			}
 			return element.hashCode();
 		}

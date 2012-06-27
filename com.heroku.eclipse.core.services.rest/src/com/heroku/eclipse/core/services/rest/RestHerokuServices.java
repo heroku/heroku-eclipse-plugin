@@ -475,6 +475,7 @@ public class RestHerokuServices implements HerokuServices {
 	public IStatus createProject(final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm) {
 		try {
 			IWorkspaceRunnable wsr = new IWorkspaceRunnable() {
+				@SuppressWarnings("restriction")
 				public void run(IProgressMonitor actMonitor) throws CoreException {
 					final IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
 					desc.setLocation(new Path(projectPath));
@@ -587,7 +588,7 @@ public class RestHerokuServices implements HerokuServices {
 			}
 			catch (HerokuServiceException ex) {
 				Activator.getDefault().getLogger()
-						.log(LogService.LOG_INFO, "Could not remove collaborator '" + e + "' from application '" + app.getName() + "'", ex);
+						.log(LogService.LOG_INFO, "Could not remove collaborator '" + e + "' from application '" + app.getName() + "'", ex); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				notremove.add(e);
 			}
 		}
@@ -648,5 +649,10 @@ public class RestHerokuServices implements HerokuServices {
 	@Override
 	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException {
 		return getOrCreateHerokuSession().getProcessLogStream(app, processName);
+	}
+
+	@Override
+	public void restartProcess(Proc proc) throws HerokuServiceException {
+		getOrCreateHerokuSession().restart(proc);
 	}
 }

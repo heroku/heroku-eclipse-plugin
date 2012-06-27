@@ -171,4 +171,12 @@ public interface HerokuSession {
 	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
 
 	public List<Proc> listProcesses(App app) throws HerokuServiceException;
+	
+	/**
+	 * Restarts the given process 
+	 * @param proc
+	 * @throws HerokuServiceException
+	 */
+	public void restart(Proc proc) throws HerokuServiceException;
+	
 }

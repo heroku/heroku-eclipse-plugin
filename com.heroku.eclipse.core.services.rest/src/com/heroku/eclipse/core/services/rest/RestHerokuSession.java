@@ -283,4 +283,18 @@ public class RestHerokuSession implements HerokuSession {
 			throw checkException(e);
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuSession#restart(com.heroku.api.Proc)
+	 */
+	@Override
+	public void restart(Proc proc) throws HerokuServiceException {
+		checkValid();
+		try {
+			api.restartProcessByName(proc.getAppName(), proc.getProcess());
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
 }
