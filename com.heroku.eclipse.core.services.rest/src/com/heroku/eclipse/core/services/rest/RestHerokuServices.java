@@ -158,8 +158,8 @@ public class RestHerokuServices implements HerokuServices {
 			if (sshKey == null || sshKey.trim().isEmpty()) {
 				p.remove(PreferenceConstants.P_SSH_KEY);
 			}
-			else if (true || !sshKey.equals(getSSHKey())) {
-				validateSSHKey(sshKey);
+			else if (!sshKey.equals(getSSHKey()) || System.getProperty("heroku.devel") != null && System.getProperty("heroku.devel").equals("true")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+ 				validateSSHKey(sshKey);
 				getOrCreateHerokuSession().addSSHKey(sshKey);
 				p.put(PreferenceConstants.P_SSH_KEY, sshKey);
 			}

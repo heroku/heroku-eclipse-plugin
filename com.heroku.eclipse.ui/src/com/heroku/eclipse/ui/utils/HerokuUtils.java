@@ -288,10 +288,10 @@ public class HerokuUtils {
 	 * @return the process name stripped from the process counter
 	 */
 	public static String getProcessName( Proc p ) {
-		String[] pn = p.getProcess().split("."); //$NON-NLS-1$
+		String[] pn = p.getProcess().split("\\."); //$NON-NLS-1$
 		
-		if ( pn.length > 0 ) {
-			return pn[pn.length-1];
+		if ( pn.length > 1 ) {
+			return pn[pn.length-2];
 		}
 		else {
 			return pn[0];
