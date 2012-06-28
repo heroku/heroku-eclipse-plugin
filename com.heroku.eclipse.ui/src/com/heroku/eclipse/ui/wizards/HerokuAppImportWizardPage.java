@@ -168,6 +168,11 @@ public class HerokuAppImportWizardPage extends WizardPage {
 		return selectionAdapter;
 	}
 
+	@Override
+	public boolean isCurrentPage() {
+		return super.isCurrentPage();
+	}
+	
 	/**
 	 * Returns the selected app
 	 * 

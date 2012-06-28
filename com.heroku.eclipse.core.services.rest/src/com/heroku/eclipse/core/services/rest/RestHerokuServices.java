@@ -496,7 +496,7 @@ public class RestHerokuServices implements HerokuServices {
 
 					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
 
-					if (importType == IMPORT_TYPES.AUTODETECT) {
+					if (importType == IMPORT_TYPES.AUTODETECT || importType == IMPORT_TYPES.MAVEN ) {
 						IFile pom = prj.getFile(IMavenConstants.POM_FILE_NAME);
 						// add maven nature, if this is a maven project
 						if (pom.exists()) {
@@ -671,5 +671,17 @@ public class RestHerokuServices implements HerokuServices {
 	@Override
 	public boolean appNameExists(String appName) throws HerokuServiceException {
 		return getOrCreateHerokuSession().appNameExists(appName);
+	}
+
+	@Override
+	public IMPORT_TYPES getProjectType(String buildpackProvidedDescription) {
+		if ( "Java".equalsIgnoreCase(buildpackProvidedDescription)) { //$NON-NLS-1$
+			return IMPORT_TYPES.MAVEN;
+		}
+		else if ( "Play".equalsIgnoreCase(buildpackProvidedDescription)) { //$NON-NLS-1$
+			return IMPORT_TYPES.PLAY;
+		}
+		
+		return IMPORT_TYPES.AUTODETECT;
 	}
 }

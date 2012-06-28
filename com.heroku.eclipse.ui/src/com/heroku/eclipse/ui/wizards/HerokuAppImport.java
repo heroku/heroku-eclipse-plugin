@@ -16,6 +16,7 @@ import org.osgi.service.log.LogService;
 import com.heroku.api.App;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
+import com.heroku.eclipse.core.services.HerokuServices.IMPORT_TYPES;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
@@ -33,12 +34,8 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 
 	private HerokuServices service;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.ui.IWorkbenchWizard#init(org.eclipse.ui.IWorkbench,
-	 * org.eclipse.jface.viewers.IStructuredSelection)
-	 */
+	private HerokuAppProjectTypePage projectTypePage;
+
 	@Override
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 	}
@@ -58,6 +55,8 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 			try {
 				listPage = new HerokuAppImportWizardPage();
 				addPage(listPage);
+				projectTypePage = new HerokuAppProjectTypePage();
+				addPage(projectTypePage);
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -72,7 +71,8 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 	@Override
 	public boolean performFinish() {
 		final App app = listPage.getSelectedApp();
-
+		final IMPORT_TYPES importType = projectTypePage.getImportType();
+		
 		if (app != null) {
 			final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
 			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
@@ -82,7 +82,7 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 					@Override
 					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 						try {
-							service.materializeGitApp(app, destinationDir, timeout,
+							service.materializeGitApp(app, importType, destinationDir, timeout,
 									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, new NullProgressMonitor()); //$NON-NLS-1$
 						}
 						catch (HerokuServiceException e) {
@@ -113,4 +113,13 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 		}
 		return true;
 	}
+	
+	public boolean canFinish() {
+		return !listPage.isCurrentPage();
+	}
+	
+	public App getActiveApp() {
+		return listPage.getSelectedApp();
+	}
+
 }

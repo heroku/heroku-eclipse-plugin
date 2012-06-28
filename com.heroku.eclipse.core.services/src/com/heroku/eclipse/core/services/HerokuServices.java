@@ -124,7 +124,7 @@ public interface HerokuServices {
 	 * @author udo.rader@bestsolution.at
 	 */
 	public static enum IMPORT_TYPES {
-		AUTODETECT, WIZARD, GENERAL_PROJECT 
+		AUTODETECT, WIZARD, GENERAL_PROJECT, MAVEN, PLAY
 	}
 
 	/**
@@ -456,5 +456,12 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public boolean appNameExists( String appName ) throws HerokuServiceException;
+	
+	/**
+	 * Delivers the project type for the given App.buildbackProvidedDescription
+	 * @param buildpackProvidedDescription
+	 * @return either the determined element IMPORT_TYPES enum or, per default, IMPORT_TYPES.AUTODETECT 
+	 */
+	public IMPORT_TYPES getProjectType( String buildpackProvidedDescription );
 
 }
