@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbench;
@@ -261,26 +262,28 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		}
 
 		// SSH Key
-		{
-			Label l = new Label(group, SWT.NONE);
-			l.setText(Messages.getString("HerokuPreferencePage_SSHKey")); //$NON-NLS-1$
-			l.setLayoutData(new GridData(SWT.RIGHT, SWT.TOP, false, false, 1, 1));
+		Group sshGroup = new Group(group, SWT.LEFT);
+		GridLayout sshLayout = new GridLayout();
+		sshGroup.setLayout(sshLayout);
+		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1);
+		sshGroup.setLayoutData(data);
+		sshGroup.setText(Messages.getString("HerokuPreferencePage_SSHKey")); //$NON-NLS-1$
 
-			Text t = new Text(group, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP | SWT.READ_ONLY);
-			t.setFont(group.getFont());
-			GridData g = new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1);
+		{
+			Text t = new Text(sshGroup, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP | SWT.READ_ONLY);
+			t.setFont(sshGroup.getFont());
+			GridData g = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.GRAB_HORIZONTAL);
 			g.heightHint = 100;
 			g.widthHint = 500;
 			t.setLayoutData(g);
 			t.setData(HerokuServices.ROOT_WIDGET_ID, PreferenceConstants.P_SSH_KEY);
 
 			widgetRegistry.put(PreferenceConstants.P_SSH_KEY, t);
-
 		}
 
 		// button row
 		{
-			Composite right = new Composite(group, SWT.NONE);
+			Composite right = new Composite(sshGroup, SWT.NONE);
 			right.setLayoutData(new GridData(SWT.RIGHT, SWT.NONE, false, false, 3, 1));
 
 			GridLayout gl = new GridLayout(4, true);
@@ -861,7 +864,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 	@Override
 	protected void performApply() {
-		setAPIAndSSHKey(((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).getText().trim(), ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText().trim());
+		setAPIAndSSHKey(((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).getText().trim(), ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY))
+				.getText().trim());
 	}
 
 	@Override
