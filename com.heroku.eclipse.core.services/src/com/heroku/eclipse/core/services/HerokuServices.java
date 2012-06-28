@@ -118,6 +118,14 @@ public interface HerokuServices {
 	public static enum APP_FIELDS {
 		APP_NAME, APP_GIT_URL, APP_WEB_URL
 	}
+	
+	/**
+	 * Enum representing the various import types for existing projects  
+	 * @author udo.rader@bestsolution.at
+	 */
+	public static enum IMPORT_TYPES {
+		AUTODETECT, WIZARD, GENERAL_PROJECT 
+	}
 
 	/**
 	 * Logs into the Heroku account and if successful, returns the user's
@@ -267,6 +275,8 @@ public interface HerokuServices {
 	 * 
 	 * @param app
 	 *            the App instance to materialize
+	 * @param importType 
+	 * 			  one import type out of the IMPORT_TYPES enum
 	 * @param workingDir
 	 *            the directory where the project will be materialized
 	 * @param timeout
@@ -281,13 +291,15 @@ public interface HerokuServices {
 	 *         App instance to materialize
 	 * @throws HerokuServiceException
 	 */
-	public boolean materializeGitApp(App app, String workingDir, int timeout, String progressTitle, CredentialsProvider cred, IProgressMonitor pm)
+	public boolean materializeGitApp(App app, IMPORT_TYPES importType, String workingDir, int timeout, String progressTitle, CredentialsProvider cred, IProgressMonitor pm)
 			throws HerokuServiceException;
 
 	/**
 	 * Materializes the given app in the user's local git repository
 	 * 
 	 * @param projectName
+	 * @param importType 
+	 * 				one import type out of the IMPORT_TYPES enum
 	 * @param projectPath
 	 * @param repoDir
 	 * @param pm
@@ -296,7 +308,7 @@ public interface HerokuServices {
 	 *         object
 	 * @throws HerokuServiceException
 	 */
-	public IStatus createProject(final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm) throws HerokuServiceException;
+	public IStatus createProject(final String projectName, final IMPORT_TYPES importType, final String projectPath, final File repoDir, IProgressMonitor pm) throws HerokuServiceException;
 
 	/**
 	 * Restart an application
@@ -308,13 +320,13 @@ public interface HerokuServices {
 	public void restartApplication(App app) throws HerokuServiceException;
 
 	/**
-	 * Restart a process
+	 * Restarts all instances of the given process
 	 * 
 	 * @param proc
 	 *            the process to restart
 	 * @throws HerokuServiceException
 	 */
-	public void restartProcess(Proc proc) throws HerokuServiceException;
+	public void restartProcessInstances(Proc proc) throws HerokuServiceException;
 
 	/**
 	 * Destroy an application
@@ -436,5 +448,13 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException;
+	
+	/**
+	 * Checks if an App with the given name already exists.
+	 * @param appName
+	 * @return <code>true</code> if the name already exists, <code>false</code> if the name is available 
+	 * @throws HerokuServiceException
+	 */
+	public boolean appNameExists( String appName ) throws HerokuServiceException;
 
 }

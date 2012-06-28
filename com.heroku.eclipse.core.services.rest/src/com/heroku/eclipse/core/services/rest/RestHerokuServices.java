@@ -159,7 +159,7 @@ public class RestHerokuServices implements HerokuServices {
 				p.remove(PreferenceConstants.P_SSH_KEY);
 			}
 			else if (!sshKey.equals(getSSHKey()) || System.getProperty("heroku.devel") != null && System.getProperty("heroku.devel").equals("true")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
- 				validateSSHKey(sshKey);
+				validateSSHKey(sshKey);
 				getOrCreateHerokuSession().addSSHKey(sshKey);
 				p.put(PreferenceConstants.P_SSH_KEY, sshKey);
 			}
@@ -363,9 +363,10 @@ public class RestHerokuServices implements HerokuServices {
 		App app = null;
 		try {
 			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new Heroku App '" + appName + "' from template '" + templateName + "'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			app = getOrCreateHerokuSession().cloneTemplate(templateName);
-			getOrCreateHerokuSession().renameApp(app.getName(), appName);
-			app = getOrCreateHerokuSession().getApp(appName);
+			app = getOrCreateHerokuSession().createAppFromTemplate(new App().named(appName), templateName);
+			// app = getOrCreateHerokuSession().cloneTemplate(templateName);
+			// getOrCreateHerokuSession().renameApp(app.getName(), appName);
+			// app = getOrCreateHerokuSession().getApp(appName);
 
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put(KEY_APPLICATION_ID, app.getId());
@@ -375,12 +376,12 @@ public class RestHerokuServices implements HerokuServices {
 		}
 		catch (HerokuServiceException e) {
 			// remove dead cloned template
-			if (e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE && app != null) {
+			if (e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
 				destroyApplication(app);
 				throw e;
 			}
 			else {
-				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "unknown error when creating '" + app.getName() + "', dying ..."); //$NON-NLS-1$ //$NON-NLS-2$
+				Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "unknown error when creating '" + appName + "', dying ..."); //$NON-NLS-1$ //$NON-NLS-2$
 				throw e;
 			}
 		}
@@ -389,8 +390,8 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public boolean materializeGitApp(App app, String gitLocation, int timeout, String dialogTitle, CredentialsProvider cred, IProgressMonitor pm)
-			throws HerokuServiceException {
+	public boolean materializeGitApp(App app, IMPORT_TYPES importType, String gitLocation, int timeout, String dialogTitle, CredentialsProvider cred,
+			IProgressMonitor pm) throws HerokuServiceException {
 		boolean rv = false;
 
 		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '" + app.getName() + "' in workspace"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -423,7 +424,7 @@ public class RestHerokuServices implements HerokuServices {
 
 			cloneOp.setCredentialsProvider(cred);
 			cloneOp.setCloneSubmodules(true);
-			runAsJob(uri, cloneOp, app, dialogTitle);
+			runAsJob(uri, cloneOp, app, importType, dialogTitle);
 
 			rv = true;
 		}
@@ -437,7 +438,7 @@ public class RestHerokuServices implements HerokuServices {
 		return rv;
 	}
 
-	private void runAsJob(final URIish uri, final CloneOperation op, final App app, String dialogTitle) {
+	private void runAsJob(final URIish uri, final CloneOperation op, final App app, final IMPORT_TYPES importType, String dialogTitle) {
 		final Job job = new Job(dialogTitle) {
 			@Override
 			protected IStatus run(final IProgressMonitor monitor) {
@@ -446,7 +447,7 @@ public class RestHerokuServices implements HerokuServices {
 
 					if (status.isOK()) {
 						// enableNatureAction
-						return createProject(app.getName(), op.getGitDir().getParentFile().getAbsolutePath(), op.getGitDir(), monitor);
+						return createProject(app.getName(), importType, op.getGitDir().getParentFile().getAbsolutePath(), op.getGitDir(), monitor);
 					}
 					else {
 						return status;
@@ -472,7 +473,15 @@ public class RestHerokuServices implements HerokuServices {
 		return Status.OK_STATUS;
 	}
 
-	public IStatus createProject(final String projectName, final String projectPath, final File repoDir, IProgressMonitor pm) {
+	/**
+	 * @param projectName
+	 * @param importType
+	 * @param projectPath
+	 * @param repoDir
+	 * @param pm
+	 * @return an IStatus indicator representing outcome of the creation operation, ie. Status.OK_STATUS
+	 */
+	public IStatus createProject(final String projectName, final IMPORT_TYPES importType, final String projectPath, final File repoDir, IProgressMonitor pm) {
 		try {
 			IWorkspaceRunnable wsr = new IWorkspaceRunnable() {
 				@SuppressWarnings("restriction")
@@ -487,27 +496,29 @@ public class RestHerokuServices implements HerokuServices {
 
 					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
 
-					IFile pom = prj.getFile(IMavenConstants.POM_FILE_NAME);
-					// add maven nature, if this is a maven project
-					if (pom.exists()) {
-						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Detected Java Maven application"); //$NON-NLS-1$
-						try {
-							ResolverConfiguration configuration = new ResolverConfiguration();
-							configuration.setResolveWorkspaceProjects(false);
-							//									configuration.setSelectedProfiles(""); //$NON-NLS-1$
+					if (importType == IMPORT_TYPES.AUTODETECT) {
+						IFile pom = prj.getFile(IMavenConstants.POM_FILE_NAME);
+						// add maven nature, if this is a maven project
+						if (pom.exists()) {
+							Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Detected Java Maven application"); //$NON-NLS-1$
+							try {
+								ResolverConfiguration configuration = new ResolverConfiguration();
+								configuration.setResolveWorkspaceProjects(false);
+								//									configuration.setSelectedProfiles(""); //$NON-NLS-1$
 
-							boolean hasMavenNature = prj.hasNature(IMavenConstants.NATURE_ID);
+								boolean hasMavenNature = prj.hasNature(IMavenConstants.NATURE_ID);
 
-							IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
+								IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
 
-							configurationManager.enableMavenNature(prj, configuration, actMonitor);
+								configurationManager.enableMavenNature(prj, configuration, actMonitor);
 
-							if (!hasMavenNature) {
-								configurationManager.updateProjectConfiguration(prj, actMonitor);
+								if (!hasMavenNature) {
+									configurationManager.updateProjectConfiguration(prj, actMonitor);
+								}
 							}
-						}
-						catch (CoreException ex) {
-							ex.printStackTrace();
+							catch (CoreException ex) {
+								ex.printStackTrace();
+							}
 						}
 					}
 					Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Heroku application import completed"); //$NON-NLS-1$
@@ -518,6 +529,7 @@ public class RestHerokuServices implements HerokuServices {
 		}
 		catch (CoreException e) {
 			e.printStackTrace();
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown, internal error when trying to create project " + projectName); //$NON-NLS-1$
 		}
 		return Status.OK_STATUS;
 	}
@@ -652,7 +664,12 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void restartProcess(Proc proc) throws HerokuServiceException {
+	public void restartProcessInstances(Proc proc) throws HerokuServiceException {
 		getOrCreateHerokuSession().restart(proc);
+	}
+
+	@Override
+	public boolean appNameExists(String appName) throws HerokuServiceException {
+		return getOrCreateHerokuSession().appNameExists(appName);
 	}
 }

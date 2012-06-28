@@ -297,4 +297,29 @@ public class RestHerokuSession implements HerokuSession {
 			throw checkException(e);
 		}
 	}
+
+	@Override
+	public boolean appNameExists(String appName) throws HerokuServiceException {
+		checkValid();
+		try {
+			return api.appExists(appName);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuSession#createAppFromTemplate(com.heroku.api.App)
+	 */
+	@Override
+	public App createAppFromTemplate(App app, String templateName ) throws HerokuServiceException {
+		checkValid();
+		try {
+			return api.cloneApp(templateName, app);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
 }

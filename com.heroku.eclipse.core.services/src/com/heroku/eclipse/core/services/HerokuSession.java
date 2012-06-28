@@ -103,6 +103,17 @@ public interface HerokuSession {
 	public void destroyApp(String name) throws HerokuServiceException;
 
 	/**
+	 * Creates a new app based on the given template name. Only works on the cedar stack.
+	 * 
+	 * @param app
+	 *            an {@link App} object with name filled. Typically created using new App().named(...)
+	 * @return the newly created app
+	 * @throws HerokuServiceException
+	 *             if {@link #isValid()} is false
+	 */
+	public App createAppFromTemplate(App app, String templateName ) throws HerokuServiceException;
+
+	/**
 	 * Clones the given template and delivers it as a ready to use Heroku App
 	 * 
 	 * @param templateName
@@ -179,4 +190,11 @@ public interface HerokuSession {
 	 */
 	public void restart(Proc proc) throws HerokuServiceException;
 	
+	/**
+	 * Checks if an App with the given name already exists.
+	 * @param appName
+	 * @return <code>true</code> if the name already exists, <code>false</code> if the name is available 
+	 * @throws HerokuServiceException
+	 */
+	public boolean appNameExists( String appName ) throws HerokuServiceException;
 }

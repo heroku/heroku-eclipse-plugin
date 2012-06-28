@@ -52,6 +52,7 @@ import com.heroku.api.Proc;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
+import com.heroku.eclipse.core.services.HerokuServices.IMPORT_TYPES;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
@@ -156,18 +157,19 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			@Override
 			public void open(OpenEvent event) {
-				App app = getSelectedApp();
-				if (app != null) {
-					try {
-						getSite().getWorkbenchWindow().getActivePage().openEditor(new ApplicationEditorInput(app), ApplicationInfoEditor.ID, true);
-					}
-					catch (PartInitException e) {
-						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to open editor for app " + app.getName(), e); //$NON-NLS-1$
-						e.printStackTrace();
-						HerokuUtils.internalError(getShell(), e);
+				try {
+					App app = getSelectedAppOrProcApp();
+					if (app != null) {
+						openEditor(app);
 					}
 				}
+				catch (HerokuServiceException e1) {
+					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display app info", e1); //$NON-NLS-1$
+					e1.printStackTrace();
+					HerokuUtils.herokuError(getShell(), e1);
+				}
 			}
+
 		});
 
 		// sorting by name per default
@@ -177,6 +179,18 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		refreshApplications();
 		subscribeToEvents();
+	}
+
+	private void openEditor(App app) {
+		try {
+			getSite().getWorkbenchWindow().getActivePage().openEditor(new ApplicationEditorInput(app), ApplicationInfoEditor.ID, true);
+		}
+		catch (PartInitException e) {
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to open editor for app " + app.getName(), e); //$NON-NLS-1$
+			e.printStackTrace();
+			HerokuUtils.internalError(getShell(), e);
+		}
+
 	}
 
 	private SelectionAdapter getSelectionAdapter(final TreeColumn column) {
@@ -224,6 +238,19 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		return !s.isEmpty() && s.getFirstElement() instanceof Proc ? (Proc) s.getFirstElement() : null;
 	}
 
+	App getSelectedAppOrProcApp() throws HerokuServiceException {
+		App app = getSelectedApp();
+
+		if (app == null) {
+			Proc proc = getSelectedProc();
+			if (proc != null) {
+				app = herokuService.getApp(proc.getAppName());
+			}
+		}
+
+		return app;
+	}
+
 	Shell getShell() {
 		return getSite().getWorkbenchWindow().getShell();
 	}
@@ -236,6 +263,23 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
+		final Action appInfo = new Action(Messages.getString("HerokuAppManagerViewPart_AppInfoShort")) { //$NON-NLS-1$
+			@Override
+			public void run() {
+				try {
+					App app = getSelectedAppOrProcApp();
+					if (app != null) {
+						openEditor(app);
+					}
+				}
+				catch (HerokuServiceException e) {
+					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display app info", e); //$NON-NLS-1$
+					e.printStackTrace();
+					HerokuUtils.internalError(getShell(), e);
+				}
+
+			}
+		};
 		final Action importApp = new Action(Messages.getString("HerokuAppManagerViewPart_Import")) { //$NON-NLS-1$
 			@Override
 			public void run() {
@@ -295,7 +339,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 										getShell(),
 										Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", HerokuUtils.getProcessName(proc)))) { //$NON-NLS-1$ //$NON-NLS-2$
 							try {
-								herokuService.restartProcess(proc);
+								herokuService.restartProcessInstances(proc);
 							}
 							catch (HerokuServiceException e) {
 								Activator.getDefault().getLogger()
@@ -368,6 +412,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		MenuManager mgr = new MenuManager();
 		mgr.add(refresh);
 		mgr.add(new Separator());
+		mgr.add(appInfo);
 		mgr.add(importApp);
 		mgr.add(open);
 		mgr.add(restart);
@@ -630,6 +675,10 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			return element.hashCode();
 		}
 	}
+	
+	private App findApp4Proc(Proc proc) {
+		return null;
+	}
 
 	private void importApp(final App app) throws HerokuServiceException {
 		if (app != null) {
@@ -637,7 +686,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 			final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
 			try {
-				herokuService.materializeGitApp(app, destinationDir, timeout,
+				herokuService.materializeGitApp(app, IMPORT_TYPES.AUTODETECT, destinationDir, timeout,
 						Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, new NullProgressMonitor()); //$NON-NLS-1$
 			}
 			catch (HerokuServiceException e) {
