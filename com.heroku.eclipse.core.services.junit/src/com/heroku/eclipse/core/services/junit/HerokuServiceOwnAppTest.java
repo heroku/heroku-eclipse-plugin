@@ -39,6 +39,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	protected void setUp() throws Exception {
 		HerokuServices service = getService();
 		service.setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
+		service.setSSHKey(Credentials.VALID_PUBLIC_SSH_KEY1);
 		
 		// remove all apps
 		destroyAllOwnApps(service);
@@ -73,6 +74,8 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 		if ( templatesList != null ) {
 			templatesList.clear();
 		}
+		service.setAPIKey(null);
+		service.setSSHKey(null);
 	}
 	
 	public void testGetUserInfo() {
@@ -82,6 +85,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 			assertEquals("fetched user is not identical to the currenctly logged in user", Credentials.VALID_JUNIT_USER1, user.getEmail());
 		}
 		catch (HerokuServiceException e) {
+			e.printStackTrace();
 			fail("expected fetching user info to succeed: "+e.getMessage());
 		}
 	}
@@ -93,6 +97,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 			assertEquals("fetched app is not expected, original app", VALID_APP1_NAME, app.getName());
 		}
 		catch (HerokuServiceException e) {
+			e.printStackTrace();
 			fail("expected fetching app info to succeed: "+e.getMessage());
 		}
 	}
@@ -111,7 +116,8 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 			assertEquals("app name", VALID_APP1_NAME, ownApps.get(0).getName());
 		}
 		catch ( HerokuServiceException e ) {
-			fail("apps listing should be possible");
+			e.printStackTrace();
+			fail("apps listing should be possible: "+e.getMessage());
 		}
 	}
 	
@@ -122,7 +128,8 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 			assertTrue("expecting templates list to contain at least one template", templates.size()>0);
 		}
 		catch (HerokuServiceException e) {
-			fail("templates listing must succeed");
+			e.printStackTrace();
+			fail("templates listing must succeed "+e.getMessage());
 		}
 	}
 	
@@ -135,7 +142,8 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 			assertEquals("new materialized app is not the same as the remote one", newApp.getId(), testApp.getId());
 		}
 		catch (HerokuServiceException e) {
-			fail("app creation from template should succeed");
+			e.printStackTrace();
+			fail("app creation from template should succeed "+e.getMessage());
 		}
 	}
 	
@@ -189,6 +197,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 			service.destroyApplication(getValidDummyApp());
 		}
 		catch (HerokuServiceException e) {
+			e.printStackTrace();
 			fail("expected app destruction to work " + e.getMessage());
 		}
 	}
@@ -199,6 +208,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 			service.renameApp(getValidDummyApp(), VALID_APP2_NAME);
 		}
 		catch (HerokuServiceException e) {
+			e.printStackTrace();
 			fail("expected app renaming to work " + e.getMessage());
 		}
 	}
@@ -219,9 +229,11 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 		try {
 			service.addCollaborator(getValidDummyApp(), Credentials.VALID_JUNIT_USER2);
 			List<Collaborator> collaborators = service.getCollaborators(getValidDummyApp());
-			assertEquals("expecting to have exactly 1 collaborator", 1, collaborators.size());
+			// 2 collaborators because the owner is listed as a collaborator as well
+			assertEquals("expecting to have exactly 2 collaborators", 2, collaborators.size());
 		}
 		catch (HerokuServiceException e) {
+			e.printStackTrace();
 			fail("expecting adding collaborator to succeed: "+e.getMessage());
 		}
 		
@@ -257,7 +269,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 			fail("removal of unknown collaborator must fail");
 		}
 		catch (HerokuServiceException e) {
-			assertEquals("expecting removal of unknown collaborator to die with NOT FOUND", HerokuServiceException.NOT_FOUND, e.getErrorCode());
+			assertEquals("expecting removal of unknown collaborator to die with REQUEST FAILED", HerokuServiceException.REQUEST_FAILED, e.getErrorCode());
 		}
 	}
 	

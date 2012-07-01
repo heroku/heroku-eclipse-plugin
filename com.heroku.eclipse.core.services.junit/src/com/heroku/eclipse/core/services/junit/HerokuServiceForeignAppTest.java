@@ -1,15 +1,9 @@
 package com.heroku.eclipse.core.services.junit;
-import java.util.ArrayList;
 import java.util.List;
-
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.junit.Ignore;
-import org.junit.Test;
 
 import com.heroku.api.App;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
-import com.heroku.eclipse.core.services.model.AppTemplate;
 
 
 public class HerokuServiceForeignAppTest extends HerokuServicesTest {
@@ -66,6 +60,9 @@ public class HerokuServiceForeignAppTest extends HerokuServicesTest {
 		service.setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
 		service.setSSHKey(Credentials.VALID_PUBLIC_SSH_KEY1);
 		destroyAllOwnApps(service);
+
+		service.setSSHKey(null);
+		service.setAPIKey(null);
 	}
 	
 	public void testListForeignApps() throws Exception {
@@ -78,7 +75,8 @@ public class HerokuServiceForeignAppTest extends HerokuServicesTest {
 			assertEquals("app name", VALID_APP1_NAME, apps.get(0).getName());
 		}
 		catch ( HerokuServiceException e ) {
-			fail("apps listing should be possible");
+			e.printStackTrace();
+			fail("apps listing should be possible "+e.getMessage());
 		}
 	}
 	

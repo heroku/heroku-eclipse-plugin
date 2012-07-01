@@ -9,7 +9,6 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +28,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
@@ -159,7 +157,7 @@ public class RestHerokuServices implements HerokuServices {
 			if (sshKey == null || sshKey.trim().isEmpty()) {
 				p.remove(PreferenceConstants.P_SSH_KEY);
 			}
-			else if (!sshKey.equals(getSSHKey()) || System.getProperty("heroku.devel") != null && System.getProperty("heroku.devel").equals("true")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			else if (!sshKey.equals(getSSHKey()) || ( "true".equals(System.getProperty("heroku.devel")))) { //$NON-NLS-1$ //$NON-NLS-2$
 				validateSSHKey(sshKey);
 				getOrCreateHerokuSession().addSSHKey(sshKey);
 				p.put(PreferenceConstants.P_SSH_KEY, sshKey);
@@ -374,7 +372,8 @@ public class RestHerokuServices implements HerokuServices {
 		}
 		catch (HerokuServiceException e) {
 			// remove dead cloned template
-			if (e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
+			// TODO: dead code, but removing breaks unit tests ...
+			if (app != null && e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
 				destroyApplication(app);
 				throw e;
 			}
@@ -473,9 +472,10 @@ public class RestHerokuServices implements HerokuServices {
 										"unknown error when trying to create project '" + existingProject.getName() + "' with new project wizard, aborting ...", e); //$NON-NLS-1$ //$NON-NLS-2$
 					}
 					else {
-						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown, internal error when trying to create project " + app.getName(), e); //$NON-NLS-1$
+						Activator.getDefault().getLogger()
+								.log(LogService.LOG_ERROR, "unknown, internal error when trying to create project " + app.getName(), e); //$NON-NLS-1$
 					}
-					
+
 					return new Status(IStatus.ERROR, Activator.getPluginId(), 0, e.getMessage(), e);
 				}
 			}
@@ -583,7 +583,7 @@ public class RestHerokuServices implements HerokuServices {
 			}
 		};
 		ResourcesPlugin.getWorkspace().run(wsr, pm);
-		
+
 		return Status.OK_STATUS;
 	}
 
@@ -643,7 +643,7 @@ public class RestHerokuServices implements HerokuServices {
 	public void removeCollaborators(App app, String... emails) throws HerokuServiceException {
 		HerokuSession s = getOrCreateHerokuSession();
 
-		List<String> notremove = new ArrayList<String>();
+		List<String> notremoved = new ArrayList<String>();
 		List<String> removed = new ArrayList<String>();
 
 		for (String e : emails) {
@@ -654,7 +654,7 @@ public class RestHerokuServices implements HerokuServices {
 			catch (HerokuServiceException ex) {
 				Activator.getDefault().getLogger()
 						.log(LogService.LOG_INFO, "Could not remove collaborator '" + e + "' from application '" + app.getName() + "'", ex); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				notremove.add(e);
+				notremoved.add(e);
 			}
 		}
 
@@ -667,8 +667,8 @@ public class RestHerokuServices implements HerokuServices {
 			eventAdmin.postEvent(event);
 		}
 
-		if (!notremove.isEmpty()) {
-			// TODO Throw exception with
+		if (!notremoved.isEmpty()) {
+			throw new HerokuServiceException(HerokuServiceException.REQUEST_FAILED, "one or more collaborators could not be removed: "+notremoved.toString()); //$NON-NLS-1$
 		}
 	}
 
@@ -736,5 +736,25 @@ public class RestHerokuServices implements HerokuServices {
 		}
 
 		return IMPORT_TYPES.AUTODETECT;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.heroku.eclipse.core.services.HerokuServices#getProcessName(com.heroku.api.Proc)
+	 */
+	@Override
+	public String getProcessName(Proc p) {
+		String[] pn = p.getProcess().split("\\."); //$NON-NLS-1$
+		
+		if ( pn.length > 1 ) {
+			return pn[pn.length-2];
+		}
+		else {
+			return pn[0];
+		}
+	}
+	
+	@Override
+	public String getProcessId( Proc p ) {
+		return p.getAppName()+"<>"+getProcessName(p); //$NON-NLS-1$
 	}
 }

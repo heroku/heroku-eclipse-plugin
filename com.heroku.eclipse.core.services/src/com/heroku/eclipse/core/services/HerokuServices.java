@@ -451,5 +451,21 @@ public interface HerokuServices {
 	 * @return either the determined element IMPORT_TYPES enum or, per default, IMPORT_TYPES.AUTODETECT 
 	 */
 	public IMPORT_TYPES getProjectType( String buildpackProvidedDescription );
+	
+	/**
+	 * Retrieves the process name of a process without the process counter.
+	 * So for a Proc.getProcess() returning foo.1, you will get only foo   
+	 * @param p
+	 * @return the process name stripped from the process counter
+	 */
+	public String getProcessName( Proc p );
+	
+	/**
+	 * Delivers a somewhat unique id for the given process, consisting of its
+	 * app name and its process name.
+	 * @param p
+	 * @return the crafted process id
+	 */
+	public String getProcessId( Proc p );
 
 }

@@ -287,7 +287,7 @@ public class HerokuUtils {
 	 * @param p
 	 * @return the process name stripped from the process counter
 	 */
-	public static String getProcessName( Proc p ) {
+	public static String getProcessName2( Proc p ) {
 		String[] pn = p.getProcess().split("\\."); //$NON-NLS-1$
 		
 		if ( pn.length > 1 ) {
@@ -304,8 +304,9 @@ public class HerokuUtils {
 	 * @param p
 	 * @return the crafted process id
 	 */
-	public static String getProcessId( Proc p ) {
-		return p.getAppName()+"<>"+getProcessName(p); //$NON-NLS-1$
+	public static String getProcessId2( Proc p ) {
+		return null;
+//		return p.getAppName()+"<>"+getProcessName(p); //$NON-NLS-1$
 	}
 	
 	/**

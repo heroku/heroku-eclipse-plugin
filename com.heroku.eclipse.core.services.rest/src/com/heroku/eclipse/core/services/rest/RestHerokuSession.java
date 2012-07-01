@@ -29,6 +29,11 @@ public class RestHerokuSession implements HerokuSession {
 	private boolean valid = true;
 
 	/**
+	 * Pattern helpful for determining the real meaning of a HTTP 422 response code
+	 */
+	private static Pattern PATTERN_NOT_ACCEPTABLE = Pattern.compile(".*(Name is already taken|must start with a letter and can only contain).*"); //$NON-NLS-1$
+
+	/**
 	 * @param apiKey
 	 */
 	public RestHerokuSession(String apiKey) {
@@ -62,7 +67,15 @@ public class RestHerokuSession implements HerokuSession {
 			case 406:
 				return new HerokuServiceException(HerokuServiceException.NOT_ACCEPTABLE, extractErrorField(e.getResponseBody()), e);
 			case 422:
-				return new HerokuServiceException(HerokuServiceException.REQUEST_FAILED, extractErrorField(e.getResponseBody()), e);
+				// the majority of "interesting" responses from the Heroku API
+				// all share HTTP code 422. So unfortunately we have to use the
+				// response body to separate between fiction and fact.
+				if (PATTERN_NOT_ACCEPTABLE.matcher(e.getResponseBody()).matches()) {
+					return new HerokuServiceException(HerokuServiceException.NOT_ACCEPTABLE, extractErrorField(e.getResponseBody()), e);
+				}
+				else {
+					return new HerokuServiceException(HerokuServiceException.REQUEST_FAILED, extractErrorField(e.getResponseBody()), e);
+				}
 			default:
 				throw e;
 		}
@@ -83,7 +96,7 @@ public class RestHerokuSession implements HerokuSession {
 			api.addKey(sshKey);
 		}
 		catch (RequestFailedException e) {
-			if ( e.getStatusCode() == 422 ) {
+			if (e.getStatusCode() == 422) {
 				throw new HerokuServiceException(HerokuServiceException.INVALID_SSH_KEY, extractErrorField(e.getResponseBody()), e);
 			}
 			else {
@@ -284,8 +297,12 @@ public class RestHerokuSession implements HerokuSession {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.heroku.eclipse.core.services.HerokuSession#restart(com.heroku.api.Proc)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.heroku.eclipse.core.services.HerokuSession#restart(com.heroku.api
+	 * .Proc)
 	 */
 	@Override
 	public void restart(Proc proc) throws HerokuServiceException {
@@ -309,11 +326,15 @@ public class RestHerokuSession implements HerokuSession {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.heroku.eclipse.core.services.HerokuSession#createAppFromTemplate(com.heroku.api.App)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.heroku.eclipse.core.services.HerokuSession#createAppFromTemplate(
+	 * com.heroku.api.App)
 	 */
 	@Override
-	public App createAppFromTemplate(App app, String templateName ) throws HerokuServiceException {
+	public App createAppFromTemplate(App app, String templateName) throws HerokuServiceException {
 		checkValid();
 		try {
 			return api.cloneApp(templateName, app);
@@ -321,5 +342,28 @@ public class RestHerokuSession implements HerokuSession {
 		catch (RequestFailedException e) {
 			throw checkException(e);
 		}
+	}
+
+	@Override
+	public void restartProcsByName(App app, String procName) throws HerokuServiceException {
+		checkValid();
+		List<Proc> processes = listProcesses(app);
+		for (Proc proc : processes) {
+			
+		}
+//		
+// 		try {
+//			return api.appExists(appName);
+//		}
+//		catch (RequestFailedException e) {
+//			throw checkException(e);
+//		}
+		
+	}
+
+	@Override
+	public void destroyProcsByName(App app, String procName) throws HerokuServiceException {
+		// TODO Auto-generated method stub
+		
 	}
 }
