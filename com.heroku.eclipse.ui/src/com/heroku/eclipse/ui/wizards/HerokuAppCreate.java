@@ -112,7 +112,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 								// then materialize
 								try {
 									monitor.subTask(Messages.getString("HerokuAppCreate_FetchingApp")); //$NON-NLS-1$
-									service.materializeGitApp(app, IMPORT_TYPES.AUTODETECT, destinationDir, timeout,
+									service.materializeGitApp(app, IMPORT_TYPES.AUTODETECT, null, destinationDir, timeout,
 											Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, monitor); //$NON-NLS-1$
 									monitor.worked(1);
 									monitor.done();

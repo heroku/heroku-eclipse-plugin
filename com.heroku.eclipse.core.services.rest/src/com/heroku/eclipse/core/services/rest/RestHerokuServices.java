@@ -9,6 +9,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -364,9 +365,6 @@ public class RestHerokuServices implements HerokuServices {
 		try {
 			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new Heroku App '" + appName + "' from template '" + templateName + "'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			app = getOrCreateHerokuSession().createAppFromTemplate(new App().named(appName), templateName);
-			// app = getOrCreateHerokuSession().cloneTemplate(templateName);
-			// getOrCreateHerokuSession().renameApp(app.getName(), appName);
-			// app = getOrCreateHerokuSession().getApp(appName);
 
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put(KEY_APPLICATION_ID, app.getId());
@@ -390,11 +388,11 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public boolean materializeGitApp(App app, IMPORT_TYPES importType, String gitLocation, int timeout, String dialogTitle, CredentialsProvider cred,
-			IProgressMonitor pm) throws HerokuServiceException {
+	public boolean materializeGitApp(App app, IMPORT_TYPES importType, IProject existingProject, String gitLocation, int timeout, String dialogTitle,
+			CredentialsProvider cred, IProgressMonitor pm) throws HerokuServiceException {
 		boolean rv = false;
 
-		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '" + app.getName() + "' in workspace"); //$NON-NLS-1$ //$NON-NLS-2$
+		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '" + app.getName() + "' in workspace, import type " + importType); //$NON-NLS-1$ //$NON-NLS-2$
 		try {
 			URIish uri = new URIish(app.getGitUrl());
 
@@ -424,7 +422,7 @@ public class RestHerokuServices implements HerokuServices {
 
 			cloneOp.setCredentialsProvider(cred);
 			cloneOp.setCloneSubmodules(true);
-			runAsJob(uri, cloneOp, app, importType, dialogTitle);
+			runAsJob(uri, cloneOp, app, importType, existingProject, dialogTitle);
 
 			rv = true;
 		}
@@ -438,7 +436,8 @@ public class RestHerokuServices implements HerokuServices {
 		return rv;
 	}
 
-	private void runAsJob(final URIish uri, final CloneOperation op, final App app, final IMPORT_TYPES importType, String dialogTitle) {
+	private void runAsJob(final URIish uri, final CloneOperation op, final App app, final IMPORT_TYPES importType, final IProject existingProject,
+			String dialogTitle) {
 		final Job job = new Job(dialogTitle) {
 			@Override
 			protected IStatus run(final IProgressMonitor monitor) {
@@ -446,8 +445,12 @@ public class RestHerokuServices implements HerokuServices {
 					IStatus status = executeCloneOperation(op, monitor);
 
 					if (status.isOK()) {
-						// enableNatureAction
-						return createProject(app.getName(), importType, op.getGitDir().getParentFile().getAbsolutePath(), op.getGitDir(), monitor);
+						if (importType == IMPORT_TYPES.NEW_PROJECT_WIZARD && existingProject != null) {
+							return createNewEclipseProject(existingProject, app.getName(), op.getGitDir(), monitor);
+						}
+						else {
+							return createAutodetectedEclipseProject(app.getName(), importType, op.getGitDir(), monitor);
+						}
 					}
 					else {
 						return status;
@@ -459,6 +462,21 @@ public class RestHerokuServices implements HerokuServices {
 				catch (InvocationTargetException e) {
 					Throwable thr = e.getCause();
 					return new Status(IStatus.ERROR, Activator.getPluginId(), 0, thr.getMessage(), thr);
+				}
+				catch (CoreException e) {
+					e.printStackTrace();
+					if (importType == IMPORT_TYPES.NEW_PROJECT_WIZARD && existingProject != null) {
+						Activator
+								.getDefault()
+								.getLogger()
+								.log(LogService.LOG_ERROR,
+										"unknown error when trying to create project '" + existingProject.getName() + "' with new project wizard, aborting ...", e); //$NON-NLS-1$ //$NON-NLS-2$
+					}
+					else {
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown, internal error when trying to create project " + app.getName(), e); //$NON-NLS-1$
+					}
+					
+					return new Status(IStatus.ERROR, Activator.getPluginId(), 0, e.getMessage(), e);
 				}
 			}
 		};
@@ -474,63 +492,98 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	/**
+	 * Connects the given, already materialized App as an Eclipse project. The
+	 * project type is already predefined (autodetected).
+	 * 
 	 * @param projectName
 	 * @param importType
+	 *            one import type out of the IMPORT_TYPES enum
 	 * @param projectPath
 	 * @param repoDir
 	 * @param pm
-	 * @return an IStatus indicator representing outcome of the creation operation, ie. Status.OK_STATUS
+	 *            the progress monitor to use
+	 * @return the outcome of the creation process in the form of an IStatus
+	 *         object
+	 * @throws CoreException
+	 * @throws HerokuServiceException
 	 */
-	public IStatus createProject(final String projectName, final IMPORT_TYPES importType, final String projectPath, final File repoDir, IProgressMonitor pm) {
-		try {
-			IWorkspaceRunnable wsr = new IWorkspaceRunnable() {
-				@SuppressWarnings("restriction")
-				public void run(IProgressMonitor actMonitor) throws CoreException {
-					final IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
-					desc.setLocation(new Path(projectPath));
-					IProject prj = ResourcesPlugin.getWorkspace().getRoot().getProject(desc.getName());
-					prj.create(desc, actMonitor);
-					prj.open(actMonitor);
-					ConnectProviderOperation cpo = new ConnectProviderOperation(prj, repoDir);
-					cpo.execute(new NullProgressMonitor());
+	private IStatus createAutodetectedEclipseProject(final String projectName, final IMPORT_TYPES importType, final File repoDir, final IProgressMonitor pm)
+			throws CoreException {
+		final String projectPath = repoDir.getParentFile().getAbsolutePath();
+		IWorkspaceRunnable wsr = new IWorkspaceRunnable() {
+			@SuppressWarnings("restriction")
+			public void run(IProgressMonitor actMonitor) throws CoreException {
+				final IProjectDescription desc = ResourcesPlugin.getWorkspace().newProjectDescription(projectName);
+				desc.setLocation(new Path(projectPath));
+				IProject newProject = ResourcesPlugin.getWorkspace().getRoot().getProject(desc.getName());
+				newProject.create(desc, actMonitor);
+				newProject.open(actMonitor);
+				ConnectProviderOperation cpo = new ConnectProviderOperation(newProject, repoDir);
+				cpo.execute(actMonitor);
 
-					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
+				ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
 
-					if (importType == IMPORT_TYPES.AUTODETECT) {
-						IFile pom = prj.getFile(IMavenConstants.POM_FILE_NAME);
-						// add maven nature, if this is a maven project
-						if (pom.exists()) {
-							Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Detected Java Maven application"); //$NON-NLS-1$
-							try {
-								ResolverConfiguration configuration = new ResolverConfiguration();
-								configuration.setResolveWorkspaceProjects(false);
-								//									configuration.setSelectedProfiles(""); //$NON-NLS-1$
+				if (importType == IMPORT_TYPES.AUTODETECT || importType == IMPORT_TYPES.MAVEN) {
+					IFile pom = newProject.getFile(IMavenConstants.POM_FILE_NAME);
+					// add maven nature, if this is a maven project
+					if (pom.exists()) {
+						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Detected Java Maven application"); //$NON-NLS-1$
+						try {
+							ResolverConfiguration configuration = new ResolverConfiguration();
+							configuration.setResolveWorkspaceProjects(false);
+							//									configuration.setSelectedProfiles(""); //$NON-NLS-1$
 
-								boolean hasMavenNature = prj.hasNature(IMavenConstants.NATURE_ID);
+							boolean hasMavenNature = newProject.hasNature(IMavenConstants.NATURE_ID);
 
-								IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
+							IProjectConfigurationManager configurationManager = MavenPlugin.getProjectConfigurationManager();
 
-								configurationManager.enableMavenNature(prj, configuration, actMonitor);
+							configurationManager.enableMavenNature(newProject, configuration, actMonitor);
 
-								if (!hasMavenNature) {
-									configurationManager.updateProjectConfiguration(prj, actMonitor);
-								}
-							}
-							catch (CoreException ex) {
-								ex.printStackTrace();
+							if (!hasMavenNature) {
+								configurationManager.updateProjectConfiguration(newProject, actMonitor);
 							}
 						}
+						catch (CoreException ex) {
+							// TODO: throw ite
+							ex.printStackTrace();
+						}
 					}
-					Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Heroku application import completed"); //$NON-NLS-1$
-					ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
 				}
-			};
-			ResourcesPlugin.getWorkspace().run(wsr, pm);
-		}
-		catch (CoreException e) {
-			e.printStackTrace();
-			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown, internal error when trying to create project " + projectName); //$NON-NLS-1$
-		}
+				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "Heroku application import completed"); //$NON-NLS-1$
+				ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
+			}
+		};
+		ResourcesPlugin.getWorkspace().run(wsr, pm);
+
+		return Status.OK_STATUS;
+	}
+
+	/**
+	 * Connects the given, already materialized App as an Eclipse project. The
+	 * project type is NOT predefined, instead the "new project wizard" is used.
+	 * 
+	 * @return the outcome of the creation process in the form of an IStatus
+	 *         object
+	 * @throws CoreException
+	 * @throws HerokuServiceException
+	 */
+	private IStatus createNewEclipseProject(final IProject eclipseProject, final String herokuName, final File repositoryLocation, IProgressMonitor pm)
+			throws CoreException {
+		IWorkspaceRunnable wsr = new IWorkspaceRunnable() {
+			public void run(IProgressMonitor actMonitor) throws CoreException {
+				eclipseProject.open(actMonitor);
+				ConnectProviderOperation cpo = new ConnectProviderOperation(eclipseProject, repositoryLocation);
+				cpo.execute(actMonitor);
+				Activator
+						.getDefault()
+						.getLogger()
+						.log(LogService.LOG_INFO,
+								"Heroku application import as a user controlled 'New Project' completed, App name " + herokuName + ", Eclipse name " + eclipseProject.getName()); //$NON-NLS-1$ //$NON-NLS-2$
+				ResourcesPlugin.getWorkspace().getRoot().refreshLocal(IResource.DEPTH_ONE, actMonitor);
+			}
+		};
+		ResourcesPlugin.getWorkspace().run(wsr, pm);
+		
 		return Status.OK_STATUS;
 	}
 
@@ -671,5 +724,17 @@ public class RestHerokuServices implements HerokuServices {
 	@Override
 	public boolean appNameExists(String appName) throws HerokuServiceException {
 		return getOrCreateHerokuSession().appNameExists(appName);
+	}
+
+	@Override
+	public IMPORT_TYPES getProjectType(String buildpackProvidedDescription) {
+		if ("Java".equalsIgnoreCase(buildpackProvidedDescription)) { //$NON-NLS-1$
+			return IMPORT_TYPES.MAVEN;
+		}
+		else if ("Play".equalsIgnoreCase(buildpackProvidedDescription)) { //$NON-NLS-1$
+			return IMPORT_TYPES.PLAY;
+		}
+
+		return IMPORT_TYPES.AUTODETECT;
 	}
 }

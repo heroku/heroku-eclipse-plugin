@@ -33,6 +33,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeColumn;
@@ -553,7 +554,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				}
 				catch (Throwable e) {
 					e.printStackTrace();
-					HerokuUtils.internalError(getShell(), e);
+					HerokuUtils.internalError(Display.getCurrent().getActiveShell(), e);
 				}
 
 				return Status.OK_STATUS;
@@ -685,8 +686,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
 			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 			final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
+			// TODO: display import type wizard (autodetect, general, new project wizard)
 			try {
-				herokuService.materializeGitApp(app, IMPORT_TYPES.AUTODETECT, destinationDir, timeout,
+				herokuService.materializeGitApp(app, IMPORT_TYPES.AUTODETECT, null, destinationDir, timeout,
 						Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, new NullProgressMonitor()); //$NON-NLS-1$
 			}
 			catch (HerokuServiceException e) {

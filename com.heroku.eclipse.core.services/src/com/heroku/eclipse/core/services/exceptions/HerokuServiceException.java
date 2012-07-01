@@ -81,6 +81,11 @@ public class HerokuServiceException extends Exception {
 	 */
 	public static final int INVALID_LOCAL_GIT_LOCATION = 13;
 
+	/**
+	 * indicates that there is insufficient data to complete the intended action
+	 */
+	public static final int INSUFFICIENT_DATA = 14;
+
 	private final int errorCode;
 
 	public HerokuServiceException(Throwable t) {

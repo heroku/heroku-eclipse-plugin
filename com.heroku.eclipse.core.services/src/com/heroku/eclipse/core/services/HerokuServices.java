@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jgit.transport.CredentialsProvider;
@@ -124,7 +125,7 @@ public interface HerokuServices {
 	 * @author udo.rader@bestsolution.at
 	 */
 	public static enum IMPORT_TYPES {
-		AUTODETECT, WIZARD, GENERAL_PROJECT 
+		AUTODETECT, NEW_PROJECT_WIZARD, GENERAL_PROJECT, MAVEN, PLAY
 	}
 
 	/**
@@ -271,12 +272,15 @@ public interface HerokuServices {
 
 	/**
 	 * Materializes the given app in the user's local git repository and in the
-	 * workspace
+	 * workspace. If an existing Eclipse project is given, the materialized
+	 * git checkout will be connected to this Eclipse project.
 	 * 
 	 * @param app
 	 *            the App instance to materialize
 	 * @param importType 
 	 * 			  one import type out of the IMPORT_TYPES enum
+	 * @param existingProject 
+	 * 				an existing Eclipse project or null, if a new project is to be used
 	 * @param workingDir
 	 *            the directory where the project will be materialized
 	 * @param timeout
@@ -291,24 +295,8 @@ public interface HerokuServices {
 	 *         App instance to materialize
 	 * @throws HerokuServiceException
 	 */
-	public boolean materializeGitApp(App app, IMPORT_TYPES importType, String workingDir, int timeout, String progressTitle, CredentialsProvider cred, IProgressMonitor pm)
+	public boolean materializeGitApp(App app, IMPORT_TYPES importType, IProject existingProject, String workingDir, int timeout, String progressTitle, CredentialsProvider cred, IProgressMonitor pm)
 			throws HerokuServiceException;
-
-	/**
-	 * Materializes the given app in the user's local git repository
-	 * 
-	 * @param projectName
-	 * @param importType 
-	 * 				one import type out of the IMPORT_TYPES enum
-	 * @param projectPath
-	 * @param repoDir
-	 * @param pm
-	 *            the progress monitor to use
-	 * @return the outcome of the creation process in the form of an IStatus
-	 *         object
-	 * @throws HerokuServiceException
-	 */
-	public IStatus createProject(final String projectName, final IMPORT_TYPES importType, final String projectPath, final File repoDir, IProgressMonitor pm) throws HerokuServiceException;
 
 	/**
 	 * Restart an application
@@ -456,5 +444,12 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public boolean appNameExists( String appName ) throws HerokuServiceException;
+	
+	/**
+	 * Delivers the project type for the given App.buildbackProvidedDescription
+	 * @param buildpackProvidedDescription
+	 * @return either the determined element IMPORT_TYPES enum or, per default, IMPORT_TYPES.AUTODETECT 
+	 */
+	public IMPORT_TYPES getProjectType( String buildpackProvidedDescription );
 
 }
