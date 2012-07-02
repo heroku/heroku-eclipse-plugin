@@ -2,6 +2,7 @@ package com.heroku.eclipse.core.services;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -14,6 +15,7 @@ import com.heroku.api.User;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.core.services.model.HerokuProc;
+import com.heroku.eclipse.core.services.model.KeyValue;
 
 /**
  * Interface defining how Heroclipse talks with the com.heroku.api.HerokuAPI API
@@ -430,6 +432,35 @@ public interface HerokuServices {
 	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException;
 
 	/**
+	 * Adds a Map of environment variables
+	 * 
+	 * @param app
+	 * @param envMap
+	 *            Map of key-value environment variables pairs
+	 * @throws HerokuServiceException
+	 */
+	public void addEnvVariables(App app, Map<String, String> envMap) throws HerokuServiceException;
+
+	/**
+	 * Lists the environment variables
+	 * 
+	 * @param app
+	 * @return a Map consisting of key-value environment variable pairs
+	 * @throws HerokuServiceException
+	 */
+	public List<KeyValue> listEnvVariables(App app) throws HerokuServiceException;
+
+	/**
+	 * Remove an environment variable from the given app
+	 * 
+	 * @param app
+	 * @param envKey
+	 *            the key of the environment variable to remove
+	 * @throws HerokuServiceException
+	 */
+	public void removeEnvVariable(App app, String envKey) throws HerokuServiceException;
+
+	/**
 	 * Checks if an App with the given name already exists.
 	 * 
 	 * @param appName
@@ -453,5 +484,5 @@ public interface HerokuServices {
 	 * @param procs
 	 * @throws HerokuServiceException
 	 */
-	public void restartProcs(List<Proc> procs) throws HerokuServiceException;
+	public void restartProcs(List<HerokuProc> procs) throws HerokuServiceException;
 }

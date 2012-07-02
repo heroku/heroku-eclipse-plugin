@@ -10,6 +10,7 @@ import com.heroku.api.Collaborator;
 import com.heroku.api.Proc;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.model.HerokuProc;
+import com.heroku.eclipse.core.services.model.KeyValue;
 
 /**
  * Factory reponsible for creating various labels for App and Proc instances
@@ -23,6 +24,11 @@ public class LabelProviderFactory {
 	 * ==========================================
 	 */
 
+	/**
+	 * @param services
+	 * @param procListCallback
+	 * @return the fitting LabelProvider
+	 */
 	public static ColumnLabelProvider createName(final HerokuServices services, final RunnableWithReturn<List<HerokuProc>, App> procListCallback) {
 		return new ColumnLabelProvider() {
 			@Override
@@ -58,7 +64,6 @@ public class LabelProviderFactory {
 					return getStateIcon(ProcessState.parseRest(p.getState()));
 				}
 
-				// TODO Auto-generated method stub
 				return super.getImage(element);
 			}
 
@@ -76,6 +81,9 @@ public class LabelProviderFactory {
 		};
 	}
 
+	/**
+	 * @return the name of an App as a LabelProvider
+	 */
 	public static ColumnLabelProvider createApp_Name() {
 		return new ColumnLabelProvider() {
 			@Override
@@ -89,6 +97,9 @@ public class LabelProviderFactory {
 		};
 	}
 	
+	/**
+	 * @return the git URL of an App as a LabelProvider
+	 */
 	public static ColumnLabelProvider createApp_GitUrl() {
 		return new ColumnLabelProvider() {
 			@Override
@@ -102,6 +113,9 @@ public class LabelProviderFactory {
 		};
 	}
 
+	/**
+	 * @return the web URL of an App as a LabelProvider
+	 */
 	public static ColumnLabelProvider createApp_Url() {
 		return new ColumnLabelProvider() {
 			@Override
@@ -121,6 +135,9 @@ public class LabelProviderFactory {
 	 * ==========================================
 	 */
 
+	/**
+	 * @return the email address of a collaborator as a LabelProvider
+	 */
 	public static ColumnLabelProvider createCollaborator_Email() {
 		return new ColumnLabelProvider() {
 			@Override
@@ -131,6 +148,10 @@ public class LabelProviderFactory {
 		};
 	}
 
+	/**
+	 * @param ownerCheckCallback
+	 * @return the LabelProvider indicating an App owner
+	 */
 	public static ColumnLabelProvider createCollaborator_Owner(final RunnableWithReturn<Boolean, Collaborator> ownerCheckCallback) {
 		return new ColumnLabelProvider() {
 
@@ -145,6 +166,36 @@ public class LabelProviderFactory {
 					return IconKeys.getImage(IconKeys.ICON_APPLICATION_OWNER);
 				}
 				return super.getImage(element);
+			}
+		};
+	}
+	
+	/*
+	 * ========================================== 
+	 * Environment variables
+	 * ==========================================
+	 */
+
+	/**
+	 * @return the name of an environment variable as a LabelProvider
+	 */
+	public static ColumnLabelProvider createEnv_Key() {
+		return new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ((KeyValue)element).getKey();
+			}
+		};
+	}
+
+	/**
+	 * @return the value of an environment variable as a LabelProvider
+	 */
+	public static ColumnLabelProvider createEnv_Value() {
+		return new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ((KeyValue)element).getValue();
 			}
 		};
 	}

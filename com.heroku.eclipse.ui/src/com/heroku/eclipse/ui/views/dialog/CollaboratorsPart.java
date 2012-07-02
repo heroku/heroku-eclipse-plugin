@@ -41,7 +41,6 @@ public class CollaboratorsPart {
 	private Button removeButton;
 	private Button makeOwner;
 	private Composite parent;
-	// private Button saveButton;
 
 	private List<Collaborator> collaboratorsList;
 	private Collaborator currentOwner;
@@ -112,7 +111,9 @@ public class CollaboratorsPart {
 						List<Collaborator> collabs = ((IStructuredSelection) viewer.getSelection()).toList();
 						if (collabs.contains(currentOwner)) {
 							Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "collaborators list to remove contains application owner, rejecting!"); //$NON-NLS-1$
-							HerokuUtils.userError(removeButton.getShell(), Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner_Title"), Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner")); //$NON-NLS-1$ //$NON-NLS-2$
+							HerokuUtils.userError(
+									removeButton.getShell(),
+									Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner_Title"), Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner")); //$NON-NLS-1$ //$NON-NLS-2$
 						}
 						else {
 							handleRemove(removeButton.getShell(), collabs);
@@ -136,9 +137,14 @@ public class CollaboratorsPart {
 										makeOwner.getShell(),
 										Messages.getString("HerokuAppInformationCollaborators_Transfer_Title"), Messages.getFormattedString("HerokuAppInformationCollaborators_Transfer_Message", c.getEmail()))) { //$NON-NLS-1$//$NON-NLS-2$
 									try {
-										Activator.getDefault().getLogger().log(LogService.LOG_INFO, "trying to transfer app '"+domainObject.getName()+"' to new owner '"+c.getEmail()+"'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+										Activator
+												.getDefault()
+												.getLogger()
+												.log(LogService.LOG_INFO,
+														"trying to transfer app '" + domainObject.getName() + "' to new owner '" + c.getEmail() + "'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 										Activator.getDefault().getService().transferApplication(domainObject, c.getEmail());
-										Activator.getDefault().getLogger().log(LogService.LOG_INFO, "transfer of app '"+domainObject.getName()+"' complete"); //$NON-NLS-1$ //$NON-NLS-2$
+										Activator.getDefault().getLogger()
+												.log(LogService.LOG_INFO, "transfer of app '" + domainObject.getName() + "' complete"); //$NON-NLS-1$ //$NON-NLS-2$
 									}
 									catch (HerokuServiceException e1) {
 										e1.printStackTrace();
@@ -152,13 +158,6 @@ public class CollaboratorsPart {
 					}
 				});
 			}
-
-			// {
-			// saveButton = new Button(controls, SWT.PUSH);
-			// saveButton.setText("Save");
-			// saveButton
-			// .setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			// }
 		}
 
 		return container;
@@ -185,9 +184,9 @@ public class CollaboratorsPart {
 					emails[i] = collaborators.get(i).getEmail();
 				}
 
-				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "about to remove of "+collaborators.size()+" collaborator"); //$NON-NLS-1$ //$NON-NLS-2$
+				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "about to remove of " + collaborators.size() + " collaborator"); //$NON-NLS-1$ //$NON-NLS-2$
 				Activator.getDefault().getService().removeCollaborators(domainObject, emails);
-				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "removal of "+collaborators.size()+" collaborators complete"); //$NON-NLS-1$ //$NON-NLS-2$
+				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "removal of " + collaborators.size() + " collaborators complete"); //$NON-NLS-1$ //$NON-NLS-2$
 				refreshCollaboratorList();
 			}
 			catch (HerokuServiceException e) {
@@ -225,29 +224,45 @@ public class CollaboratorsPart {
 
 			@Override
 			protected void okPressed() {
-				for (Collaborator u : collaboratorsList) {
-					if (u.getEmail().equals(emailField.getText().trim())) {
-						Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "rejecting to add already existing collaborator '"+u.getEmail()+"'"); //$NON-NLS-1$ //$NON-NLS-2$
-						HerokuUtils.userError(shell, Messages.getString("HerokuAppInformationCollaborators_Error_CollaboratorAlreadyExists_Title"), Messages.getFormattedString("HerokuAppInformationCollaborators_Error_CollaboratorAlreadyExists", u.getEmail())); //$NON-NLS-1$ //$NON-NLS-2$
-						return;
-					}
-				}
-
 				String email = emailField.getText().trim();
-				try {
-					Activator.getDefault().getService().addCollaborator(domainObject, email);
-					super.okPressed();
-					refreshCollaboratorList();
+				if (HerokuUtils.isNotEmpty(email)) {
+					for (Collaborator u : collaboratorsList) {
+						if (u.getEmail().equals(email)) {
+							Activator.getDefault().getLogger()
+									.log(LogService.LOG_DEBUG, "rejecting to add already existing collaborator '" + u.getEmail() + "'"); //$NON-NLS-1$ //$NON-NLS-2$
+							HerokuUtils
+									.userError(
+											shell,
+											Messages.getString("HerokuAppInformationCollaborators_Error_CollaboratorAlreadyExists_Title"), Messages.getFormattedString("HerokuAppInformationCollaborators_Error_CollaboratorAlreadyExists", u.getEmail())); //$NON-NLS-1$ //$NON-NLS-2$
+							return;
+						}
+					}
+
+					try {
+						Activator.getDefault().getService().addCollaborator(domainObject, email);
+						super.okPressed();
+						refreshCollaboratorList();
+					}
+					catch (HerokuServiceException e) {
+						if (e.getErrorCode() == HerokuServiceException.REQUEST_FAILED) {
+							HerokuUtils
+									.userError(
+											shell,
+											Messages.getString("HerokuAppInformationCollaborators_Error_CollaboratorInvalid_Title"), Messages.getFormattedString("HerokuAppInformationCollaborators_Error_CollaboratorInvalid", email)); //$NON-NLS-1$ //$NON-NLS-2$
+						}
+						else {
+							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to add new collaborator", e); //$NON-NLS-1$
+							e.printStackTrace();
+							HerokuUtils.herokuError(shell, e);
+						}
+					}
 				}
-				catch (HerokuServiceException e) {
-					if ( e.getErrorCode() == HerokuServiceException.REQUEST_FAILED ) {
-						HerokuUtils.userError(shell, Messages.getString("HerokuAppInformationCollaborators_Error_CollaboratorInvalid_Title"), Messages.getFormattedString("HerokuAppInformationCollaborators_Error_CollaboratorInvalid", email)); //$NON-NLS-1$ //$NON-NLS-2$
-					}
-					else {
-						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to add new collaborator", e); //$NON-NLS-1$
-						e.printStackTrace();
-						HerokuUtils.herokuError(shell, e);
-					}
+				else {
+					HerokuUtils
+					.userError(
+							shell,
+							Messages.getString("HerokuAppInformationCollaborators_Error_MissingInput_Title"), Messages.getString("HerokuAppInformationCollaborators_Error_MissingInput")); //$NON-NLS-1$ //$NON-NLS-2$
+					emailField.setFocus();
 				}
 			}
 		};

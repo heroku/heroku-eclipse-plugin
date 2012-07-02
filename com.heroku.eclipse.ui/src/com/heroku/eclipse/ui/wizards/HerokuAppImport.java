@@ -164,6 +164,9 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 	}
 
 
+	/**
+	 * @return delivers the selected App from the app list page 
+	 */
 	public App getActiveApp() {
 		return listPage.getSelectedApp();
 	}

@@ -1,8 +1,8 @@
 package com.heroku.eclipse.core.services.rest;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,7 +17,6 @@ import com.heroku.api.request.log.Log.LogRequestBuilder;
 import com.heroku.api.request.log.LogStreamResponse;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
-import com.heroku.eclipse.core.services.model.HerokuProc;
 
 /**
  * Class representing a connection ("session") to the Heroku cloud services.
@@ -328,18 +327,44 @@ public class RestHerokuSession implements HerokuSession {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.heroku.eclipse.core.services.HerokuSession#createAppFromTemplate(
-	 * com.heroku.api.App)
-	 */
 	@Override
 	public App createAppFromTemplate(App app, String templateName) throws HerokuServiceException {
 		checkValid();
 		try {
 			return api.cloneApp(templateName, app);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	@Override
+	public void addEnvVariables(String appName, Map<String, String> envMap) throws HerokuServiceException {
+		checkValid();
+		try {
+			api.addConfig(appName, envMap);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	@Override
+	public Map<String, String> listEnvVariables(String appName) throws HerokuServiceException {
+		checkValid();
+		try {
+			return api.listConfig(appName);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	@Override
+	public void removeEnvVariable(String appName, String envKey) throws HerokuServiceException {
+		checkValid();
+		try {
+			api.removeConfig(appName, envKey);
 		}
 		catch (RequestFailedException e) {
 			throw checkException(e);

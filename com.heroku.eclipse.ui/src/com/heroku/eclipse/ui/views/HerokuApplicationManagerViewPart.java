@@ -338,7 +338,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						if (MessageDialog
 								.openQuestion(
 										getShell(),
-										Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", herokuService.getDynoName(proc)))) { //$NON-NLS-1$ //$NON-NLS-2$
+										Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", proc.getDynoName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 							try {
 								herokuService.restartProcs(appProcesses.get(procApps.get(proc.getUniqueId())));
 							}
@@ -451,8 +451,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							HerokuUtils.herokuError(getShell(), e);
 						}
 					}
-					else if (s.getFirstElement() instanceof Proc) {
-						Proc proc = (Proc) s.getFirstElement();
+					else if (s.getFirstElement() instanceof HerokuProc) {
+						HerokuProc proc = (HerokuProc) s.getFirstElement();
 						importApp.setEnabled(false);
 						open.setEnabled(false);
 						try {
@@ -570,11 +570,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			if (herokuService.isReady()) {
 				List<App> applications = herokuService.listApps();
 				for (App a : applications) {
-					List<Proc> procs = herokuService.listProcesses(a);
+					List<HerokuProc> procs = herokuService.listProcesses(a);
+					appProcesses.put(a.getId(), procs);
 					if (procs.size() > 0) {
-						appProcesses.put(a.getId(), procs);
-						if (!procApps.containsKey(herokuService.getProcessId(procs.get(0)))) {
-							procApps.put(herokuService.getProcessId(procs.get(0)), a.getId());
+						if (!procApps.containsKey(procs.get(0).getUniqueId())) {
+							procApps.put(procs.get(0).getUniqueId(), a.getId());
 						}
 					}
 				}
@@ -633,7 +633,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		@Override
 		public Object[] getChildren(Object parentElement) {
 			if (parentElement instanceof App) {
-				List<Proc> l = appProcesses.get(((App) parentElement).getId());
+				List<HerokuProc> l = appProcesses.get(((App) parentElement).getId());
 				if (l != null) {
 					return l.toArray();
 				}
@@ -658,7 +658,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		@Override
 		public boolean equals(Object a, Object b) {
-			if (a instanceof Proc && b instanceof Proc) {
+			if (a instanceof HerokuProc && b instanceof HerokuProc) {
 				return hashCode(a) == hashCode(b);
 			}
 			else if (a instanceof App && b instanceof App) {
@@ -672,8 +672,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			if (element instanceof App) {
 				return ((App) element).getId().hashCode();
 			}
-			else if (element instanceof Proc) {
-				return herokuService.getProcessId((Proc) element).hashCode();
+			else if (element instanceof HerokuProc) {
+				return ((HerokuProc) element).getUniqueId().hashCode();
 			}
 			return element.hashCode();
 		}

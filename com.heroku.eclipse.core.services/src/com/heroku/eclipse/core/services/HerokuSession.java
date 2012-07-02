@@ -2,6 +2,7 @@ package com.heroku.eclipse.core.services;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
@@ -103,15 +104,18 @@ public interface HerokuSession {
 	public void destroyApp(String name) throws HerokuServiceException;
 
 	/**
-	 * Creates a new app based on the given template name. Only works on the cedar stack.
+	 * Creates a new app based on the given template name. Only works on the
+	 * cedar stack.
 	 * 
 	 * @param app
-	 *            an {@link App} object with name filled. Typically created using new App().named(...)
+	 *            an {@link App} object with name filled. Typically created
+	 *            using new App().named(...)
+	 * @param templateName 
 	 * @return the newly created app
 	 * @throws HerokuServiceException
 	 *             if {@link #isValid()} is false
 	 */
-	public App createAppFromTemplate(App app, String templateName ) throws HerokuServiceException;
+	public App createAppFromTemplate(App app, String templateName) throws HerokuServiceException;
 
 	/**
 	 * Clones the given template and delivers it as a ready to use Heroku App
@@ -182,19 +186,51 @@ public interface HerokuSession {
 	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
 
 	public List<Proc> listProcesses(App app) throws HerokuServiceException;
-	
+
 	/**
-	 * Restarts the given individual process 
+	 * Restarts the given individual process
+	 * 
 	 * @param proc
 	 * @throws HerokuServiceException
 	 */
 	public void restart(Proc proc) throws HerokuServiceException;
-	
+
 	/**
 	 * Checks if an App with the given name already exists.
+	 * 
 	 * @param appName
-	 * @return <code>true</code> if the name already exists, <code>false</code> if the name is available 
+	 * @return <code>true</code> if the name already exists, <code>false</code>
+	 *         if the name is available
 	 * @throws HerokuServiceException
 	 */
-	public boolean appNameExists( String appName ) throws HerokuServiceException;
+	public boolean appNameExists(String appName) throws HerokuServiceException;
+
+	/**
+	 * Adds a Map of environment variables
+	 * 
+	 * @param appName
+	 * @param envMap
+	 *            Map of key-value environment variables pairs
+	 * @throws HerokuServiceException
+	 */
+	public void addEnvVariables(String appName, Map<String, String> envMap) throws HerokuServiceException;
+
+	/**
+	 * Lists the environment variables
+	 * 
+	 * @param appName
+	 * @return a Map consisting of key-value environment variable pairs
+	 * @throws HerokuServiceException
+	 */
+	public Map<String, String> listEnvVariables(String appName) throws HerokuServiceException;
+
+	/**
+	 * Remove an environment variable from the given app
+	 * 
+	 * @param appName
+	 * @param envKey
+	 *            the key of the environment variable to remove
+	 * @throws HerokuServiceException
+	 */
+	public void removeEnvVariable(String appName, String envKey) throws HerokuServiceException;
 }

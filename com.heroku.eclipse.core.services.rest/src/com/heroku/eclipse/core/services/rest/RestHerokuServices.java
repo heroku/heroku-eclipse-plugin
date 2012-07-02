@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -65,6 +66,7 @@ import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.core.services.model.HerokuProc;
+import com.heroku.eclipse.core.services.model.KeyValue;
 
 /**
  * Services class for the Heroclipse plugin, providing access to essential
@@ -77,9 +79,6 @@ public class RestHerokuServices implements HerokuServices {
 	private IEclipsePreferences preferences;
 	private ISecurePreferences securePreferences;
 
-	//	private static final String PREF_API_KEY = "apiKey"; //$NON-NLS-1$
-	//	private static final String PREF_SSH_KEY = "sshKey"; //$NON-NLS-1$
-	//
 	private EventAdmin eventAdmin;
 	private RepositoryUtil egitUtils;
 
@@ -158,7 +157,7 @@ public class RestHerokuServices implements HerokuServices {
 			if (sshKey == null || sshKey.trim().isEmpty()) {
 				p.remove(PreferenceConstants.P_SSH_KEY);
 			}
-			else if (!sshKey.equals(getSSHKey()) || ( "true".equals(System.getProperty("heroku.devel")))) { //$NON-NLS-1$ //$NON-NLS-2$
+			else if (!sshKey.equals(getSSHKey()) || ("true".equals(System.getProperty("heroku.devel")))) { //$NON-NLS-1$ //$NON-NLS-2$
 				validateSSHKey(sshKey);
 				getOrCreateHerokuSession().addSSHKey(sshKey);
 				p.put(PreferenceConstants.P_SSH_KEY, sshKey);
@@ -669,7 +668,7 @@ public class RestHerokuServices implements HerokuServices {
 		}
 
 		if (!notremoved.isEmpty()) {
-			throw new HerokuServiceException(HerokuServiceException.REQUEST_FAILED, "one or more collaborators could not be removed: "+notremoved.toString()); //$NON-NLS-1$
+			throw new HerokuServiceException(HerokuServiceException.REQUEST_FAILED, "one or more collaborators could not be removed: " + notremoved.toString()); //$NON-NLS-1$
 		}
 	}
 
@@ -688,7 +687,7 @@ public class RestHerokuServices implements HerokuServices {
 	public List<HerokuProc> listProcesses(App app) throws HerokuServiceException {
 		List<Proc> procs = getOrCreateHerokuSession().listProcesses(app);
 
-		// adding some useful stuff 
+		// adding some useful stuff
 		List<HerokuProc> convertedProcs = new ArrayList<HerokuProc>();
 		for (Proc proc : procs) {
 			convertedProcs.add(new HerokuProc(proc));
@@ -742,10 +741,31 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void restartProcs(List<Proc> procs) throws HerokuServiceException {
+	public void restartProcs(List<HerokuProc> procs) throws HerokuServiceException {
 		HerokuSession s = getOrCreateHerokuSession();
 		for (Proc proc : procs) {
 			s.restart(proc);
 		}
+	}
+
+	@Override
+	public void addEnvVariables(App app, Map<String, String> envMap) throws HerokuServiceException {
+		getOrCreateHerokuSession().addEnvVariables(app.getName(), envMap);
+	}
+
+	@Override
+	public List<KeyValue> listEnvVariables(App app) throws HerokuServiceException {
+		List<KeyValue> list = new ArrayList<KeyValue>();
+		Map<String,String> map = getOrCreateHerokuSession().listEnvVariables(app.getName());
+		
+		for(String key : map.keySet()) {
+			list.add(new KeyValue(key,map.get(key)));
+		}
+		return list;
+	}
+
+	@Override
+	public void removeEnvVariable(App app, String envKey) throws HerokuServiceException {
+		getOrCreateHerokuSession().removeEnvVariable(app.getName(), envKey);
 	}
 }
