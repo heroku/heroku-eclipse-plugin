@@ -118,8 +118,12 @@ public class HerokuAppProjectTypePage extends WizardPage {
 	}
 
 	/**
+<<<<<<< HEAD
 	 * Delivers the choosen import type
 	 * @return the type of import the user has choosen
+=======
+	 * @return
+>>>>>>> 174d7d
 	 */
 	public IMPORT_TYPES getImportType() {
 		return importType;

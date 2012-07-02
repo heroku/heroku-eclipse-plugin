@@ -738,23 +738,4 @@ public class RestHerokuServices implements HerokuServices {
 		return IMPORT_TYPES.AUTODETECT;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.heroku.eclipse.core.services.HerokuServices#getProcessName(com.heroku.api.Proc)
-	 */
-	@Override
-	public String getProcessName(Proc p) {
-		String[] pn = p.getProcess().split("\\."); //$NON-NLS-1$
-		
-		if ( pn.length > 1 ) {
-			return pn[pn.length-2];
-		}
-		else {
-			return pn[0];
-		}
-	}
-	
-	@Override
-	public String getProcessId( Proc p ) {
-		return p.getAppName()+"<>"+getProcessName(p); //$NON-NLS-1$
-	}
 }

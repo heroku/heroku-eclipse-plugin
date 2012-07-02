@@ -163,10 +163,7 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 		return !listPage.isCurrentPage();
 	}
 
-	/**
-	 * 
-	 * @return
-	 */
+
 	public App getActiveApp() {
 		return listPage.getSelectedApp();
 	}
