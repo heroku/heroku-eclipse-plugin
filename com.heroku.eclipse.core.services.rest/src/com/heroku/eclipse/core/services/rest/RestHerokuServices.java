@@ -64,6 +64,7 @@ import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
+import com.heroku.eclipse.core.services.model.HerokuProc;
 
 /**
  * Services class for the Heroclipse plugin, providing access to essential
@@ -684,8 +685,15 @@ public class RestHerokuServices implements HerokuServices {
 		eventAdmin.postEvent(event);
 	}
 
-	public List<Proc> listProcesses(App app) throws HerokuServiceException {
-		return getOrCreateHerokuSession().listProcesses(app);
+	public List<HerokuProc> listProcesses(App app) throws HerokuServiceException {
+		List<Proc> procs = getOrCreateHerokuSession().listProcesses(app);
+
+		// adding some useful stuff 
+		List<HerokuProc> convertedProcs = new ArrayList<HerokuProc>();
+		for (Proc proc : procs) {
+			convertedProcs.add(new HerokuProc(proc));
+		}
+		return convertedProcs;
 	}
 
 	public App getApp(String appName) throws HerokuServiceException {
@@ -717,11 +725,6 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void restartProcessInstances(Proc proc) throws HerokuServiceException {
-		getOrCreateHerokuSession().restart(proc);
-	}
-
-	@Override
 	public boolean appNameExists(String appName) throws HerokuServiceException {
 		return getOrCreateHerokuSession().appNameExists(appName);
 	}
@@ -738,4 +741,11 @@ public class RestHerokuServices implements HerokuServices {
 		return IMPORT_TYPES.AUTODETECT;
 	}
 
+	@Override
+	public void restartProcs(List<Proc> procs) throws HerokuServiceException {
+		HerokuSession s = getOrCreateHerokuSession();
+		for (Proc proc : procs) {
+			s.restart(proc);
+		}
+	}
 }

@@ -8,6 +8,8 @@ import org.eclipse.swt.graphics.Image;
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.api.Proc;
+import com.heroku.eclipse.core.services.HerokuServices;
+import com.heroku.eclipse.core.services.model.HerokuProc;
 
 /**
  * Factory reponsible for creating various labels for App and Proc instances
@@ -21,7 +23,7 @@ public class LabelProviderFactory {
 	 * ==========================================
 	 */
 
-	public static ColumnLabelProvider createName(final RunnableWithReturn<List<Proc>, App> procListCallback) {
+	public static ColumnLabelProvider createName(final HerokuServices services, final RunnableWithReturn<List<HerokuProc>, App> procListCallback) {
 		return new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -29,9 +31,9 @@ public class LabelProviderFactory {
 					App app = (App) element;
 					return app.getName();
 				}
-				else if (element instanceof Proc) {
-					Proc proc = (Proc) element;
-					return HerokuUtils.getProcessName(proc) + " (" + proc.getPrettyState() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+				else if (element instanceof HerokuProc) {
+					HerokuProc proc = (HerokuProc) element;
+					return proc.getDynoName() + " (" + proc.getPrettyState() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				return ""; //$NON-NLS-1$
 			}
@@ -39,7 +41,7 @@ public class LabelProviderFactory {
 			@Override
 			public Image getImage(Object element) {
 				if (element instanceof App) {
-					List<Proc> l = procListCallback.run((App) element);
+					List<HerokuProc> l = procListCallback.run((App) element);
 					if (l != null) {
 						ProcessState total = ProcessState.UNKNOWN;
 						for (Proc p : l) {

@@ -191,22 +191,6 @@ public interface HerokuSession {
 	public void restart(Proc proc) throws HerokuServiceException;
 	
 	/**
-	 * Restarts all processes with the given process name
-	 * @param app 
-	 * @param procName 
-	 * @throws HerokuServiceException
-	 */
-	public void restartProcsByName(App app, String procName) throws HerokuServiceException;
-	
-	/**
-	 * Destroys all processes with the given process name
-	 * @param app 
-	 * @param procName 
-	 * @throws HerokuServiceException
-	 */
-	public void destroyProcsByName(App app, String procName) throws HerokuServiceException;
-	
-	/**
 	 * Checks if an App with the given name already exists.
 	 * @param appName
 	 * @return <code>true</code> if the name already exists, <code>false</code> if the name is available 

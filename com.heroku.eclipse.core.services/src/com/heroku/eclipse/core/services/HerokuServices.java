@@ -1,12 +1,10 @@
 package com.heroku.eclipse.core.services;
 
-import java.io.File;
 import java.io.InputStream;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jgit.transport.CredentialsProvider;
 
 import com.heroku.api.App;
@@ -15,6 +13,7 @@ import com.heroku.api.Proc;
 import com.heroku.api.User;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
+import com.heroku.eclipse.core.services.model.HerokuProc;
 
 /**
  * Interface defining how Heroclipse talks with the com.heroku.api.HerokuAPI API
@@ -111,17 +110,19 @@ public interface HerokuServices {
 	public static final String KEY_COLLABORATORS_LIST = "collaborators"; //$NON-NLS-1$
 
 	public static final String KEY_APPLICATION_NAME = "applicationName"; //$NON-NLS-1$
-	
+
 	/**
 	 * Enum representing some fields of an App
+	 * 
 	 * @author udo.rader@bestsolution.at
 	 */
 	public static enum APP_FIELDS {
 		APP_NAME, APP_GIT_URL, APP_WEB_URL
 	}
-	
+
 	/**
-	 * Enum representing the various import types for existing projects  
+	 * Enum representing the various import types for existing projects
+	 * 
 	 * @author udo.rader@bestsolution.at
 	 */
 	public static enum IMPORT_TYPES {
@@ -264,23 +265,23 @@ public interface HerokuServices {
 	 * @return the newly created App
 	 * @throws HerokuServiceException
 	 *             if an app with the same name already exists in the user's
-	 *             account 
-	 *             if the template name is invalid 
-	 *             if there are network problems
+	 *             account if the template name is invalid if there are network
+	 *             problems
 	 */
 	public App createAppFromTemplate(String appName, String templateName, IProgressMonitor pm) throws HerokuServiceException;
 
 	/**
 	 * Materializes the given app in the user's local git repository and in the
-	 * workspace. If an existing Eclipse project is given, the materialized
-	 * git checkout will be connected to this Eclipse project.
+	 * workspace. If an existing Eclipse project is given, the materialized git
+	 * checkout will be connected to this Eclipse project.
 	 * 
 	 * @param app
 	 *            the App instance to materialize
-	 * @param importType 
-	 * 			  one import type out of the IMPORT_TYPES enum
-	 * @param existingProject 
-	 * 				an existing Eclipse project or null, if a new project is to be used
+	 * @param importType
+	 *            one import type out of the IMPORT_TYPES enum
+	 * @param existingProject
+	 *            an existing Eclipse project or null, if a new project is to be
+	 *            used
 	 * @param workingDir
 	 *            the directory where the project will be materialized
 	 * @param timeout
@@ -295,8 +296,8 @@ public interface HerokuServices {
 	 *         App instance to materialize
 	 * @throws HerokuServiceException
 	 */
-	public boolean materializeGitApp(App app, IMPORT_TYPES importType, IProject existingProject, String workingDir, int timeout, String progressTitle, CredentialsProvider cred, IProgressMonitor pm)
-			throws HerokuServiceException;
+	public boolean materializeGitApp(App app, IMPORT_TYPES importType, IProject existingProject, String workingDir, int timeout, String progressTitle,
+			CredentialsProvider cred, IProgressMonitor pm) throws HerokuServiceException;
 
 	/**
 	 * Restart an application
@@ -308,22 +309,12 @@ public interface HerokuServices {
 	public void restartApplication(App app) throws HerokuServiceException;
 
 	/**
-	 * Restarts all instances of the given process
-	 * 
-	 * @param proc
-	 *            the process to restart
-	 * @throws HerokuServiceException
-	 */
-	public void restartProcessInstances(Proc proc) throws HerokuServiceException;
-
-	/**
 	 * Destroy an application
 	 * 
 	 * @param app
-	 *				the application to destroy
+	 *            the application to destroy
 	 * @throws HerokuServiceException
-	 * 				if the user lacks rights
-	 * 				if "anything else" goes wrong
+	 *             if the user lacks rights if "anything else" goes wrong
 	 */
 	public void destroyApplication(App app) throws HerokuServiceException;
 
@@ -383,7 +374,7 @@ public interface HerokuServices {
 	 * @return all processes
 	 * @throws HerokuServiceException
 	 */
-	public List<Proc> listProcesses(App app) throws HerokuServiceException;
+	public List<HerokuProc> listProcesses(App app) throws HerokuServiceException;
 
 	/**
 	 * Get application with given name
@@ -394,7 +385,7 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public App getApp(String appName) throws HerokuServiceException;
-	
+
 	/**
 	 * Determines if the given app is owned by the currently logged in user
 	 * 
@@ -404,14 +395,15 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public boolean isOwnApp(App app) throws HerokuServiceException;
-	
+
 	/**
 	 * Delivers information about the currently logged in user
+	 * 
 	 * @return the Heroku user info
 	 * @throws HerokuServiceException
 	 */
 	public User getUserInfo() throws HerokuServiceException;
-	
+
 	/**
 	 * Delivers the log stream for the given App.
 	 * 
@@ -436,19 +428,30 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException;
-	
+
 	/**
 	 * Checks if an App with the given name already exists.
+	 * 
 	 * @param appName
-	 * @return <code>true</code> if the name already exists, <code>false</code> if the name is available 
+	 * @return <code>true</code> if the name already exists, <code>false</code>
+	 *         if the name is available
 	 * @throws HerokuServiceException
 	 */
-	public boolean appNameExists( String appName ) throws HerokuServiceException;
-	
+	public boolean appNameExists(String appName) throws HerokuServiceException;
+
 	/**
 	 * Delivers the project type for the given App.buildbackProvidedDescription
+	 * 
 	 * @param buildpackProvidedDescription
-	 * @return either the determined element IMPORT_TYPES enum or, per default, IMPORT_TYPES.AUTODETECT 
+	 * @return either the determined element IMPORT_TYPES enum or, per default,
+	 *         IMPORT_TYPES.AUTODETECT
 	 */
-	public IMPORT_TYPES getProjectType( String buildpackProvidedDescription );
+	public IMPORT_TYPES getProjectType(String buildpackProvidedDescription);
+
+	/**
+	 * Restarts the given list of Procs
+	 * @param procs
+	 * @throws HerokuServiceException
+	 */
+	public void restartProcs(List<Proc> procs) throws HerokuServiceException;
 }
