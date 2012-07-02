@@ -6,11 +6,12 @@ package com.heroku.eclipse.core.services.model;
  * such as its somewhat "unique" id.
  * @author udo.rader@bestsolution.at
  */
-public class HerokuProc extends com.heroku.api.Proc {
+public class HerokuProc {
 	private static final long serialVersionUID = 1L;
 	
 	private String uniqueId;
 	private String dynoName;
+	private com.heroku.api.Proc herokuProc;
 	
 	/**
 	 * @param herokuProc
@@ -18,6 +19,7 @@ public class HerokuProc extends com.heroku.api.Proc {
 	public HerokuProc(com.heroku.api.Proc herokuProc) {
 		setDynoName(herokuProc);
 		setUniqueId(herokuProc);
+		setHerokuProc(herokuProc);
 	}
 	
 	/**
@@ -59,5 +61,19 @@ public class HerokuProc extends com.heroku.api.Proc {
 		else {
 			dynoName = pn[0];
 		}
+	}
+
+	/**
+	 * @return the herokuProc
+	 */
+	public com.heroku.api.Proc getHerokuProc() {
+		return herokuProc;
+	}
+
+	/**
+	 * @param herokuProc the herokuProc to set
+	 */
+	public void setHerokuProc(com.heroku.api.Proc herokuProc) {
+		this.herokuProc = herokuProc;
 	}
 }

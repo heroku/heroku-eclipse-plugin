@@ -743,8 +743,8 @@ public class RestHerokuServices implements HerokuServices {
 	@Override
 	public void restartProcs(List<HerokuProc> procs) throws HerokuServiceException {
 		HerokuSession s = getOrCreateHerokuSession();
-		for (Proc proc : procs) {
-			s.restart(proc);
+		for (HerokuProc proc : procs) {
+			s.restart(proc.getHerokuProc());
 		}
 	}
 

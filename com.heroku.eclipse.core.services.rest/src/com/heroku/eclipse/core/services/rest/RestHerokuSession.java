@@ -370,4 +370,15 @@ public class RestHerokuSession implements HerokuSession {
 			throw checkException(e);
 		}
 	}
+
+	@Override
+	public void scaleProcess(String appName, String processType, int quantity) throws HerokuServiceException {
+		checkValid();
+		try {
+			api.scaleProcess(appName, processType, quantity);
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
 }

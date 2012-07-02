@@ -233,4 +233,12 @@ public interface HerokuSession {
 	 * @throws HerokuServiceException
 	 */
 	public void removeEnvVariable(String appName, String envKey) throws HerokuServiceException;
+	
+	/**
+	 * Scales the given process type to the given quantity
+	 * @param appName
+	 * @param processType
+	 * @param quantity
+	 */
+	public void scaleProcess(String appName, String processType, int quantity) throws HerokuServiceException;
 }

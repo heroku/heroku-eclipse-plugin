@@ -482,6 +482,7 @@ public interface HerokuServices {
 	/**
 	 * Restarts the given list of Procs
 	 * @param procs
+	 * 			a List of HerokuProc instances
 	 * @throws HerokuServiceException
 	 */
 	public void restartProcs(List<HerokuProc> procs) throws HerokuServiceException;

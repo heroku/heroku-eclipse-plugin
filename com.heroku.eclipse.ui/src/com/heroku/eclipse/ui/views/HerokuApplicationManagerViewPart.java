@@ -1,5 +1,6 @@
 package com.heroku.eclipse.ui.views;
 
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -40,6 +42,7 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.part.ViewPart;
@@ -245,7 +248,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		if (app == null) {
 			HerokuProc proc = getSelectedProc();
 			if (proc != null) {
-				app = herokuService.getApp(proc.getAppName());
+				app = herokuService.getApp(proc.getHerokuProc().getAppName());
 			}
 		}
 
@@ -316,19 +319,40 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		final Action restart = new Action(Messages.getString("HerokuAppManagerViewPart_Restart")) { //$NON-NLS-1$
 			@Override
 			public void run() {
-				App app = getSelectedApp();
+				final App app = getSelectedApp();
 				if (app != null) {
 					if (MessageDialog
 							.openQuestion(
 									getShell(),
 									Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Restart", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 						try {
-							herokuService.restartApplication(app);
+							PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+								@Override
+								public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+									monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingApp", app.getName()), 2); //$NON-NLS-1$
+									monitor.worked(1);
+									try {
+										herokuService.restartApplication(app);
+										monitor.worked(1);
+										monitor.done();
+									}
+									catch (HerokuServiceException e) {
+										// rethrow to outer space
+										throw new InvocationTargetException(e);
+									}
+								}
+							});
+							refreshApplications();
+
 						}
-						catch (HerokuServiceException e) {
+						catch (InvocationTargetException e) {
 							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
 							e.printStackTrace();
 							HerokuUtils.internalError(getShell(), e);
+						}
+						catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
 					}
 				}
@@ -340,13 +364,44 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 										getShell(),
 										Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", proc.getDynoName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 							try {
-								herokuService.restartProcs(appProcesses.get(procApps.get(proc.getUniqueId())));
+								// create process list for the given dyno
+								List<HerokuProc> allProcs = appProcesses.get(procApps.get(proc.getUniqueId()));
+								final String dynoName = proc.getDynoName();
+								
+								final List<HerokuProc> dynoProcs = new ArrayList<HerokuProc>();
+								for (HerokuProc herokuProc : allProcs) {
+									if ( herokuProc.getDynoName().equals(dynoName)) {
+										dynoProcs.add(herokuProc);
+									}
+								}
+								PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+									@Override
+									public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+										monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingProc", dynoName), 2); //$NON-NLS-1$
+										monitor.worked(1);
+										try {
+											herokuService.restartProcs(dynoProcs);
+											monitor.worked(1);
+											monitor.done();
+										}
+										catch (HerokuServiceException e) {
+											// rethrow to outer space
+											throw new InvocationTargetException(e);
+										}
+									}
+								});
+								refreshApplications();
+
 							}
-							catch (HerokuServiceException e) {
+							catch (InvocationTargetException e) {
 								Activator.getDefault().getLogger()
-										.log(LogService.LOG_ERROR, "unknown error when trying to restart process " + proc.getProcess(), e); //$NON-NLS-1$
+								.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getDynoName()+"' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
 								e.printStackTrace();
 								HerokuUtils.internalError(getShell(), e);
+							}
+							catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
 							}
 						}
 					}
@@ -456,14 +511,14 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						importApp.setEnabled(false);
 						open.setEnabled(false);
 						try {
-							App app = herokuService.getApp(proc.getAppName());
+							App app = herokuService.getApp(proc.getHerokuProc().getAppName());
 							if (herokuService.isOwnApp(app)) {
 								scale.setEnabled(true);
 							}
 						}
 						catch (HerokuServiceException e) {
 							Activator.getDefault().getLogger()
-									.log(LogService.LOG_ERROR, "unknown error when trying to determine if app " + proc.getAppName() + " is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
+									.log(LogService.LOG_ERROR, "unknown error when trying to determine if app " + proc.getHerokuProc().getAppName() + " is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
 							HerokuUtils.herokuError(getShell(), e);
 						}
 

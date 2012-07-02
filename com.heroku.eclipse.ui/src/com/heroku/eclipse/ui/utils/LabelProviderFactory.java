@@ -39,7 +39,7 @@ public class LabelProviderFactory {
 				}
 				else if (element instanceof HerokuProc) {
 					HerokuProc proc = (HerokuProc) element;
-					return proc.getDynoName() + " (" + proc.getPrettyState() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+					return proc.getDynoName() + " (" + proc.getHerokuProc().getPrettyState() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				return ""; //$NON-NLS-1$
 			}
@@ -50,8 +50,8 @@ public class LabelProviderFactory {
 					List<HerokuProc> l = procListCallback.run((App) element);
 					if (l != null) {
 						ProcessState total = ProcessState.UNKNOWN;
-						for (Proc p : l) {
-							ProcessState s = ProcessState.parseRest(p.getState());
+						for (HerokuProc p : l) {
+							ProcessState s = ProcessState.parseRest(p.getHerokuProc().getState());
 							if (s.ordinal() < total.ordinal()) {
 								total = s;
 							}
