@@ -49,12 +49,12 @@ import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
-import com.heroku.api.Proc;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
 import com.heroku.eclipse.core.services.HerokuServices.IMPORT_TYPES;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.HerokuProc;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.git.HerokuCredentialsProvider;
@@ -79,11 +79,12 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	private TreeViewer viewer;
 
-	private HerokuServices herokuService;
+	private static HerokuServices herokuService;
 
 	private List<ServiceRegistration<EventHandler>> handlerRegistrations;
 
-	private Map<String, List<Proc>> appProcesses = new HashMap<String, List<Proc>>();
+	private Map<String, List<HerokuProc>> appProcesses = new HashMap<String, List<HerokuProc>>();
+	private Map<String, String> procApps = new HashMap<String, String>();
 
 	private Timer refreshTimer = new Timer(true);
 
@@ -98,7 +99,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	@Override
 	public void init(IViewSite site, IMemento memento) throws PartInitException {
 		super.init(site, memento);
-
 		herokuService = Activator.getDefault().getService();
 	}
 
@@ -112,9 +112,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		{
 			nameColumn = new TreeViewerColumn(viewer, SWT.NONE);
-			nameColumn.setLabelProvider(LabelProviderFactory.createName(new RunnableWithReturn<List<Proc>, App>() {
+			nameColumn.setLabelProvider(LabelProviderFactory.createName(herokuService, new RunnableWithReturn<List<HerokuProc>, App>() {
 				@Override
-				public List<Proc> run(App argument) {
+				public List<HerokuProc> run(App argument) {
 					return appProcesses.get(argument.getId());
 				}
 			}));
@@ -233,17 +233,17 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		return !s.isEmpty() && s.getFirstElement() instanceof App ? (App) s.getFirstElement() : null;
 	}
 
-	Proc getSelectedProc() {
+	HerokuProc getSelectedProc() {
 		IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
 
-		return !s.isEmpty() && s.getFirstElement() instanceof Proc ? (Proc) s.getFirstElement() : null;
+		return !s.isEmpty() && s.getFirstElement() instanceof HerokuProc ? (HerokuProc) s.getFirstElement() : null;
 	}
 
 	App getSelectedAppOrProcApp() throws HerokuServiceException {
 		App app = getSelectedApp();
 
 		if (app == null) {
-			Proc proc = getSelectedProc();
+			HerokuProc proc = getSelectedProc();
 			if (proc != null) {
 				app = herokuService.getApp(proc.getAppName());
 			}
@@ -333,14 +333,14 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					}
 				}
 				else {
-					Proc proc = getSelectedProc();
+					HerokuProc proc = getSelectedProc();
 					if (proc != null) {
 						if (MessageDialog
 								.openQuestion(
 										getShell(),
-										Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", HerokuUtils.getProcessName(proc)))) { //$NON-NLS-1$ //$NON-NLS-2$
+										Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", herokuService.getDynoName(proc)))) { //$NON-NLS-1$ //$NON-NLS-2$
 							try {
-								herokuService.restartProcessInstances(proc);
+								herokuService.restartProcs(appProcesses.get(procApps.get(proc.getUniqueId())));
 							}
 							catch (HerokuServiceException e) {
 								Activator.getDefault().getLogger()
@@ -566,10 +566,17 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private void saveRefreshApplications() {
 		try {
 			appProcesses.clear();
+			procApps.clear();
 			if (herokuService.isReady()) {
 				List<App> applications = herokuService.listApps();
 				for (App a : applications) {
-					appProcesses.put(a.getId(), herokuService.listProcesses(a));
+					List<Proc> procs = herokuService.listProcesses(a);
+					if (procs.size() > 0) {
+						appProcesses.put(a.getId(), procs);
+						if (!procApps.containsKey(herokuService.getProcessId(procs.get(0)))) {
+							procApps.put(herokuService.getProcessId(procs.get(0)), a.getId());
+						}
+					}
 				}
 				HerokuUtils.runOnDisplay(true, viewer, applications, ViewerOperations.input(viewer));
 			}
@@ -596,6 +603,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	@Override
 	public void dispose() {
 		appProcesses.clear();
+		procApps.clear();
 		refreshTimer.cancel();
 
 		if (handlerRegistrations != null) {
@@ -665,20 +673,10 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				return ((App) element).getId().hashCode();
 			}
 			else if (element instanceof Proc) {
-				Proc p = (Proc) element;
-				// if ( p.getUpid() != null ) {
-				// return p.getUpid().hashCode();
-				// }
-				// else {
-				return HerokuUtils.getProcessId(p).hashCode();
-				// }
+				return herokuService.getProcessId((Proc) element).hashCode();
 			}
 			return element.hashCode();
 		}
-	}
-	
-	private App findApp4Proc(Proc proc) {
-		return null;
 	}
 
 	private void importApp(final App app) throws HerokuServiceException {
@@ -686,7 +684,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
 			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 			final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
-			// TODO: display import type wizard (autodetect, general, new project wizard)
+			// TODO: display import type wizard (autodetect, general, new
+			// project wizard)
 			try {
 				herokuService.materializeGitApp(app, IMPORT_TYPES.AUTODETECT, null, destinationDir, timeout,
 						Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, new NullProgressMonitor()); //$NON-NLS-1$

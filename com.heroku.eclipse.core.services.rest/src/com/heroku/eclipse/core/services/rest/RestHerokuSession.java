@@ -1,6 +1,7 @@
 package com.heroku.eclipse.core.services.rest;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,6 +17,7 @@ import com.heroku.api.request.log.Log.LogRequestBuilder;
 import com.heroku.api.request.log.LogStreamResponse;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.HerokuProc;
 
 /**
  * Class representing a connection ("session") to the Heroku cloud services.
@@ -342,28 +344,5 @@ public class RestHerokuSession implements HerokuSession {
 		catch (RequestFailedException e) {
 			throw checkException(e);
 		}
-	}
-
-	@Override
-	public void restartProcsByName(App app, String procName) throws HerokuServiceException {
-		checkValid();
-		List<Proc> processes = listProcesses(app);
-		for (Proc proc : processes) {
-			
-		}
-//		
-// 		try {
-//			return api.appExists(appName);
-//		}
-//		catch (RequestFailedException e) {
-//			throw checkException(e);
-//		}
-		
-	}
-
-	@Override
-	public void destroyProcsByName(App app, String procName) throws HerokuServiceException {
-		// TODO Auto-generated method stub
-		
 	}
 }

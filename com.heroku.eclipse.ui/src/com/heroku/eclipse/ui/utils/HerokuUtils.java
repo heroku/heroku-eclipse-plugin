@@ -282,34 +282,6 @@ public class HerokuUtils {
 	}
 	
 	/**
-	 * Retrieves the process name of a process without the process counter.
-	 * So for a Proc.getProcess() returning foo.1, you will get only foo   
-	 * @param p
-	 * @return the process name stripped from the process counter
-	 */
-	public static String getProcessName2( Proc p ) {
-		String[] pn = p.getProcess().split("\\."); //$NON-NLS-1$
-		
-		if ( pn.length > 1 ) {
-			return pn[pn.length-2];
-		}
-		else {
-			return pn[0];
-		}
-	}
-	
-	/**
-	 * Delivers a somewhat unique id for the given process, consisting of its
-	 * app name and its process name.
-	 * @param p
-	 * @return the crafted process id
-	 */
-	public static String getProcessId2( Proc p ) {
-		return null;
-//		return p.getAppName()+"<>"+getProcessName(p); //$NON-NLS-1$
-	}
-	
-	/**
 	 * Verifies that the preferences are valid and if not, asks the user if he/she
 	 * wants to setup the preferences, otherwise return null
 	 * 
