@@ -22,6 +22,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.IOpenListener;
@@ -34,10 +35,16 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Spinner;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
@@ -58,6 +65,7 @@ import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
 import com.heroku.eclipse.core.services.HerokuServices.IMPORT_TYPES;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.HerokuProc;
+import com.heroku.eclipse.core.services.model.KeyValue;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.git.HerokuCredentialsProvider;
@@ -90,13 +98,10 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private Map<String, String> procApps = new HashMap<String, String>();
 
 	private Timer refreshTimer = new Timer(true);
-
 	private TimerTask refreshTask;
 
 	private TreeViewerColumn urlColumn;
-
 	private TreeViewerColumn gitColumn;
-
 	private TreeViewerColumn nameColumn;
 
 	@Override
@@ -326,7 +331,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 									getShell(),
 									Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Restart", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 						try {
-							PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+							PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 								@Override
 								public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 									monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingApp", app.getName()), 2); //$NON-NLS-1$
@@ -351,8 +356,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							HerokuUtils.internalError(getShell(), e);
 						}
 						catch (InterruptedException e) {
-							// TODO Auto-generated catch block
+							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
 							e.printStackTrace();
+							HerokuUtils.internalError(getShell(), e);
 						}
 					}
 				}
@@ -364,17 +370,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 										getShell(),
 										Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", proc.getDynoName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 							try {
-								// create process list for the given dyno
-								List<HerokuProc> allProcs = appProcesses.get(procApps.get(proc.getUniqueId()));
+								// create process list only for the given dyno
 								final String dynoName = proc.getDynoName();
-								
-								final List<HerokuProc> dynoProcs = new ArrayList<HerokuProc>();
-								for (HerokuProc herokuProc : allProcs) {
-									if ( herokuProc.getDynoName().equals(dynoName)) {
-										dynoProcs.add(herokuProc);
-									}
-								}
-								PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+								final List<HerokuProc> dynoProcs = findDynoProcs(proc);
+
+								PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 									@Override
 									public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 										monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingProc", dynoName), 2); //$NON-NLS-1$
@@ -395,13 +395,15 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							}
 							catch (InvocationTargetException e) {
 								Activator.getDefault().getLogger()
-								.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getDynoName()+"' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
+										.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getDynoName() + "' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
 								e.printStackTrace();
 								HerokuUtils.internalError(getShell(), e);
 							}
 							catch (InterruptedException e) {
-								// TODO Auto-generated catch block
+								Activator.getDefault().getLogger()
+										.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getDynoName() + "' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
 								e.printStackTrace();
+								HerokuUtils.internalError(getShell(), e);
 							}
 						}
 					}
@@ -425,13 +427,165 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						HerokuUtils.internalError(getShell(), e);
 					}
 				}
+				else {
+					// opening log for the entire process group
+					HerokuProc proc = getSelectedProc();
+					try {
+						ConsoleViewPart console = (ConsoleViewPart) getSite().getWorkbenchWindow().getActivePage().showView(ConsoleViewPart.ID);
+						console.openLog(app);
+					}
+					catch (PartInitException e) {
+						Activator.getDefault().getLogger()
+								.log(LogService.LOG_ERROR, "unknown error when trying to display log for proc " + proc.getDynoName(), e); //$NON-NLS-1$
+						e.printStackTrace();
+						HerokuUtils.internalError(getShell(), e);
+					}
+				}
 			}
 		};
 
 		final Action scale = new Action(Messages.getString("HerokuAppManagerViewPart_Scale")) { //$NON-NLS-1$
 			@Override
 			public void run() {
+				TrayDialog d = new TrayDialog(getShell()) {
 
+					private Text processField;
+					private Spinner quantityField;
+					private String appName;
+
+					@Override
+					protected Control createDialogArea(Composite parent) {
+						int quantity = 0;
+						String dynoName = ""; //$NON-NLS-1$
+
+						App app = getSelectedApp();
+						if (app != null) {
+							List<HerokuProc> procs = appProcesses.get(app.getId());
+							appName = app.getName();
+
+							// if the app has only one process type, prepopulate
+							for (HerokuProc herokuProc : procs) {
+								if (dynoName.equals("")) { //$NON-NLS-1$
+									dynoName = herokuProc.getDynoName();
+									quantity++;
+								}
+								else if (!herokuProc.getDynoName().equals(dynoName)) {
+									dynoName = ""; //$NON-NLS-1$
+									quantity = 0;
+									break;
+								}
+							}
+						}
+						else {
+							HerokuProc proc = getSelectedProc();
+							dynoName = proc.getDynoName();
+							quantity = findDynoProcs(proc).size();
+							appName = proc.getHerokuProc().getAppName();
+						}
+
+						Composite container = (Composite) super.createDialogArea(parent);
+						getShell().setText(Messages.getString("HerokuAppManagerViewPart_Scale_Title")); //$NON-NLS-1$
+
+						Composite area = new Composite(container, SWT.NONE);
+						area.setLayout(new GridLayout(2, false));
+						area.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+						{
+							Label l = new Label(area, SWT.NONE);
+							l.setText(Messages.getString("HerokuAppManagerViewPart_Scale_Process")); //$NON-NLS-1$
+
+							processField = new Text(area, SWT.BORDER);
+							processField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+							processField.setText(dynoName);
+						}
+
+						{
+							Label l = new Label(area, SWT.NONE);
+							l.setText(Messages.getString("HerokuAppManagerViewPart_Scale_ScaleTo")); //$NON-NLS-1$
+
+							quantityField = new Spinner(area, SWT.BORDER);
+							// quantityField.setLayoutData(new
+							// GridData(GridData.FILL_HORIZONTAL));
+							quantityField.setMinimum(0);
+							quantityField.setMaximum(24);
+							quantityField.setSelection(quantity);
+							quantityField.setIncrement(1);
+							quantityField.pack();
+						}
+
+						return container;
+					}
+
+					@Override
+					protected void okPressed() {
+						final String process = processField.getText().trim();
+						final String quantity = quantityField.getText();
+						if (HerokuUtils.isNotEmpty(process)) {
+							try {
+								PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
+									@Override
+									public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+										monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_Scaling",process), 3); //$NON-NLS-1$
+										monitor.worked(1);
+										try {
+											herokuService.scaleProcess(appName, process, Integer.parseInt(quantity));
+											monitor.worked(1);
+											refreshApplications();
+											monitor.done();
+										}
+										catch (HerokuServiceException e) {
+											// rethrow to outer space
+											throw new InvocationTargetException(e);
+										}
+									}
+								});
+								super.okPressed();
+							}
+							catch (InvocationTargetException e) {
+								if ((e.getCause() instanceof HerokuServiceException)) {
+									HerokuServiceException e1 = (HerokuServiceException) e.getCause();
+
+									if (e1.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
+										HerokuUtils
+												.userError(
+														getShell(),
+														Messages.getString("HerokuAppManagerViewPart_Scale_Error_BuyCredits_Title"), Messages.getString("HerokuAppManagerViewPart_Scale_Error_BuyCredits")); //$NON-NLS-1$ //$NON-NLS-2$
+									}
+									else if (e1.getErrorCode() == HerokuServiceException.NOT_FOUND) {
+										HerokuUtils
+												.userError(
+														getShell(),
+														Messages.getString("HerokuAppManagerViewPart_Scale_Error_UnknownDyno_Title"), Messages.getFormattedString("HerokuAppManagerViewPart_Scale_Error_UnknownDyno",process)); //$NON-NLS-1$ //$NON-NLS-2$
+									}
+									else {
+										e.printStackTrace();
+										HerokuUtils.herokuError(getShell(), e);
+									}
+								}
+								else {
+									Activator.getDefault().getLogger()
+											.log(LogService.LOG_ERROR, "unknown error when trying to scale process " + process + " for app " + appName, e); //$NON-NLS-1$ //$NON-NLS-2$
+									e.printStackTrace();
+									HerokuUtils.internalError(getShell(), e);
+								}
+							}
+							catch (InterruptedException e) {
+								Activator.getDefault().getLogger()
+										.log(LogService.LOG_ERROR, "unknown error when trying to scale process " + process + " for app " + appName, e); //$NON-NLS-1$ //$NON-NLS-2$
+								e.printStackTrace();
+								HerokuUtils.internalError(getShell(), e);
+							}
+						}
+						else {
+							HerokuUtils
+									.userError(
+											getShell(),
+											Messages.getString("HerokuAppManagerViewPart_Scale_Error_MissingInput_Title"), Messages.getString("HerokuAppManagerViewPart_Scale_Error_MissingInput")); //$NON-NLS-1$ //$NON-NLS-2$
+							processField.setFocus();
+						}
+					}
+				};
+				d.open();
 			}
 		};
 
@@ -517,8 +671,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							}
 						}
 						catch (HerokuServiceException e) {
-							Activator.getDefault().getLogger()
-									.log(LogService.LOG_ERROR, "unknown error when trying to determine if app " + proc.getHerokuProc().getAppName() + " is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
+							Activator
+									.getDefault()
+									.getLogger()
+									.log(LogService.LOG_ERROR,
+											"unknown error when trying to determine if app " + proc.getHerokuProc().getAppName() + " is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
 							HerokuUtils.herokuError(getShell(), e);
 						}
 
@@ -760,5 +917,20 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		}
 
+	}
+
+	private List<HerokuProc> findDynoProcs(HerokuProc proc) {
+		// create process list for the given dyno
+		List<HerokuProc> allProcs = appProcesses.get(procApps.get(proc.getUniqueId()));
+		final String dynoName = proc.getDynoName();
+
+		final List<HerokuProc> dynoProcs = new ArrayList<HerokuProc>();
+		for (HerokuProc herokuProc : allProcs) {
+			if (herokuProc.getDynoName().equals(dynoName)) {
+				dynoProcs.add(herokuProc);
+			}
+		}
+
+		return dynoProcs;
 	}
 }

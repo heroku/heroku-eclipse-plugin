@@ -239,6 +239,7 @@ public interface HerokuSession {
 	 * @param appName
 	 * @param processType
 	 * @param quantity
+	 * @throws HerokuServiceException 
 	 */
 	public void scaleProcess(String appName, String processType, int quantity) throws HerokuServiceException;
 }

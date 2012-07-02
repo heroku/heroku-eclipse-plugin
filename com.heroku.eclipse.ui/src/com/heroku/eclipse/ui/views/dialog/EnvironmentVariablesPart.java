@@ -356,7 +356,6 @@ public class EnvironmentVariablesPart {
 	}
 
 	public void setFocus() {
-		// TODO Auto-generated method stub
-
+		viewer.getControl().setFocus();
 	}
 }

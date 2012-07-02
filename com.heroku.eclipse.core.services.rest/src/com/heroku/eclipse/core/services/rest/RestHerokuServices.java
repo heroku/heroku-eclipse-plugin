@@ -768,4 +768,9 @@ public class RestHerokuServices implements HerokuServices {
 	public void removeEnvVariable(App app, String envKey) throws HerokuServiceException {
 		getOrCreateHerokuSession().removeEnvVariable(app.getName(), envKey);
 	}
+
+	@Override
+	public void scaleProcess(String appName, String dynoName, int quantity) throws HerokuServiceException {
+		getOrCreateHerokuSession().scaleProcess(appName, dynoName, quantity);
+	}
 }

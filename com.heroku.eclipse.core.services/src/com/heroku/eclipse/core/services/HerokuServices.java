@@ -486,4 +486,14 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public void restartProcs(List<HerokuProc> procs) throws HerokuServiceException;
+	
+	/**
+	 * Scales the given dyno type to the given quantity
+	 * @param appName
+	 * @param dynoName
+	 * @param quantity
+	 * @throws HerokuServiceException 
+	 */
+	public void scaleProcess(String appName, String dynoName, int quantity) throws HerokuServiceException;
+
 }

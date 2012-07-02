@@ -30,10 +30,15 @@ public class RestHerokuSession implements HerokuSession {
 	private boolean valid = true;
 
 	/**
-	 * Pattern helpful for determining the real meaning of a HTTP 422 response code
+	 * Pattern helpful for determining the real meaning of a HTTP 422 response code, mapped to {@link HerokuServiceException#NOT_ACCEPTABLE}
 	 */
-	private static Pattern PATTERN_NOT_ACCEPTABLE = Pattern.compile(".*(Name is already taken|must start with a letter and can only contain).*"); //$NON-NLS-1$
-
+	private static Pattern PATTERN_NOT_ACCEPTABLE = Pattern.compile(".*(Name is already taken|must start with a letter and can only contain|Please verify your account in order to change resources).*"); //$NON-NLS-1$
+	
+	/**
+	 * Pattern helpful for determining the real meaning of a HTTP 422 response code, mapped to {@link HerokuServiceException#NOT_FOUND}
+	 */
+	private static Pattern PATTERN_NOT_FOUND = Pattern.compile(".*(No such type as).*"); //$NON-NLS-1$
+	
 	/**
 	 * @param apiKey
 	 */
@@ -73,6 +78,9 @@ public class RestHerokuSession implements HerokuSession {
 				// response body to separate between fiction and fact.
 				if (PATTERN_NOT_ACCEPTABLE.matcher(e.getResponseBody()).matches()) {
 					return new HerokuServiceException(HerokuServiceException.NOT_ACCEPTABLE, extractErrorField(e.getResponseBody()), e);
+				}
+				else if (PATTERN_NOT_FOUND.matcher(e.getResponseBody()).matches()) {
+					return new HerokuServiceException(HerokuServiceException.NOT_FOUND, extractErrorField(e.getResponseBody()), e);
 				}
 				else {
 					return new HerokuServiceException(HerokuServiceException.REQUEST_FAILED, extractErrorField(e.getResponseBody()), e);
