@@ -29,7 +29,7 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
 public class HerokuAppProjectTypePage extends WizardPage {
 	private HerokuServices service;
 	private Button autodetect;
-	private Button newProject;
+//	private Button newProject;
 	private Button generalProject;
 
 	private IMPORT_TYPES importType = IMPORT_TYPES.AUTODETECT;
@@ -62,10 +62,10 @@ public class HerokuAppProjectTypePage extends WizardPage {
 		autodetect.setText(Messages.getString("HerokuAppProjectType_Import_Autodetect")); //$NON-NLS-1$
 		autodetect.addSelectionListener(getSelectionListener());
 
-		newProject = new Button(group, SWT.RADIO);
-		newProject.setText(Messages.getString("HerokuAppProjectType_Import_NewProjectWizard")); //$NON-NLS-1$
-		newProject.addSelectionListener(getSelectionListener());
-
+//		newProject = new Button(group, SWT.RADIO);
+//		newProject.setText(Messages.getString("HerokuAppProjectType_Import_NewProjectWizard")); //$NON-NLS-1$
+//		newProject.addSelectionListener(getSelectionListener());
+//
 		generalProject = new Button(group, SWT.RADIO);
 		generalProject.setText(Messages.getString("HerokuAppProjectType_Import_GeneralProject")); //$NON-NLS-1$
 		generalProject.addSelectionListener(getSelectionListener());
@@ -79,9 +79,9 @@ public class HerokuAppProjectTypePage extends WizardPage {
 				if (autodetect.getSelection()) {
 					importType = IMPORT_TYPES.AUTODETECT;
 				}
-				else if (newProject.getSelection()) {
-					importType = IMPORT_TYPES.NEW_PROJECT_WIZARD;
-				}
+//				else if (newProject.getSelection()) {
+//					importType = IMPORT_TYPES.NEW_PROJECT_WIZARD;
+//				}
 				else if (generalProject.getSelection()) {
 					importType = IMPORT_TYPES.GENERAL_PROJECT;
 				}
