@@ -109,14 +109,16 @@ public class CollaboratorsPart {
 					public void widgetSelected(SelectionEvent e) {
 						@SuppressWarnings("unchecked")
 						List<Collaborator> collabs = ((IStructuredSelection) viewer.getSelection()).toList();
-						if (collabs.contains(currentOwner)) {
-							Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "collaborators list to remove contains application owner, rejecting!"); //$NON-NLS-1$
-							HerokuUtils.userError(
-									removeButton.getShell(),
-									Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner_Title"), Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner")); //$NON-NLS-1$ //$NON-NLS-2$
-						}
-						else {
-							handleRemove(removeButton.getShell(), collabs);
+						if (collabs.size() > 0 ) {
+							if (collabs.contains(currentOwner)) {
+								Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "collaborators list to remove contains application owner, rejecting!"); //$NON-NLS-1$
+								HerokuUtils.userError(
+										removeButton.getShell(),
+										Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner_Title"), Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner")); //$NON-NLS-1$ //$NON-NLS-2$
+							}
+							else {
+								handleRemove(removeButton.getShell(), collabs);
+							}
 						}
 					}
 				});
