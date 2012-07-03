@@ -59,9 +59,9 @@ public class LabelProviderFactory {
 						return getStateIcon(total);
 					}
 				}
-				else if (element instanceof Proc) {
-					Proc p = (Proc) element;
-					return getStateIcon(ProcessState.parseRest(p.getState()));
+				else if (element instanceof HerokuProc) {
+					HerokuProc p = (HerokuProc) element;
+					return getStateIcon(ProcessState.parseRest(p.getHerokuProc().getState()));
 				}
 
 				return super.getImage(element);
