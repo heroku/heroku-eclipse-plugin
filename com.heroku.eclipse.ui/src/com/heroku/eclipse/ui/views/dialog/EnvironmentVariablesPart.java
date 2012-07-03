@@ -62,7 +62,7 @@ public class EnvironmentVariablesPart {
 		container.setLayout(new GridLayout(2, false));
 
 		{
-			viewer = new TableViewer(container);
+			viewer = new TableViewer(container, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
 			viewer.getTable().setHeaderVisible(true);
 			viewer.getTable().setLinesVisible(true);
 			viewer.setContentProvider(new ArrayContentProvider());
