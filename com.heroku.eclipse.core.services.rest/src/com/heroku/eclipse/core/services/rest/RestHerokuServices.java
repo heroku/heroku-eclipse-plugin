@@ -714,13 +714,13 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public InputStream getApplicationLogStream(App app) throws HerokuServiceException {
-		return getOrCreateHerokuSession().getApplicationLogStream(app);
+	public InputStream getApplicationLogStream(String appName) throws HerokuServiceException {
+		return getOrCreateHerokuSession().getApplicationLogStream(appName);
 	}
 
 	@Override
-	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException {
-		return getOrCreateHerokuSession().getProcessLogStream(app, processName);
+	public InputStream getProcessLogStream(String appName, String processName) throws HerokuServiceException {
+		return getOrCreateHerokuSession().getProcessLogStream(appName, processName);
 	}
 
 	@Override

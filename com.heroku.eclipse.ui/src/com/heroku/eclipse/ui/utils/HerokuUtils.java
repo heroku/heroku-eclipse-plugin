@@ -1,6 +1,5 @@
 package com.heroku.eclipse.ui.utils;
 
-import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IStatus;
@@ -17,8 +16,6 @@ import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
-import com.heroku.api.App;
-import com.heroku.api.Proc;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
@@ -32,8 +29,6 @@ import com.heroku.eclipse.ui.preferences.HerokuPreferencePage;
  * 
  */
 public class HerokuUtils {
-	private static HashMap<String, Thread> logReaders = new HashMap<String, Thread>();
-
 	private static class ErrorData {
 		final Shell shell;
 		final IStatus status;
@@ -127,14 +122,11 @@ public class HerokuUtils {
 	}
 
 	/**
-	 * Returns the console used by the plugin, allowing to contribute messages
-	 * to Eclipse's console view
-	 * 
-	 * @param appName
+	 * Finds or creates the named console
+	 * @param consoleName
 	 * @return the MessageConsole
 	 */
-	public static MessageConsole getConsole(String appName) {
-		String consoleName = Activator.CONSOLE_NAME + " - " + appName; //$NON-NLS-1$
+	public static MessageConsole findConsole(String consoleName) {
 		ConsolePlugin plugin = ConsolePlugin.getDefault();
 		IConsoleManager conMan = plugin.getConsoleManager();
 
@@ -150,43 +142,6 @@ public class HerokuUtils {
 		conMan.addConsoles(new IConsole[] { myConsole });
 
 		return myConsole;
-	}
-
-	public static Thread getLogViewerThread(String viewerName, MessageConsole console, App app) {
-		if (logReaders.containsKey(viewerName)) {
-			return logReaders.get(viewerName);
-		}
-		else {
-			Thread t = new Thread(viewerName) {
-				@Override
-				public void run() {
-					// byte[] buffer = new byte[1024];
-					// int bytesRead;
-					// try {
-					// InputStream is =
-					// herokuService.getApplicationLogStream(app);
-					// while ((bytesRead = is.read(buffer)) != -1) {
-					// if ( out.isClosed() ) {
-					// break;
-					// }
-					// out.write(buffer, 0, bytesRead);
-					// }
-					// }
-					// catch (IOException e) {
-					// // TODO Auto-generated catch block
-					// e.printStackTrace();
-					// }
-					// catch (HerokuServiceException e) {
-					// // TODO Auto-generated catch block
-					// e.printStackTrace();
-					// }
-				}
-			};
-
-			t.setDaemon(true);
-			logReaders.put(viewerName, t);
-			return t;
-		}
 	}
 
 	/**

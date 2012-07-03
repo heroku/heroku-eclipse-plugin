@@ -412,11 +412,11 @@ public interface HerokuServices {
 	 * The stream remains open as long as it is not closed, so a "tail -f" style
 	 * log viewer is possible
 	 * 
-	 * @param app
+	 * @param appName
 	 * @return the log InputStream
 	 * @throws HerokuServiceException
 	 */
-	public InputStream getApplicationLogStream(App app) throws HerokuServiceException;
+	public InputStream getApplicationLogStream(String appName) throws HerokuServiceException;
 
 	/**
 	 * Delivers the log stream for the given process of the given App.
@@ -424,12 +424,12 @@ public interface HerokuServices {
 	 * The stream remains open as long as it is not closed, so a "tail -f" style
 	 * log viewer is possible
 	 * 
-	 * @param app
+	 * @param appName
 	 * @param processName
 	 * @return the log InputStream
 	 * @throws HerokuServiceException
 	 */
-	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException;
+	public InputStream getProcessLogStream(String appName, String processName) throws HerokuServiceException;
 
 	/**
 	 * Adds a Map of environment variables

@@ -1,5 +1,7 @@
 package com.heroku.eclipse.ui.views;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -9,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -52,6 +55,9 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.part.ViewPart;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
@@ -65,7 +71,6 @@ import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
 import com.heroku.eclipse.core.services.HerokuServices.IMPORT_TYPES;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.HerokuProc;
-import com.heroku.eclipse.core.services.model.KeyValue;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.git.HerokuCredentialsProvider;
@@ -96,6 +101,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	private Map<String, List<HerokuProc>> appProcesses = new HashMap<String, List<HerokuProc>>();
 	private Map<String, String> procApps = new HashMap<String, String>();
+
+	private Map<String, Thread> logThreads = new HashMap<String, Thread>();
 
 	private Timer refreshTimer = new Timer(true);
 	private TimerTask refreshTask;
@@ -416,30 +423,33 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			public void run() {
 				final App app = getSelectedApp();
 				if (app != null) {
-
-					try {
-						ConsoleViewPart console = (ConsoleViewPart) getSite().getWorkbenchWindow().getActivePage().showView(ConsoleViewPart.ID);
-						console.openLog(app);
-					}
-					catch (PartInitException e) {
-						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display log for app " + app.getName(), e); //$NON-NLS-1$
-						e.printStackTrace();
-						HerokuUtils.internalError(getShell(), e);
-					}
+					openLog(app.getId(), app.getName(), null);
+					// try {
+					// ConsoleViewPart console = (ConsoleViewPart)
+					// getSite().getWorkbenchWindow().getActivePage().showView(ConsoleViewPart.ID);
+					// console.openLog(app);
+					// }
+					// catch (PartInitException e) {
+					//						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display log for app " + app.getName(), e); //$NON-NLS-1$
+					// e.printStackTrace();
+					// HerokuUtils.internalError(getShell(), e);
+					// }
 				}
 				else {
 					// opening log for the entire process group
 					HerokuProc proc = getSelectedProc();
-					try {
-						ConsoleViewPart console = (ConsoleViewPart) getSite().getWorkbenchWindow().getActivePage().showView(ConsoleViewPart.ID);
-						console.openLog(app);
-					}
-					catch (PartInitException e) {
-						Activator.getDefault().getLogger()
-								.log(LogService.LOG_ERROR, "unknown error when trying to display log for proc " + proc.getDynoName(), e); //$NON-NLS-1$
-						e.printStackTrace();
-						HerokuUtils.internalError(getShell(), e);
-					}
+					openLog(proc.getUniqueId(), proc.getHerokuProc().getAppName(), proc.getDynoName());
+					// try {
+					// ConsoleViewPart console = (ConsoleViewPart)
+					// getSite().getWorkbenchWindow().getActivePage().showView(ConsoleViewPart.ID);
+					// console.openLog(app);
+					// }
+					// catch (PartInitException e) {
+					// Activator.getDefault().getLogger()
+					//								.log(LogService.LOG_ERROR, "unknown error when trying to display log for proc " + proc.getDynoName(), e); //$NON-NLS-1$
+					// e.printStackTrace();
+					// HerokuUtils.internalError(getShell(), e);
+					// }
 				}
 			}
 		};
@@ -525,7 +535,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 								PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 									@Override
 									public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-										monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_Scaling",process), 3); //$NON-NLS-1$
+										monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_Scaling", process), 3); //$NON-NLS-1$
 										monitor.worked(1);
 										try {
 											herokuService.scaleProcess(appName, process, Integer.parseInt(quantity));
@@ -555,7 +565,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 										HerokuUtils
 												.userError(
 														getShell(),
-														Messages.getString("HerokuAppManagerViewPart_Scale_Error_UnknownDyno_Title"), Messages.getFormattedString("HerokuAppManagerViewPart_Scale_Error_UnknownDyno",process)); //$NON-NLS-1$ //$NON-NLS-2$
+														Messages.getString("HerokuAppManagerViewPart_Scale_Error_UnknownDyno_Title"), Messages.getFormattedString("HerokuAppManagerViewPart_Scale_Error_UnknownDyno", process)); //$NON-NLS-1$ //$NON-NLS-2$
 									}
 									else {
 										e.printStackTrace();
@@ -687,6 +697,81 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		return mgr;
 	}
 
+	private void openLog(final String uniqueId, final String appName, final String procName) {
+		String consoleName = ""; //$NON-NLS-1$
+		String streamName = "logstream-"; //$NON-NLS-1$
+
+		if (procName == null) {
+			consoleName = Messages.getFormattedString("HerokuAppManagerViewPart_AppConsole_Title", appName); //$NON-NLS-1$
+			streamName += "app-" + uniqueId; //$NON-NLS-1$
+		}
+		else {
+			consoleName += Messages.getFormattedString("HerokuAppManagerViewPart_ProcConsole_Title", appName, procName); //$NON-NLS-1$
+			streamName += "proc-" + uniqueId; //$NON-NLS-1$
+		}
+
+		MessageConsole console = HerokuUtils.findConsole(consoleName);
+		ConsolePlugin.getDefault().getConsoleManager().showConsoleView(console);
+		console.activate();
+
+		// only open new log stream if we have not opened it before
+		if (!logThreads.containsKey(streamName)) {
+			final MessageConsoleStream out = console.newMessageStream();
+			Thread t = new Thread(streamName) {
+				AtomicBoolean wantsFun = new AtomicBoolean(true);
+
+				@Override
+				public void run() {
+					while (wantsFun != null && wantsFun.get()) {
+						byte[] buffer = new byte[1024];
+						int bytesRead;
+						try {
+							InputStream is;
+							if (procName == null) {
+								is = herokuService.getApplicationLogStream(appName);
+							}
+							else {
+								is = herokuService.getProcessLogStream(appName, procName);
+							}
+							while ((bytesRead = is.read(buffer)) != -1) {
+								if (out.isClosed()) {
+									break;
+								}
+								out.write(buffer, 0, bytesRead);
+							}
+						}
+						catch (IOException e) {
+							e.printStackTrace();
+							HerokuUtils.internalError(getShell(), e);
+						}
+						catch (HerokuServiceException e) {
+							e.printStackTrace();
+							HerokuUtils.herokuError(getShell(), e);
+						}
+					}
+				}
+
+				@Override
+				public void interrupt() {
+					wantsFun.set(false);
+					try {
+						out.close();
+					}
+					catch (IOException e) {
+						e.printStackTrace();
+					}
+					super.interrupt();
+				}
+			};
+
+			t.setDaemon(true);
+			t.start();
+
+			logThreads.put(streamName, t);
+		}
+
+	}
+
 	@Override
 	public void openInternal(App application) {
 		try {
@@ -766,7 +851,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				}
 				catch (Throwable e) {
 					e.printStackTrace();
-					HerokuUtils.internalError(Display.getCurrent().getActiveShell(), e);
+					if (Display.getCurrent() != null) {
+						HerokuUtils.internalError(Display.getCurrent().getActiveShell(), e);
+					}
 				}
 
 				return Status.OK_STATUS;
@@ -896,8 +983,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
 			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 			final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
-			// TODO: display import type wizard (autodetect, general, new
-			// project wizard)
 			try {
 				herokuService.materializeGitApp(app, IMPORT_TYPES.AUTODETECT, null, destinationDir, timeout,
 						Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, new NullProgressMonitor()); //$NON-NLS-1$

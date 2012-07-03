@@ -283,10 +283,10 @@ public class RestHerokuSession implements HerokuSession {
 	}
 
 	@Override
-	public InputStream getApplicationLogStream(App app) throws HerokuServiceException {
+	public InputStream getApplicationLogStream(String appName) throws HerokuServiceException {
 		checkValid();
 		try {
-			LogStreamResponse stream = api.getLogs(new LogRequestBuilder().app(app.getName()).tail(true));
+			LogStreamResponse stream = api.getLogs(new LogRequestBuilder().app(appName).tail(true));
 			return stream.openStream();
 		}
 		catch (RequestFailedException e) {
@@ -295,10 +295,10 @@ public class RestHerokuSession implements HerokuSession {
 	}
 
 	@Override
-	public InputStream getProcessLogStream(App app, String processName) throws HerokuServiceException {
+	public InputStream getProcessLogStream(String appName, String processName) throws HerokuServiceException {
 		checkValid();
 		try {
-			LogStreamResponse stream = api.getLogs(new LogRequestBuilder().app(app.getName()).ps(processName).tail(true));
+			LogStreamResponse stream = api.getLogs(new LogRequestBuilder().app(appName).ps(processName).tail(true));
 			return stream.openStream();
 		}
 		catch (RequestFailedException e) {
@@ -306,13 +306,6 @@ public class RestHerokuSession implements HerokuSession {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.heroku.eclipse.core.services.HerokuSession#restart(com.heroku.api
-	 * .Proc)
-	 */
 	@Override
 	public void restart(Proc proc) throws HerokuServiceException {
 		checkValid();
