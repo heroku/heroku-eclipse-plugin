@@ -113,7 +113,9 @@ public class EnvironmentVariablesPart {
 					public void widgetSelected(SelectionEvent e) {
 						@SuppressWarnings("unchecked")
 						List<KeyValue> envVars = ((IStructuredSelection) viewer.getSelection()).toList();
-						handleRemove(removeButton.getShell(), envVars);
+						if (envVars.size() > 0 ) {
+							handleRemove(removeButton.getShell(), envVars);
+						}
 					}
 				});
 			}
