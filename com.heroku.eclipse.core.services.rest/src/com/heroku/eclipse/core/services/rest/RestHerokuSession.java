@@ -17,6 +17,7 @@ import com.heroku.api.request.log.Log.LogRequestBuilder;
 import com.heroku.api.request.log.LogStreamResponse;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.HerokuProc;
 
 /**
  * Class representing a connection ("session") to the Heroku cloud services.
@@ -311,6 +312,17 @@ public class RestHerokuSession implements HerokuSession {
 		checkValid();
 		try {
 			api.restartProcessByName(proc.getAppName(), proc.getProcess());
+		}
+		catch (RequestFailedException e) {
+			throw checkException(e);
+		}
+	}
+
+	@Override
+	public void restartDyno(HerokuProc proc) throws HerokuServiceException {
+		checkValid();
+		try {
+			api.restartProcessByType(proc.getHerokuProc().getAppName(), proc.getDynoName());
 		}
 		catch (RequestFailedException e) {
 			throw checkException(e);

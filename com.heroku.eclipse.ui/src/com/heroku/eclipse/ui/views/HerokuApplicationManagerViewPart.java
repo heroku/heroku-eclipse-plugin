@@ -309,7 +309,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							importApp(app);
 						}
 						catch (HerokuServiceException e) {
-							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
+							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to import app " + app.getName(), e); //$NON-NLS-1$
 							e.printStackTrace();
 							HerokuUtils.internalError(getShell(), e);
 						}
@@ -370,24 +370,20 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					}
 				}
 				else {
-					HerokuProc proc = getSelectedProc();
+					final HerokuProc proc = getSelectedProc();
 					if (proc != null) {
 						if (MessageDialog
 								.openQuestion(
 										getShell(),
 										Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", proc.getDynoName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 							try {
-								// create process list only for the given dyno
-								final String dynoName = proc.getDynoName();
-								final List<HerokuProc> dynoProcs = findDynoProcs(proc);
-
 								PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 									@Override
 									public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-										monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingProc", dynoName), 2); //$NON-NLS-1$
+										monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingProc", proc.getDynoName()), 2); //$NON-NLS-1$
 										monitor.worked(1);
 										try {
-											herokuService.restartProcs(dynoProcs);
+											herokuService.restartDyno(proc);
 											monitor.worked(1);
 											monitor.done();
 										}

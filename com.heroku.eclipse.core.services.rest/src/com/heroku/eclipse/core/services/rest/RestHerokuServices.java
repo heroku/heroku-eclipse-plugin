@@ -749,6 +749,11 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
+	public void restartDyno(HerokuProc dyno) throws HerokuServiceException {
+		getOrCreateHerokuSession().restartDyno(dyno);
+	}
+
+	@Override
 	public void addEnvVariables(App app, Map<String, String> envMap) throws HerokuServiceException {
 		getOrCreateHerokuSession().addEnvVariables(app.getName(), envMap);
 	}

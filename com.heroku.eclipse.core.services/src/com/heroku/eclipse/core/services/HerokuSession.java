@@ -10,6 +10,7 @@ import com.heroku.api.Key;
 import com.heroku.api.Proc;
 import com.heroku.api.User;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.HerokuProc;
 
 /**
  * Interface defining how various services of the Heroku cloud can be accessed
@@ -194,6 +195,14 @@ public interface HerokuSession {
 	 * @throws HerokuServiceException
 	 */
 	public void restart(Proc proc) throws HerokuServiceException;
+
+	/**
+	 * Restarts all processes with the same dyno name for the procs App
+	 * 
+	 * @param proc
+	 * @throws HerokuServiceException
+	 */
+	public void restartDyno(HerokuProc proc) throws HerokuServiceException;
 
 	/**
 	 * Checks if an App with the given name already exists.

@@ -488,6 +488,14 @@ public interface HerokuServices {
 	public void restartProcs(List<HerokuProc> procs) throws HerokuServiceException;
 	
 	/**
+	 * Restarts all processes with the same dyno name for the given app
+	 * @param proc
+	 * 			the proc providing the dyno name
+	 * @throws HerokuServiceException
+	 */
+	public void restartDyno(HerokuProc proc) throws HerokuServiceException;
+	
+	/**
 	 * Scales the given dyno type to the given quantity
 	 * @param appName
 	 * @param dynoName
