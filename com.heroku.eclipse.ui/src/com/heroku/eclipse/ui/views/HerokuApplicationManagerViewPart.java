@@ -514,10 +514,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							l.setText(Messages.getString("HerokuAppManagerViewPart_Scale_ScaleTo")); //$NON-NLS-1$
 
 							quantityField = new Spinner(area, SWT.BORDER);
-							// quantityField.setLayoutData(new
-							// GridData(GridData.FILL_HORIZONTAL));
 							quantityField.setMinimum(0);
-							quantityField.setMaximum(24);
+							quantityField.setMaximum(Integer.parseInt(HerokuProperties.getString("heroku.eclipse.dynos.maxQuantity"))); //$NON-NLS-1$
 							quantityField.setSelection(quantity);
 							quantityField.setIncrement(1);
 							quantityField.pack();
