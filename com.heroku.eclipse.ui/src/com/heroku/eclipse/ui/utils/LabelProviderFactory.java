@@ -68,10 +68,7 @@ public class LabelProviderFactory {
 			}
 
 			private Image getStateIcon(ProcessState state) {
-				if (state == ProcessState.IDLE) {
-					return IconKeys.getImage(IconKeys.ICON_PROCESS_IDLE);
-				}
-				else if (state == ProcessState.UP) {
+				if (state == ProcessState.UP || state == ProcessState.IDLE ) {
 					return IconKeys.getImage(IconKeys.ICON_PROCESS_UP);
 				}
 				else {
