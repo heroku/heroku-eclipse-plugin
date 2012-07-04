@@ -57,6 +57,7 @@ public class HerokuUtils {
 	 * @param t
 	 */
 	public static void internalError(final Shell shell, Throwable t) {
+		t.printStackTrace();
 		showError(shell, t, "Heroku_Common_Error_InternalError"); //$NON-NLS-1$
 	}
 
@@ -67,6 +68,7 @@ public class HerokuUtils {
 	 * @param t
 	 */
 	public static void herokuError(Shell shell, Throwable t) {
+		t.printStackTrace();
 		showError(shell, t, "Heroku_Common_Error_HerokuError"); //$NON-NLS-1$
 	}
 
@@ -266,7 +268,6 @@ public class HerokuUtils {
 				return false;
 			}
 			else {
-				e.printStackTrace();
 				HerokuUtils.internalError(parent, e);
 				return false;
 			}

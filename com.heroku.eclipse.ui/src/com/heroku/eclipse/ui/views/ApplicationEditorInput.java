@@ -5,6 +5,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 
 import com.heroku.api.App;
+import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.utils.IconKeys;
 
 public class ApplicationEditorInput implements IEditorInput {
@@ -42,7 +43,7 @@ public class ApplicationEditorInput implements IEditorInput {
 
 	@Override
 	public String getToolTipText() {
-		return "Heroku application '" + app.getName() + "'";
+		return Messages.getFormattedString("HerokuAppInformationPart_Tooltip", app.getName()); //$NON-NLS-1$
 	}
 
 	public App getApp() {

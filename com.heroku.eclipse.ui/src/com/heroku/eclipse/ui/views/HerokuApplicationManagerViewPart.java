@@ -22,11 +22,13 @@ import org.eclipse.egit.ui.UIPreferences;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -38,6 +40,7 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -53,6 +56,7 @@ import org.eclipse.ui.IMemento;
 import org.eclipse.ui.IViewSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.console.ConsolePlugin;
@@ -76,6 +80,7 @@ import com.heroku.eclipse.ui.Messages;
 import com.heroku.eclipse.ui.git.HerokuCredentialsProvider;
 import com.heroku.eclipse.ui.utils.AppComparator;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
+import com.heroku.eclipse.ui.utils.IconKeys;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.RunnableWithReturn;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
@@ -110,6 +115,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private TreeViewerColumn urlColumn;
 	private TreeViewerColumn gitColumn;
 	private TreeViewerColumn nameColumn;
+	
+	private Action refreshAction;
 
 	@Override
 	public void init(IViewSite site, IMemento memento) throws PartInitException {
@@ -181,7 +188,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				}
 				catch (HerokuServiceException e1) {
 					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display app info", e1); //$NON-NLS-1$
-					e1.printStackTrace();
 					HerokuUtils.herokuError(getShell(), e1);
 				}
 			}
@@ -193,8 +199,29 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		viewer.getTree().setSortDirection(SWT.UP);
 		viewer.refresh();
 
+		createToolbar();
+
+		// register our action to global refresher
+		getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.REFRESH.getId(), refreshAction);
+		
 		refreshApplications(false);
 		subscribeToEvents();
+	}
+	
+	private void createToolbar() {
+		refreshAction = new Action(null, IconKeys.getImageDescriptor(IconKeys.ICON_APPSLIST_REFRESH)) {
+			public void run() {
+				refreshApplications(true);
+			}
+		};
+		refreshAction.setToolTipText(Messages.getString("HerokuAppManagerViewPart_Refresh_Tooltip")); //$NON-NLS-1$
+		refreshAction.setEnabled(true);
+		
+		//Create the local tool bar
+		IToolBarManager tbm = getViewSite().getActionBars().getToolBarManager();
+		tbm.add(new Separator(Activator.PLUGIN_ID));
+		tbm.appendToGroup(Activator.PLUGIN_ID, refreshAction);
+		tbm.update(false);
 	}
 
 	private void openEditor(App app) {
@@ -203,7 +230,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		}
 		catch (PartInitException e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to open editor for app " + app.getName(), e); //$NON-NLS-1$
-			e.printStackTrace();
 			HerokuUtils.internalError(getShell(), e);
 		}
 
@@ -279,7 +305,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
-		final Action appInfo = new Action(Messages.getString("HerokuAppManagerViewPart_AppInfoShort")) { //$NON-NLS-1$
+		final Action appInfo = new Action(Messages.getString("HerokuAppManagerViewPart_AppInfoShort"), IconKeys.getImageDescriptor(IconKeys.ICON_APPINFO_EDITOR_ICON)) { //$NON-NLS-1$
 			@Override
 			public void run() {
 				try {
@@ -290,7 +316,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				}
 				catch (HerokuServiceException e) {
 					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display app info", e); //$NON-NLS-1$
-					e.printStackTrace();
 					HerokuUtils.internalError(getShell(), e);
 				}
 
@@ -310,7 +335,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						}
 						catch (HerokuServiceException e) {
 							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to import app " + app.getName(), e); //$NON-NLS-1$
-							e.printStackTrace();
 							HerokuUtils.internalError(getShell(), e);
 						}
 					}
@@ -359,12 +383,10 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						}
 						catch (InvocationTargetException e) {
 							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
-							e.printStackTrace();
 							HerokuUtils.internalError(getShell(), e);
 						}
 						catch (InterruptedException e) {
 							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
-							e.printStackTrace();
 							HerokuUtils.internalError(getShell(), e);
 						}
 					}
@@ -542,21 +564,18 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 														Messages.getString("HerokuAppManagerViewPart_Scale_Error_UnknownDyno_Title"), Messages.getFormattedString("HerokuAppManagerViewPart_Scale_Error_UnknownDyno", process)); //$NON-NLS-1$ //$NON-NLS-2$
 									}
 									else {
-										e.printStackTrace();
 										HerokuUtils.herokuError(getShell(), e);
 									}
 								}
 								else {
 									Activator.getDefault().getLogger()
 											.log(LogService.LOG_ERROR, "unknown error when trying to scale process " + process + " for app " + appName, e); //$NON-NLS-1$ //$NON-NLS-2$
-									e.printStackTrace();
 									HerokuUtils.internalError(getShell(), e);
 								}
 							}
 							catch (InterruptedException e) {
 								Activator.getDefault().getLogger()
 										.log(LogService.LOG_ERROR, "unknown error when trying to scale process " + process + " for app " + appName, e); //$NON-NLS-1$ //$NON-NLS-2$
-								e.printStackTrace();
 								HerokuUtils.internalError(getShell(), e);
 							}
 						}
@@ -594,7 +613,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							}
 							else {
 								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to destroy app " + app.getName(), e); //$NON-NLS-1$
-								e.printStackTrace();
 								HerokuUtils.herokuError(getShell(), e);
 							}
 						}
@@ -715,11 +733,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							}
 						}
 						catch (IOException e) {
-							e.printStackTrace();
 							HerokuUtils.internalError(getShell(), e);
 						}
 						catch (HerokuServiceException e) {
-							e.printStackTrace();
 							HerokuUtils.herokuError(getShell(), e);
 						}
 					}
@@ -756,11 +772,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			browser.openURL(new URL(application.getWebUrl()));
 		}
 		catch (PartInitException e) {
-			e.printStackTrace();
 			HerokuUtils.internalError(getShell(), e);
 		}
 		catch (MalformedURLException e) {
-			e.printStackTrace();
 			HerokuUtils.internalError(getShell(), e);
 		}
 	}
@@ -824,16 +838,20 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					saveRefreshApplications(refreshProcs);
 				}
 				catch ( HerokuServiceException e ) {
-					e.printStackTrace();
 					if (Display.getCurrent() != null) {
 						HerokuUtils.herokuError(Display.getCurrent().getActiveShell(), e);
+					}
+					else {
+						e.printStackTrace();
 					}
 					return Status.CANCEL_STATUS;
 				}
 				catch (Throwable e) {
-					e.printStackTrace();
 					if (Display.getCurrent() != null) {
 						HerokuUtils.internalError(Display.getCurrent().getActiveShell(), e);
+					}
+					else {
+						e.printStackTrace();
 					}
 					return Status.CANCEL_STATUS;
 				}
@@ -870,7 +888,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			refreshTask.cancel();
 		}
 
-		scheduleRefresh();
+//		scheduleRefresh();
 	}
 
 	public void setFocus() {
@@ -980,7 +998,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 									Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir + System.getProperty("file.separator") + app.getName())); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
 				}
 				else {
-					e.printStackTrace();
 					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
 					HerokuUtils.internalError(getShell(), e);
 				}

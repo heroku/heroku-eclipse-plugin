@@ -186,11 +186,9 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 			browser.openURL(new URL(application.getWebUrl()));
 		}
 		catch (PartInitException e) {
-			e.printStackTrace();
 			HerokuUtils.internalError(getShell(), e);
 		}
 		catch (MalformedURLException e) {
-			e.printStackTrace();
 			HerokuUtils.internalError(getShell(), e);
 		}
 	}

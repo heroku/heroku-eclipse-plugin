@@ -55,7 +55,6 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 				addPage(createPage);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				HerokuUtils.internalError(Display.getCurrent().getActiveShell(), e);
 			}
 		}
@@ -64,24 +63,6 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 		}
 	}
 
-	public boolean canFinish22() {
-		boolean rv = super.canFinish();
-		
-		final String appName = createPage.getAppName();
-		try {
-			if ( HerokuUtils.isNotEmpty(appName) && service.appNameExists(appName)) {
-				createPage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
-				rv = false; 
-			}
-		}
-		catch (HerokuServiceException e) {
-			e.printStackTrace();
-			HerokuUtils.herokuError(getShell(), e);
-		}
-		
-		return rv;
-	}
-	
 	@Override
 	public boolean performFinish() {
 		final String appName = createPage.getAppName();
@@ -137,7 +118,6 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 									Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir + System.getProperty("file.separator") + appName)); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
 						}
 						else {
-							e.printStackTrace();
 							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
 							HerokuUtils.internalError(getShell(), e);
 						}
@@ -185,7 +165,6 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 						createPage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
 					}
 					else {
-						e.printStackTrace();
 						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
 						HerokuUtils.herokuError(getShell(), e);
 					}

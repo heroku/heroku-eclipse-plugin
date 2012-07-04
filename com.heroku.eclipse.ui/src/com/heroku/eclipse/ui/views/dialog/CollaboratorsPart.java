@@ -149,7 +149,6 @@ public class CollaboratorsPart {
 												.log(LogService.LOG_INFO, "transfer of app '" + domainObject.getName() + "' complete"); //$NON-NLS-1$ //$NON-NLS-2$
 									}
 									catch (HerokuServiceException e1) {
-										e1.printStackTrace();
 										Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to change owner", e1); //$NON-NLS-1$
 										HerokuUtils.internalError(makeOwner.getShell(), e1);
 									}
@@ -192,7 +191,6 @@ public class CollaboratorsPart {
 				refreshCollaboratorList();
 			}
 			catch (HerokuServiceException e) {
-				e.printStackTrace();
 				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to remove collaborator", e); //$NON-NLS-1$
 				HerokuUtils.internalError(shell, e);
 			}
@@ -254,7 +252,6 @@ public class CollaboratorsPart {
 						}
 						else {
 							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to add new collaborator", e); //$NON-NLS-1$
-							e.printStackTrace();
 							HerokuUtils.herokuError(shell, e);
 						}
 					}
@@ -272,6 +269,9 @@ public class CollaboratorsPart {
 		d.open();
 	}
 
+	/**
+	 * @param domainObject
+	 */
 	public void setDomainObject(App domainObject) {
 		this.domainObject = domainObject;
 		refreshCollaboratorList();
@@ -296,7 +296,6 @@ public class CollaboratorsPart {
 			HerokuUtils.runOnDisplay(true, viewer, collaboratorsList, ViewerOperations.input(viewer));
 		}
 		catch (HerokuServiceException e) {
-			e.printStackTrace();
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
 			HerokuUtils.internalError(parent.getShell(), e);
 		}

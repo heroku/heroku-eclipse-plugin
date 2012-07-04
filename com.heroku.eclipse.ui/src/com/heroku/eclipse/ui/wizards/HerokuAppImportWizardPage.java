@@ -118,7 +118,6 @@ public class HerokuAppImportWizardPage extends WizardPage {
 			apps = service.listApps();
 		}
 		catch (HerokuServiceException e) {
-			e.printStackTrace();
 			HerokuUtils.internalError(parent.getShell(), e);
 		}
 

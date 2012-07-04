@@ -262,19 +262,16 @@ public class EnvironmentVariablesPart {
 				}
 				else {
 					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to add new environment variable", e1); //$NON-NLS-1$
-					e2.printStackTrace();
 					HerokuUtils.herokuError(shell, e2);
 				}
 			}
 			else {
 				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to add new environment variable", e1); //$NON-NLS-1$
-				e1.printStackTrace();
 				HerokuUtils.internalError(shell, e1);
 			}
 		}
 		catch (InterruptedException e1) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to add new environment variable", e1); //$NON-NLS-1$
-			e1.printStackTrace();
 			HerokuUtils.internalError(shell, e1);
 		}
 
@@ -314,19 +311,16 @@ public class EnvironmentVariablesPart {
 		catch (InvocationTargetException e1) {
 			if ((e1.getCause() instanceof HerokuServiceException)) {
 				HerokuServiceException e2 = (HerokuServiceException) e1.getCause();
-				e2.printStackTrace();
 				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to remove environment variable(s)", e2); //$NON-NLS-1$
 				HerokuUtils.herokuError(shell, e2);
 			}
 			else {
 				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to remove new environment variable(s)", e1); //$NON-NLS-1$
-				e1.printStackTrace();
 				HerokuUtils.internalError(shell, e1);
 			}
 		}
 		catch (InterruptedException e1) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to remove environment variable(s)", e1); //$NON-NLS-1$
-			e1.printStackTrace();
 			HerokuUtils.internalError(shell, e1);
 		}
 
@@ -347,7 +341,6 @@ public class EnvironmentVariablesPart {
 			HerokuUtils.runOnDisplay(true, viewer, envList, ViewerOperations.input(viewer));
 		}
 		catch (HerokuServiceException e) {
-			e.printStackTrace();
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
 			HerokuUtils.internalError(parent.getShell(), e);
 		}

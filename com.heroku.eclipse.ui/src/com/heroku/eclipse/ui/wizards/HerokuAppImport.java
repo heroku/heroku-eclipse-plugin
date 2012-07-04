@@ -65,7 +65,6 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 				addPage(projectTypePage);
 			}
 			catch (Exception e) {
-				e.printStackTrace();
 				HerokuUtils.internalError(Display.getCurrent().getActiveShell(), e);
 			}
 		}
@@ -142,7 +141,6 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 						return false;
 					}
 					else {
-						e.printStackTrace();
 						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
 						HerokuUtils.herokuError(getShell(), e);
 					}
