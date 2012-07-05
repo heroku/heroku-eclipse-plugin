@@ -461,6 +461,25 @@ public interface HerokuServices {
 	public void removeEnvVariable(App app, String envKey) throws HerokuServiceException;
 
 	/**
+	 * <p>
+	 * Performs some <b>basic</b> checks if an App name is valid.
+	 * </p>
+	 * <p>Currently the following checks are performed:
+	 * <ul>
+	 * <li>must start with a letter</li>
+	 * <li>letters must be lowercase</li>
+	 * <li>must only contain letters, numbers or dashes</li>
+	 * </ul>
+	 * <p>"Basic" checks means that the checks are done without asking the
+	 * HerokuAPI and thus some requirements might not be checked here.</p>
+	 * 
+	 * @param appName
+	 * @return <code>true</code> if the name is valid, <code>false</code> if not
+	 * @throws HerokuServiceException
+	 */
+	public boolean isAppNameBasicallyValid(String appName) throws HerokuServiceException;
+
+	/**
 	 * Checks if an App with the given name already exists.
 	 * 
 	 * @param appName
@@ -481,26 +500,29 @@ public interface HerokuServices {
 
 	/**
 	 * Restarts the given list of Procs
+	 * 
 	 * @param procs
-	 * 			a List of HerokuProc instances
+	 *            a List of HerokuProc instances
 	 * @throws HerokuServiceException
 	 */
 	public void restartProcs(List<HerokuProc> procs) throws HerokuServiceException;
-	
+
 	/**
 	 * Restarts all processes with the same dyno name for the given app
+	 * 
 	 * @param proc
-	 * 			the proc providing the dyno name
+	 *            the proc providing the dyno name
 	 * @throws HerokuServiceException
 	 */
 	public void restartDyno(HerokuProc proc) throws HerokuServiceException;
-	
+
 	/**
 	 * Scales the given dyno type to the given quantity
+	 * 
 	 * @param appName
 	 * @param dynoName
 	 * @param quantity
-	 * @throws HerokuServiceException 
+	 * @throws HerokuServiceException
 	 */
 	public void scaleProcess(String appName, String dynoName, int quantity) throws HerokuServiceException;
 

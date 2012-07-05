@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -81,6 +81,11 @@ public class RestHerokuServices implements HerokuServices {
 
 	private EventAdmin eventAdmin;
 	private RepositoryUtil egitUtils;
+	
+	/**
+	 * Pattern helpful for determining the real meaning of a HTTP 422 response code, mapped to {@link HerokuServiceException#NOT_ACCEPTABLE}
+	 */
+	private static Pattern VALID_APPNAME = Pattern.compile("^[a-z][a-z0-9-]+$"); //$NON-NLS-1$
 
 	/**
 	 * @param eventAdmin
@@ -777,5 +782,10 @@ public class RestHerokuServices implements HerokuServices {
 	@Override
 	public void scaleProcess(String appName, String dynoName, int quantity) throws HerokuServiceException {
 		getOrCreateHerokuSession().scaleProcess(appName, dynoName, quantity);
+	}
+
+	@Override
+	public boolean isAppNameBasicallyValid(String appName) throws HerokuServiceException {
+		return VALID_APPNAME.matcher(appName).matches();
 	}
 }
