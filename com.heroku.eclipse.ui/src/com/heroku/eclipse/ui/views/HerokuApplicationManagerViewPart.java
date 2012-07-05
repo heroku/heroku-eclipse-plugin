@@ -115,7 +115,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private TreeViewerColumn urlColumn;
 	private TreeViewerColumn gitColumn;
 	private TreeViewerColumn nameColumn;
-
+	
 	private Action refreshAction;
 
 	@Override
@@ -203,11 +203,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		// register our action to global refresher
 		getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.REFRESH.getId(), refreshAction);
-
+		
 		refreshApplications(false);
 		subscribeToEvents();
 	}
-
+	
 	private void createToolbar() {
 		refreshAction = new Action(null, IconKeys.getImageDescriptor(IconKeys.ICON_APPSLIST_REFRESH)) {
 			public void run() {
@@ -216,8 +216,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		};
 		refreshAction.setToolTipText(Messages.getString("HerokuAppManagerViewPart_Refresh_Tooltip")); //$NON-NLS-1$
 		refreshAction.setEnabled(true);
-
-		// Create the local tool bar
+		
+		//Create the local tool bar
 		IToolBarManager tbm = getViewSite().getActionBars().getToolBarManager();
 		tbm.add(new Separator(Activator.PLUGIN_ID));
 		tbm.appendToGroup(Activator.PLUGIN_ID, refreshAction);
@@ -305,8 +305,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
-		final Action appInfo = new Action(
-				Messages.getString("HerokuAppManagerViewPart_AppInfoShort"), IconKeys.getImageDescriptor(IconKeys.ICON_APPINFO_EDITOR_ICON)) { //$NON-NLS-1$
+		final Action appInfo = new Action(Messages.getString("HerokuAppManagerViewPart_AppInfoShort"), IconKeys.getImageDescriptor(IconKeys.ICON_APPINFO_EDITOR_ICON)) { //$NON-NLS-1$
 			@Override
 			public void run() {
 				try {
@@ -831,43 +830,36 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	}
 
 	private void refreshApplications(final boolean refreshProcs) {
-		try {
-			if (herokuService.isReady()) {
-				final Job o = new Job(Messages.getString("HerokuAppManagerViewPart_RefreshApps")) { //$NON-NLS-1$
+		final Job o = new Job(Messages.getString("HerokuAppManagerViewPart_RefreshApps")) { //$NON-NLS-1$
 
-					@Override
-					protected IStatus run(IProgressMonitor monitor) {
-						try {
-							saveRefreshApplications(refreshProcs);
-						}
-						catch (HerokuServiceException e) {
-							if (Display.getCurrent() != null) {
-								HerokuUtils.herokuError(Display.getCurrent().getActiveShell(), e);
-							}
-							else {
-								e.printStackTrace();
-							}
-							return Status.CANCEL_STATUS;
-						}
-						catch (Throwable e) {
-							if (Display.getCurrent() != null) {
-								HerokuUtils.internalError(Display.getCurrent().getActiveShell(), e);
-							}
-							else {
-								e.printStackTrace();
-							}
-							return Status.CANCEL_STATUS;
-						}
-
-						return Status.OK_STATUS;
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				try {
+					saveRefreshApplications(refreshProcs);
+				}
+				catch ( HerokuServiceException e ) {
+					if (Display.getCurrent() != null) {
+						HerokuUtils.herokuError(Display.getCurrent().getActiveShell(), e);
 					}
-				};
-				o.schedule();
+					else {
+						e.printStackTrace();
+					}
+					return Status.CANCEL_STATUS;
+				}
+				catch (Throwable e) {
+					if (Display.getCurrent() != null) {
+						HerokuUtils.internalError(Display.getCurrent().getActiveShell(), e);
+					}
+					else {
+						e.printStackTrace();
+					}
+					return Status.CANCEL_STATUS;
+				}
+
+				return Status.OK_STATUS;
 			}
-		}
-		catch (HerokuServiceException e) {
-			HerokuUtils.herokuError(getShell(), e);
-		}
+		};
+		o.schedule();
 	}
 
 	private void saveRefreshApplications(boolean refreshProcs) throws HerokuServiceException {
@@ -875,7 +867,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		procApps.clear();
 		if (herokuService.isReady()) {
 			List<App> applications = herokuService.listApps();
-			if (refreshProcs || applications.size() < 10) {
+			if (refreshProcs || applications.size() < 10 ) {
 				for (App a : applications) {
 					List<HerokuProc> procs = herokuService.listProcesses(a);
 					appProcesses.put(a.getId(), procs);
@@ -896,7 +888,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			refreshTask.cancel();
 		}
 
-		// scheduleRefresh();
+//		scheduleRefresh();
 	}
 
 	public void setFocus() {
