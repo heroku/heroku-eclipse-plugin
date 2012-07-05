@@ -29,7 +29,7 @@ import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
-import com.heroku.eclipse.ui.Messages;
+import com.heroku.eclipse.ui.messages.Messages;
 import com.heroku.eclipse.ui.utils.AppComparator;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;

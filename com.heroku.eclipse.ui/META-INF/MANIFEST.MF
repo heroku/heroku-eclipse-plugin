@@ -24,3 +24,4 @@ Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ActivationPolicy: lazy
 Bundle-Localization: i18n/messages
+Export-Package: com.heroku.eclipse.ui.messages
