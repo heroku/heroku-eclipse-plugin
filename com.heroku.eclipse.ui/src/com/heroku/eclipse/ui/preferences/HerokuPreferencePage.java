@@ -81,12 +81,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		service = Activator.getDefault().getService();
 	}
 
-	/*
-	 * (non-Javadoc) -
-	 * 
-	 * @see
-	 * org.eclipse.ui.IWorkbenchPreferencePage#init(org.eclipse.ui.IWorkbench)
-	 */
+
+	@Override
 	public void init(IWorkbench workbench) {
 	}
 
@@ -95,7 +91,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening Heroku preferences"); //$NON-NLS-1$
 
 		group = new Composite(parent, SWT.NULL);
-
+		
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 3;
 		layout.marginHeight = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_MARGIN);
@@ -103,6 +99,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		layout.verticalSpacing = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_SPACING);
 		layout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
 		group.setLayout(layout);
+
+		getShell().setSize(convertWidthInCharsToPixels(120), convertHeightInCharsToPixels(30));
 
 		// Email
 		{
@@ -199,7 +197,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				}
 			});
 		}
-
+		
 		// API Key
 		{
 			Label l = new Label(group, SWT.NONE);
@@ -239,7 +237,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 						// then talk to Heroku
 						String sshKey = ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText();
-						if (!sshKey.trim().isEmpty()) {
+						if (HerokuUtils.isNotEmpty(sshKey.trim())) {
 							isValid = setAPIAndSSHKey(apiKey, sshKey);
 						}
 						else {
@@ -262,19 +260,22 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		}
 
 		// SSH Key
-		Group sshGroup = new Group(group, SWT.LEFT);
+		Group sshGroup = new Group(group, SWT.FILL);
 		GridLayout sshLayout = new GridLayout();
 		sshGroup.setLayout(sshLayout);
-		GridData data = new GridData(SWT.FILL, SWT.FILL, false, false, 3, 1);
-		sshGroup.setLayoutData(data);
+		
+		GridData gd = new GridData(GridData.HORIZONTAL_ALIGN_FILL);
+		gd.horizontalSpan= 3;
+		gd.widthHint= convertWidthInCharsToPixels(80);
+		sshGroup.setLayoutData(gd);
+		
 		sshGroup.setText(Messages.getString("HerokuPreferencePage_SSHKey")); //$NON-NLS-1$
-
 		{
 			Text t = new Text(sshGroup, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.WRAP | SWT.READ_ONLY);
 			t.setFont(sshGroup.getFont());
 			GridData g = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.GRAB_HORIZONTAL);
 			g.heightHint = 100;
-			g.widthHint = 500;
+			g.widthHint = 700;
 			t.setLayoutData(g);
 			t.setData(HerokuServices.ROOT_WIDGET_ID, PreferenceConstants.P_SSH_KEY);
 
@@ -363,9 +364,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		initialize();
 
 		PlatformUI.getWorkbench().getHelpSystem().setHelp(getControl(), HEROKU_PREFERENCE_PAGE_CONTEXT);
-
-		applyDialogFont(group);
-
+		
 		return group;
 	}
 
@@ -864,8 +863,17 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 	@Override
 	protected void performApply() {
-		setAPIAndSSHKey(((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).getText().trim(), ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY))
-				.getText().trim());
+		String apiKey = ((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).getText();
+		String sshKey = ((Text) widgetRegistry.get(PreferenceConstants.P_SSH_KEY)).getText();
+		
+		if ( HerokuUtils.isNotEmpty(apiKey)) {
+			if (HerokuUtils.isNotEmpty(sshKey)) {
+				setAPIAndSSHKey(apiKey.trim(), sshKey.trim());
+			}
+			else {
+				setAPIKey(apiKey.trim());
+			}
+		}
 	}
 
 	@Override
