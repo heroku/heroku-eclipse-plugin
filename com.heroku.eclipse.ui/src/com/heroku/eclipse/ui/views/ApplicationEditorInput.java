@@ -5,7 +5,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 
 import com.heroku.api.App;
-import com.heroku.eclipse.ui.Messages;
+import com.heroku.eclipse.ui.messages.Messages;
 import com.heroku.eclipse.ui.utils.IconKeys;
 
 public class ApplicationEditorInput implements IEditorInput {

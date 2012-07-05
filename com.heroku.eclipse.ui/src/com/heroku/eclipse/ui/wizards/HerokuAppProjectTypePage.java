@@ -18,7 +18,7 @@ import com.heroku.api.App;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuServices.IMPORT_TYPES;
 import com.heroku.eclipse.ui.Activator;
-import com.heroku.eclipse.ui.Messages;
+import com.heroku.eclipse.ui.messages.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 
 /**

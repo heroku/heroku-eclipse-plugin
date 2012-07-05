@@ -1,4 +1,4 @@
-package com.heroku.eclipse.ui;
+package com.heroku.eclipse.ui.messages;
 
 import java.text.MessageFormat;
 import java.util.MissingResourceException;
