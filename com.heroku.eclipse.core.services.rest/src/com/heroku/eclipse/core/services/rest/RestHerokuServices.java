@@ -83,7 +83,7 @@ public class RestHerokuServices implements HerokuServices {
 	private RepositoryUtil egitUtils;
 	
 	/**
-	 * Pattern helpful for determining the real meaning of a HTTP 422 response code, mapped to {@link HerokuServiceException#NOT_ACCEPTABLE}
+	 * Pattern defining a valid appname
 	 */
 	private static Pattern VALID_APPNAME = Pattern.compile("^[a-z][a-z0-9-]+$"); //$NON-NLS-1$
 
