@@ -477,7 +477,7 @@ public interface HerokuServices {
 	 * @return <code>true</code> if the name is valid, <code>false</code> if not
 	 * @throws HerokuServiceException
 	 */
-	public boolean isAppNameBasicallyValid(String appName) throws HerokuServiceException;
+	public boolean isAppNameBasicallyValid(String appName);
 
 	/**
 	 * Checks if an App with the given name already exists.

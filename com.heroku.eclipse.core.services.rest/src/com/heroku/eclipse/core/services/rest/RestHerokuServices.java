@@ -785,7 +785,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public boolean isAppNameBasicallyValid(String appName) throws HerokuServiceException {
+	public boolean isAppNameBasicallyValid(String appName) {
 		return VALID_APPNAME.matcher(appName).matches();
 	}
 }

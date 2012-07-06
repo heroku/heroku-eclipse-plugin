@@ -70,7 +70,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 		try {
 			// ensure that the name is available
 			if (service.isAppNameBasicallyValid(appName) && service.appNameExists(appName)) {
-				createPage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
+				createPage.displayInvalidNameWarning();
 				return false;
 			}
 			else {
@@ -86,8 +86,6 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							monitor.beginTask(Messages.getFormattedString("HerokuAppCreate_CreatingApp", appName), 2); //$NON-NLS-1$
 							monitor.subTask(Messages.getString("HerokuAppCreate_CloningTemplate")); //$NON-NLS-1$
-							// createHerokuApp(appName, template, new
-							// NullProgressMonitor());
 							monitor.worked(1);
 							// then materialize
 							try {
@@ -113,8 +111,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 						
 						if (e1.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
 							Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "Application '" + appName + "' already exists, denying creation", e); //$NON-NLS-1$ //$NON-NLS-2$
-							createPage.setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
-							createPage.setVisible(true);
+							createPage.displayInvalidNameWarning();
 						}
 						else if (e1.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION) {
 							HerokuUtils
