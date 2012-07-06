@@ -7,6 +7,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.fieldassist.ControlDecoration;
+import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -62,6 +64,8 @@ public class HerokuAppCreatePage extends WizardPage {
 
 	private AppTemplate appTemplate;
 
+	private ControlDecoration decAppName;
+
 	/**
 	 * 
 	 */
@@ -77,20 +81,21 @@ public class HerokuAppCreatePage extends WizardPage {
 		Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "opening app create wizard, page"); //$NON-NLS-1$
 
 		final Composite group = new Composite(parent, SWT.NONE);
-		group.setLayout(new GridLayout(4, false));
-		setControl(group);
-
-		group.setEnabled(true);
+		group.setLayout(new GridLayout(2, true));
 		setErrorMessage(null);
 		setPageComplete(false);
-
+		
 		// app name
 		{
-			Label l = new Label(group, SWT.NONE);
+			Composite name = new Composite(group, SWT.NONE);
+			name.setLayout(new GridLayout(2, false));
+			name.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
+			
+			Label l = new Label(name, SWT.NONE);
 			l.setText(Messages.getString("HerokuAppCreateNamePage_Name")); //$NON-NLS-1$
 
-			tAppName = new Text(group, SWT.BORDER);
-			tAppName.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 3, 1));
+			tAppName = new Text(name, SWT.BORDER);
+			tAppName.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
 			tAppName.setTextLimit(100);
 			tAppName.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.C_APP_NAME);
 			tAppName.addModifyListener(new ModifyListener() {
@@ -98,20 +103,37 @@ public class HerokuAppCreatePage extends WizardPage {
 				@Override
 				public void modifyText(ModifyEvent e) {
 					setErrorMessage(null);
+					decAppName.hide();
 					if (!HerokuUtils.isNotEmpty(tAppName.getText())) {
 						setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameEmpty")); //$NON-NLS-1$
+					}
+					else if ( ! service.isAppNameBasicallyValid(tAppName.getText())) {
+						decAppName.show();
 					}
 					setPageComplete(isPageComplete());
 				}
 			});
+			
+			decAppName = new ControlDecoration(tAppName, SWT.BOTTOM | SWT.LEFT);
+			decAppName.setImage(FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage());
+			decAppName.setDescriptionText(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists_Hint")); //$NON-NLS-1$
+			decAppName.hide();
 		}
+		
+		Composite left = new Composite(group, SWT.FILL);
+		left.setLayout(new GridLayout(2, false));
+		left.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+
+		Composite right = new Composite(group, SWT.FILL);
+		right.setLayout(new GridLayout(2, false));
+		right.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 		
 		// search
 		{
-			Label lSearch = new Label(group, SWT.NONE);
+			Label lSearch = new Label(left, SWT.NONE);
 			lSearch.setText(Messages.getString("HerokuAppCreateTemplatePage_Search")); //$NON-NLS-1$
 
-			tSearch = new Text(group, SWT.BORDER | SWT.SEARCH | SWT.ICON_SEARCH);
+			tSearch = new Text(left, SWT.BORDER | SWT.SEARCH | SWT.ICON_SEARCH);
 			GridData gd = new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1);
 			tSearch.setLayoutData(gd);
 			tSearch.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.T_SEARCH);
@@ -139,10 +161,10 @@ public class HerokuAppCreatePage extends WizardPage {
 
 		// template info
 		{
-			Label lTemplate = new Label(group, SWT.NONE);
+			Label lTemplate = new Label(right, SWT.NONE);
 			lTemplate.setText(Messages.getString("HerokuAppCreateTemplatePage_Template")); //$NON-NLS-1$
 
-			lTemplateName = new Label(group, SWT.NONE);
+			lTemplateName = new Label(right, SWT.NONE);
 			FontData[] fd = lTemplateName.getFont().getFontData();
 			fd[0].setStyle(SWT.BOLD);
 			lTemplateName.setFont(new Font(lTemplateName.getDisplay(), fd[0]));
@@ -153,7 +175,7 @@ public class HerokuAppCreatePage extends WizardPage {
 
 		// template listing
 		{
-			viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
+			viewer = new TableViewer(left, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
 			viewer.setContentProvider(ArrayContentProvider.getInstance());
 			viewer.getTable().setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.V_TEMPLATES_LIST);
 			viewer.addFilter(new ViewerFilter() {
@@ -173,7 +195,8 @@ public class HerokuAppCreatePage extends WizardPage {
 			});
 
 			Table table = viewer.getTable();
-			GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 6);
+			GridData gd = new GridData(SWT.FILL, SWT.FILL, true, true, 2, 7);
+			gd.heightHint = 300;
 			table.setLayoutData(gd);
 			table.setHeaderVisible(false);
 
@@ -193,19 +216,19 @@ public class HerokuAppCreatePage extends WizardPage {
 
 		// template description
 		{
-			tDescription = new Text(group, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
-			tDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 2));
+			tDescription = new Text(right, SWT.BORDER | SWT.MULTI | SWT.WRAP | SWT.V_SCROLL);
+			tDescription.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 2, 3));
 			tDescription.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.T_DESCRIPTION);
 			tDescription.setEnabled(false);
 		}
 
 		// frameworks
 		{
-			Label lTemplate = new Label(group, SWT.NONE);
+			Label lTemplate = new Label(right, SWT.NONE);
 			lTemplate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 			lTemplate.setText(Messages.getString("HerokuAppCreateTemplatePage_TemplateFrameworksUsed")); //$NON-NLS-1$
 
-			tFrameworks = new Text(group, SWT.BORDER);
+			tFrameworks = new Text(right, SWT.BORDER);
 			tFrameworks.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 			tFrameworks.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.T_FRAMEWORKS);
 			tFrameworks.setEnabled(false);
@@ -213,11 +236,11 @@ public class HerokuAppCreatePage extends WizardPage {
 
 		// addons
 		{
-			Label lTemplate = new Label(group, SWT.NONE);
+			Label lTemplate = new Label(right, SWT.NONE);
 			lTemplate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 			lTemplate.setText(Messages.getString("HerokuAppCreateTemplatePage_TemplateAddons")); //$NON-NLS-1$
 
-			tAddons = new Text(group, SWT.BORDER);
+			tAddons = new Text(right, SWT.BORDER);
 			tAddons.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 2, 1));
 			tAddons.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.T_ADDONS);
 			tAddons.setEnabled(false);
@@ -278,6 +301,9 @@ public class HerokuAppCreatePage extends WizardPage {
 				setPageComplete(isPageComplete());
 			}
 		});
+		
+		setControl(group);
+		group.setEnabled(true);
 	}
 	
 	@Override
@@ -307,6 +333,7 @@ public class HerokuAppCreatePage extends WizardPage {
 		super.setVisible(visible);
 		if (visible) {
 			tAppName.setFocus();
+			decAppName.hide();
 		}
 	}
 	
@@ -326,5 +353,14 @@ public class HerokuAppCreatePage extends WizardPage {
 	 */
 	public String getAppName() {
 		return tAppName.getText();
+	}
+	
+	/**
+	 * Displays a warning about an invalid/duplicate app name
+	 */
+	public void displayInvalidNameWarning() {
+		setVisible(true);
+		setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
+		decAppName.show();
 	}
 }
