@@ -1,15 +1,13 @@
 package com.heroku.eclipse.core.services.junit;
 
+import junit.framework.TestCase;
+
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
 import com.heroku.eclipse.core.services.HerokuServices;
-import com.heroku.eclipse.core.services.HerokuSession;
-import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
-
-import junit.framework.TestCase;
 
 public class HerokuServicesTest extends TestCase {
 

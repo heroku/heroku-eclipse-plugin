@@ -155,7 +155,7 @@ public class HerokuAppCreatePage extends WizardPage {
 		{
 			viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
 			viewer.setContentProvider(ArrayContentProvider.getInstance());
-			viewer.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.V_TEMPLATES_LIST);
+			viewer.getTable().setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.V_TEMPLATES_LIST);
 			viewer.addFilter(new ViewerFilter() {
 
 				@Override
