@@ -9,21 +9,14 @@ import com.heroku.api.Collaborator;
 import com.heroku.api.User;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.junit.common.Credentials;
+import com.heroku.eclipse.core.services.junit.common.HerokuTestConstants;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 
 
 public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	
 	private List<AppTemplate> templatesList = null;
-	
-	private final String EXISTING_APP = "myherokuapp";
-	
-	private final String INVALID_APP_NAME = "asdlf_asdf";
-	
-	private final String VALID_APP1_NAME = "junit-test-app-1-93944";
-	private final String VALID_APP2_NAME = "junit-test-app-2-93944";
-	
-	private final String NON_EXISTING_APP_NAME = "junit-test-app-3-93944";
 	
 	private void destroyAllOwnApps(HerokuServices service) throws HerokuServiceException {
 		if ( service.isReady() ) {
@@ -45,7 +38,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 		destroyAllOwnApps(service);
 		
 		// add a simple named app
-		App newApp = new App().named(VALID_APP1_NAME);
+		App newApp = new App().named(HerokuTestConstants.VALID_APP1_NAME);
 		service.getOrCreateHerokuSession().createApp(newApp);
 	}
 	
@@ -61,7 +54,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	}
 	
 	protected App getValidDummyApp() throws HerokuServiceException {
-		return getService().getApp(VALID_APP1_NAME);
+		return getService().getApp(HerokuTestConstants.VALID_APP1_NAME);
 	}
 	
 	@Override
@@ -93,8 +86,8 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	public void testGetApp() {
 		HerokuServices service = getService();
 		try {
-			App app = service.getApp(VALID_APP1_NAME);
-			assertEquals("fetched app is not expected, original app", VALID_APP1_NAME, app.getName());
+			App app = service.getApp(HerokuTestConstants.VALID_APP1_NAME);
+			assertEquals("fetched app is not expected, original app", HerokuTestConstants.VALID_APP1_NAME, app.getName());
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -113,7 +106,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 				}
 			}
 			assertEquals("app count", 1, ownApps.size());
-			assertEquals("app name", VALID_APP1_NAME, ownApps.get(0).getName());
+			assertEquals("app name", HerokuTestConstants.VALID_APP1_NAME, ownApps.get(0).getName());
 		}
 		catch ( HerokuServiceException e ) {
 			e.printStackTrace();
@@ -136,9 +129,9 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	public void testCreateNamedAppFromTemplate() {
 		HerokuServices service = getService();
 		try {
-			App newApp = service.createAppFromTemplate(VALID_APP2_NAME, getTestTemplate().getTemplateName(), new NullProgressMonitor());
+			App newApp = service.createAppFromTemplate(HerokuTestConstants.VALID_APP2_NAME, getTestTemplate().getTemplateName(), new NullProgressMonitor());
 			assertNotNull(newApp);
-			App testApp = service.getApp(VALID_APP2_NAME);
+			App testApp = service.getApp(HerokuTestConstants.VALID_APP2_NAME);
 			assertEquals("new materialized app is not the same as the remote one", newApp.getId(), testApp.getId());
 		}
 		catch (HerokuServiceException e) {
@@ -150,7 +143,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	public void testCreateDuplicateNamedAppFromTemplate() {
 		HerokuServices service = getService();
 		try {
-			service.createAppFromTemplate(VALID_APP1_NAME, getTestTemplate().getTemplateName(), new NullProgressMonitor());
+			service.createAppFromTemplate(HerokuTestConstants.VALID_APP1_NAME, getTestTemplate().getTemplateName(), new NullProgressMonitor());
 			fail("expected duplicate name app creation to fail");
 		}
 		catch (HerokuServiceException e) {
@@ -161,7 +154,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	public void testCreateInvalidNamedApp() {
 		HerokuServices service = getService();
 		try {
-			service.createAppFromTemplate(INVALID_APP_NAME, getTestTemplate().getTemplateName(), new NullProgressMonitor());
+			service.createAppFromTemplate(HerokuTestConstants.INVALID_APP_NAME, getTestTemplate().getTemplateName(), new NullProgressMonitor());
 			fail("expected invalid name app creation to fail");
 		}
 		catch (HerokuServiceException e) {
@@ -172,7 +165,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	public void testCreateExistingForeignApp() {
 		HerokuServices service = getService();
 		try {
-			service.createAppFromTemplate(EXISTING_APP, getTestTemplate().getTemplateName(), new NullProgressMonitor());
+			service.createAppFromTemplate(HerokuTestConstants.EXISTING_FOREIGN_APP, getTestTemplate().getTemplateName(), new NullProgressMonitor());
 			fail("expected app creation to fail");
 		}
 		catch (HerokuServiceException e) {
@@ -183,7 +176,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	public void testDestroyInvalidApp() {
 		HerokuServices service = getService();
 		try {
-			service.destroyApplication(new App().named(NON_EXISTING_APP_NAME));
+			service.destroyApplication(new App().named(HerokuTestConstants.NON_EXISTING_APP_NAME));
 			fail("expected non existing app destruction to fail");
 		}
 		catch (HerokuServiceException e) {
@@ -205,7 +198,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	public void testRenameApp() {
 		HerokuServices service = getService();
 		try {
-			service.renameApp(getValidDummyApp(), VALID_APP2_NAME);
+			service.renameApp(getValidDummyApp(), HerokuTestConstants.VALID_APP2_NAME);
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -216,7 +209,7 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 	public void testRenameAppInvalidName() {
 		HerokuServices service = getService();
 		try {
-			service.renameApp(getValidDummyApp(), INVALID_APP_NAME);
+			service.renameApp(getValidDummyApp(), HerokuTestConstants.INVALID_APP_NAME);
 			fail("expected rename to fail");
 		}
 		catch (HerokuServiceException e) {

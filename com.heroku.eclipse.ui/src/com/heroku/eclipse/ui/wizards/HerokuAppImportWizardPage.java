@@ -69,7 +69,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 
 		viewer = new TableViewer(group, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
 		viewer.setContentProvider(ArrayContentProvider.getInstance());
-		viewer.setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.V_APPS_LIST);
+		viewer.getTable().setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.V_APPS_LIST);
 		viewer.setComparator(new AppComparator());
 
 		Table table = viewer.getTable();

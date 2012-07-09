@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Group;
 import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
+import com.heroku.eclipse.core.constants.AppImportConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuServices.IMPORT_TYPES;
 import com.heroku.eclipse.ui.Activator;
@@ -61,6 +62,7 @@ public class HerokuAppProjectTypePage extends WizardPage {
 		autodetect = new Button(group, SWT.RADIO);
 		autodetect.setText(Messages.getString("HerokuAppProjectType_Import_Autodetect")); //$NON-NLS-1$
 		autodetect.addSelectionListener(getSelectionListener());
+		autodetect.setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.B_AUTODETECT);
 
 //		newProject = new Button(group, SWT.RADIO);
 //		newProject.setText(Messages.getString("HerokuAppProjectType_Import_NewProjectWizard")); //$NON-NLS-1$
@@ -69,6 +71,7 @@ public class HerokuAppProjectTypePage extends WizardPage {
 		generalProject = new Button(group, SWT.RADIO);
 		generalProject.setText(Messages.getString("HerokuAppProjectType_Import_GeneralProject")); //$NON-NLS-1$
 		generalProject.addSelectionListener(getSelectionListener());
+		generalProject.setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.B_GENERAL);
 		
 	}
 

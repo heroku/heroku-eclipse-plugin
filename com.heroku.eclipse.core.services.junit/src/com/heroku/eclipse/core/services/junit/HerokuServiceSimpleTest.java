@@ -3,6 +3,7 @@ package com.heroku.eclipse.core.services.junit;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.junit.common.Credentials;
 
 public class HerokuServiceSimpleTest extends HerokuServicesTest {
 

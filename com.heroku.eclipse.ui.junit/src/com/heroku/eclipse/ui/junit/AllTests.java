@@ -5,7 +5,13 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
-@SuiteClasses({ Preferences.class })
+@SuiteClasses({
+	/*Preferences.class,*/ 
+	NewFromTemplate.class,
+	Delete.class,
+	Import.class,
+	
+})
 public class AllTests {
 
 }

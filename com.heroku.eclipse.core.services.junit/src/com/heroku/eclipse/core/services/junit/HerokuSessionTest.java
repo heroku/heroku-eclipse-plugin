@@ -1,6 +1,4 @@
 package com.heroku.eclipse.core.services.junit;
-import java.util.List;
-
 import junit.framework.TestCase;
 
 import org.osgi.framework.Bundle;
@@ -8,12 +6,9 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
-import com.heroku.api.App;
-import com.heroku.api.Key;
-import com.heroku.api.exception.RequestFailedException;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
-import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.junit.common.Credentials;
 
 
 public abstract class HerokuSessionTest extends TestCase {
