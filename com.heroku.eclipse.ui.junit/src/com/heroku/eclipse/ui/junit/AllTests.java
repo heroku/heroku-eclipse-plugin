@@ -6,10 +6,10 @@ import org.junit.runners.Suite.SuiteClasses;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-	/*Preferences.class,*/ 
-	NewFromTemplate.class,
-	Delete.class,
-	Import.class,
+	Preferences.class 
+//	NewFromTemplate.class,
+//	Delete.class,
+//	Import.class,
 	
 })
 public class AllTests {
