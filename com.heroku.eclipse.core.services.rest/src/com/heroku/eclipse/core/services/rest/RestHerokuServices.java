@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
+import java.net.InterfaceAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -12,6 +13,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.RunnableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
 import javax.xml.bind.DatatypeConverter;
@@ -20,6 +23,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
+import org.eclipse.core.internal.runtime.IRuntimeConstants;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -73,8 +77,9 @@ import com.heroku.eclipse.core.services.model.KeyValue;
  * methods of the com.heroku.api.HerokuAPI class
  * 
  * @author udo.rader@bestsolution.at
+ * @param <O>
  */
-public class RestHerokuServices implements HerokuServices {
+public class RestHerokuServices<O> implements HerokuServices {
 	private RestHerokuSession herokuSession;
 	private IEclipsePreferences preferences;
 	private ISecurePreferences securePreferences;
@@ -102,7 +107,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public String obtainAPIKey(String username, String password) throws HerokuServiceException {
+	public String obtainAPIKey(IProgressMonitor pm, String username, String password) throws HerokuServiceException {
 		try {
 			String apiKey = HerokuAPI.obtainApiKey(username, password);
 			return apiKey;
@@ -113,11 +118,12 @@ public class RestHerokuServices implements HerokuServices {
 		}
 		catch (Exception e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "Unable to fetch API key", e); //$NON-NLS-1$
-			throw new HerokuServiceException(e);
+			throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, e);
 		}
 	}
 
-	public HerokuSession getOrCreateHerokuSession() throws HerokuServiceException {
+	@Override
+	public HerokuSession getOrCreateHerokuSession(IProgressMonitor pm) throws HerokuServiceException {
 		String apiKey = getAPIKey();
 
 		if (apiKey == null) {
@@ -156,7 +162,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void setSSHKey(String sshKey) throws HerokuServiceException {
+	public void setSSHKey(IProgressMonitor pm, String sshKey) throws HerokuServiceException {
 		try {
 			IEclipsePreferences p = getPreferences();
 			if (sshKey == null || sshKey.trim().isEmpty()) {
@@ -164,7 +170,7 @@ public class RestHerokuServices implements HerokuServices {
 			}
 			else if (!sshKey.equals(getSSHKey()) || ("true".equals(System.getProperty("heroku.devel")))) { //$NON-NLS-1$ //$NON-NLS-2$
 				validateSSHKey(sshKey);
-				getOrCreateHerokuSession().addSSHKey(sshKey);
+				getOrCreateHerokuSession(pm).addSSHKey(sshKey);
 				p.put(PreferenceConstants.P_SSH_KEY, sshKey);
 			}
 			else {
@@ -179,7 +185,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void setAPIKey(String apiKey) throws HerokuServiceException {
+	public void setAPIKey(IProgressMonitor pm, String apiKey) throws HerokuServiceException {
 		try {
 			boolean modified = false;
 			ISecurePreferences p = getSecurePreferences();
@@ -190,7 +196,7 @@ public class RestHerokuServices implements HerokuServices {
 			else {
 				apiKey = apiKey.trim();
 				if (!apiKey.equals(getAPIKey())) {
-					validateAPIKey(apiKey);
+					validateAPIKey(pm, apiKey);
 					p.put(PreferenceConstants.P_API_KEY, apiKey, true);
 					modified = true;
 				}
@@ -211,7 +217,8 @@ public class RestHerokuServices implements HerokuServices {
 		}
 	}
 
-	public void validateAPIKey(String apiKey) throws HerokuServiceException {
+	@Override
+	public void validateAPIKey(IProgressMonitor pm, String apiKey) throws HerokuServiceException {
 		try {
 			HerokuAPI api = new HerokuAPI(apiKey);
 			api.listApps();
@@ -283,28 +290,28 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void removeSSHKey(String sshKey) throws HerokuServiceException {
+	public void removeSSHKey(IProgressMonitor pm, String sshKey) throws HerokuServiceException {
 		String[] keyParts = validateSSHKey(sshKey);
-		getOrCreateHerokuSession().removeSSHKey(keyParts[2]);
-		setSSHKey(null);
+		getOrCreateHerokuSession(pm).removeSSHKey(keyParts[2]);
+		setSSHKey(pm, null);
 	}
 
 	@Override
-	public List<App> listApps() throws HerokuServiceException {
+	public List<App> listApps(IProgressMonitor pm) throws HerokuServiceException {
 		// = new ArrayList<App>();
-		List<App> apps = getOrCreateHerokuSession().listApps();
+		List<App> apps = getOrCreateHerokuSession(pm).listApps();
 		return apps;
 	}
 
 	@Override
-	public boolean isReady() throws HerokuServiceException {
+	public boolean isReady(IProgressMonitor pm) throws HerokuServiceException {
 		boolean isReady = true;
 
 		if (herokuSession == null) {
 			// ensure that we have valid prefs
 			String sshKey = null;
 			try {
-				getOrCreateHerokuSession();
+				getOrCreateHerokuSession(pm);
 				sshKey = getSSHKey();
 
 				if (sshKey == null || sshKey.trim().isEmpty()) {
@@ -326,7 +333,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public List<AppTemplate> listTemplates() throws HerokuServiceException {
+	public List<AppTemplate> listTemplates(IProgressMonitor pm) throws HerokuServiceException {
 		List<AppTemplate> templates = new ArrayList<AppTemplate>();
 
 		String templateURI = HerokuProperties.getString("heroku.eclipse.templates.URI"); //$NON-NLS-1$
@@ -363,11 +370,11 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public App createAppFromTemplate(String appName, String templateName, IProgressMonitor pm) throws HerokuServiceException {
+	public App createAppFromTemplate(IProgressMonitor pm, String appName, String templateName) throws HerokuServiceException {
 		App app = null;
 		try {
 			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new Heroku App '" + appName + "' from template '" + templateName + "'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			app = getOrCreateHerokuSession().createAppFromTemplate(new App().named(appName), templateName);
+			app = getOrCreateHerokuSession(pm).createAppFromTemplate(new App().named(appName), templateName);
 
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put(KEY_APPLICATION_ID, app.getId());
@@ -379,7 +386,7 @@ public class RestHerokuServices implements HerokuServices {
 			// remove dead cloned template
 			// TODO: dead code, but removing breaks unit tests ...
 			if (app != null && e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
-				destroyApplication(app);
+				destroyApplication(pm, app);
 				throw e;
 			}
 			else {
@@ -392,8 +399,8 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public boolean materializeGitApp(App app, IMPORT_TYPES importType, IProject existingProject, String gitLocation, int timeout, String dialogTitle,
-			CredentialsProvider cred, IProgressMonitor pm) throws HerokuServiceException {
+	public boolean materializeGitApp(IProgressMonitor pm, App app, IMPORT_TYPES importType, IProject existingProject, String gitLocation, int timeout, String dialogTitle,
+			CredentialsProvider cred) throws HerokuServiceException {
 		boolean rv = false;
 
 		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '" + app.getName() + "' in workspace, import type " + importType); //$NON-NLS-1$ //$NON-NLS-2$
@@ -465,7 +472,13 @@ public class RestHerokuServices implements HerokuServices {
 				}
 				catch (InvocationTargetException e) {
 					Throwable thr = e.getCause();
-					return new Status(IStatus.ERROR, Activator.getPluginId(), 0, thr.getMessage(), thr);
+					
+					if ( thr.getCause() != null ) {
+						return new Status(IStatus.ERROR, Activator.getPluginId(), 0, thr.getCause().getMessage(), e);
+					}
+					else {
+						return new Status(IStatus.ERROR, Activator.getPluginId(), 0, thr.getMessage(), e);
+					}
 				}
 				catch (CoreException e) {
 					e.printStackTrace();
@@ -601,13 +614,13 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void restartApplication(App app) throws HerokuServiceException {
-		getOrCreateHerokuSession().restart(app);
+	public void restartApplication(IProgressMonitor pm, App app) throws HerokuServiceException {
+		getOrCreateHerokuSession(pm).restart(app);
 	}
 
 	@Override
-	public void destroyApplication(App app) throws HerokuServiceException {
-		getOrCreateHerokuSession().destroyApp(app);
+	public void destroyApplication(IProgressMonitor pm, App app) throws HerokuServiceException {
+		getOrCreateHerokuSession(pm).destroyApp(app);
 
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(KEY_APPLICATION_ID, app.getId());
@@ -617,8 +630,8 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void renameApp(App application, String newName) throws HerokuServiceException {
-		getOrCreateHerokuSession().renameApp(application.getName(), newName);
+	public void renameApp(IProgressMonitor pm, App application, String newName) throws HerokuServiceException {
+		getOrCreateHerokuSession(pm).renameApp(application.getName(), newName);
 
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(KEY_APPLICATION_ID, application.getId());
@@ -627,14 +640,15 @@ public class RestHerokuServices implements HerokuServices {
 		Event event = new Event(TOPIC_APPLICATION_RENAMED, map);
 		eventAdmin.postEvent(event);
 	}
-
-	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException {
-		return getOrCreateHerokuSession().getCollaborators(app);
+	
+	@Override
+	public List<Collaborator> getCollaborators(IProgressMonitor pm, App app) throws HerokuServiceException {
+		return getOrCreateHerokuSession(pm).getCollaborators(app);
 	}
 
 	@Override
-	public void addCollaborator(App app, String email) throws HerokuServiceException {
-		getOrCreateHerokuSession().addCollaborator(app, email);
+	public void addCollaborator(IProgressMonitor pm, App app, String email) throws HerokuServiceException {
+		getOrCreateHerokuSession(pm).addCollaborator(app, email);
 
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(KEY_APPLICATION_ID, app.getId());
@@ -645,8 +659,8 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void removeCollaborators(App app, String... emails) throws HerokuServiceException {
-		HerokuSession s = getOrCreateHerokuSession();
+	public void removeCollaborators(IProgressMonitor pm, App app, String... emails) throws HerokuServiceException {
+		HerokuSession s = getOrCreateHerokuSession(pm);
 
 		List<String> notremoved = new ArrayList<String>();
 		List<String> removed = new ArrayList<String>();
@@ -678,8 +692,8 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void transferApplication(App app, String newOwner) throws HerokuServiceException {
-		getOrCreateHerokuSession().transferApplication(app, newOwner);
+	public void transferApplication(IProgressMonitor pm, App app, String newOwner) throws HerokuServiceException {
+		getOrCreateHerokuSession(pm).transferApplication(app, newOwner);
 
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put(KEY_APPLICATION_ID, app.getId());
@@ -689,8 +703,9 @@ public class RestHerokuServices implements HerokuServices {
 		eventAdmin.postEvent(event);
 	}
 
-	public List<HerokuProc> listProcesses(App app) throws HerokuServiceException {
-		List<Proc> procs = getOrCreateHerokuSession().listProcesses(app);
+	@Override
+	public List<HerokuProc> listProcesses(IProgressMonitor pm, App app) throws HerokuServiceException {
+		List<Proc> procs = getOrCreateHerokuSession(pm).listProcesses(app);
 
 		// adding some useful stuff
 		List<HerokuProc> convertedProcs = new ArrayList<HerokuProc>();
@@ -700,13 +715,14 @@ public class RestHerokuServices implements HerokuServices {
 		return convertedProcs;
 	}
 
-	public App getApp(String appName) throws HerokuServiceException {
-		return getOrCreateHerokuSession().getApp(appName);
+	@Override
+	public App getApp(IProgressMonitor pm, String appName) throws HerokuServiceException {
+		return getOrCreateHerokuSession(pm).getApp(appName);
 	}
 
 	@Override
-	public boolean isOwnApp(App app) throws HerokuServiceException {
-		User user = getOrCreateHerokuSession().getUserInfo();
+	public boolean isOwnApp(IProgressMonitor pm, App app) throws HerokuServiceException {
+		User user = getOrCreateHerokuSession(pm).getUserInfo();
 		if (user != null && user.getEmail().trim().equalsIgnoreCase(app.getOwnerEmail())) {
 			return true;
 		}
@@ -714,23 +730,23 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public User getUserInfo() throws HerokuServiceException {
-		return getOrCreateHerokuSession().getUserInfo();
+	public User getUserInfo(IProgressMonitor pm) throws HerokuServiceException {
+		return getOrCreateHerokuSession(pm).getUserInfo();
 	}
 
 	@Override
-	public InputStream getApplicationLogStream(String appName) throws HerokuServiceException {
-		return getOrCreateHerokuSession().getApplicationLogStream(appName);
+	public InputStream getApplicationLogStream(IProgressMonitor pm, String appName) throws HerokuServiceException {
+		return getOrCreateHerokuSession(pm).getApplicationLogStream(appName);
 	}
 
 	@Override
-	public InputStream getProcessLogStream(String appName, String processName) throws HerokuServiceException {
-		return getOrCreateHerokuSession().getProcessLogStream(appName, processName);
+	public InputStream getProcessLogStream(IProgressMonitor pm, String appName, String processName) throws HerokuServiceException {
+		return getOrCreateHerokuSession(pm).getProcessLogStream(appName, processName);
 	}
 
 	@Override
-	public boolean appNameExists(String appName) throws HerokuServiceException {
-		return getOrCreateHerokuSession().appNameExists(appName);
+	public boolean appNameExists(IProgressMonitor pm, String appName) throws HerokuServiceException {
+		return getOrCreateHerokuSession(pm).appNameExists(appName);
 	}
 
 	@Override
@@ -746,46 +762,146 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void restartProcs(List<HerokuProc> procs) throws HerokuServiceException {
-		HerokuSession s = getOrCreateHerokuSession();
-		for (HerokuProc proc : procs) {
-			s.restart(proc.getHerokuProc());
-		}
+	public void restartProcs(IProgressMonitor pm, final List<HerokuProc> procs) throws HerokuServiceException {
+		final HerokuSession s = getOrCreateHerokuSession(pm);
+		runCancellableOperation(pm, new RunnableWithReturn<Object>() {
+			@Override
+			public Object run() throws HerokuServiceException {
+				for (HerokuProc proc : procs) {
+					s.restart(proc.getHerokuProc());
+				}
+				return new Object();
+			}
+		});
 	}
 
 	@Override
-	public void restartDyno(HerokuProc dyno) throws HerokuServiceException {
-		getOrCreateHerokuSession().restartDyno(dyno);
+	public void restartDyno(final IProgressMonitor pm, final HerokuProc dyno) throws HerokuServiceException {
+		runCancellableOperation(pm, new RunnableWithReturn<Object>() {
+			@Override
+			public Object run() throws HerokuServiceException {
+				getOrCreateHerokuSession(pm).restartDyno(dyno);
+				return new Object();
+			}
+		});
 	}
 
 	@Override
-	public void addEnvVariables(App app, Map<String, String> envMap) throws HerokuServiceException {
-		getOrCreateHerokuSession().addEnvVariables(app.getName(), envMap);
+	public void addEnvVariables(final IProgressMonitor pm, final App app, final Map<String, String> envMap) throws HerokuServiceException {
+		runCancellableOperation(pm, new RunnableWithReturn<Object>() {
+			@Override
+			public Object run() throws HerokuServiceException {
+				getOrCreateHerokuSession(pm).addEnvVariables(app.getName(), envMap);
+				return new Object();
+			}
+		});
 	}
 
 	@Override
-	public List<KeyValue> listEnvVariables(App app) throws HerokuServiceException {
-		List<KeyValue> list = new ArrayList<KeyValue>();
-		Map<String,String> map = getOrCreateHerokuSession().listEnvVariables(app.getName());
-		
-		for(String key : map.keySet()) {
-			list.add(new KeyValue(key,map.get(key)));
-		}
-		return list;
+	@SuppressWarnings("unchecked")
+	public List<KeyValue> listEnvVariables(final IProgressMonitor pm, final App app) throws HerokuServiceException {
+		return (List<KeyValue>) runCancellableOperation(pm, new RunnableWithReturn<Object>() {
+			@Override
+			public Object run() throws HerokuServiceException {
+				List<KeyValue> list = new ArrayList<KeyValue>();
+				Map<String,String> map = getOrCreateHerokuSession(pm).listEnvVariables(app.getName());
+				
+				for(String key : map.keySet()) {
+					list.add(new KeyValue(key,map.get(key)));
+				}
+				return list;
+			}
+		});
 	}
 
 	@Override
-	public void removeEnvVariable(App app, String envKey) throws HerokuServiceException {
-		getOrCreateHerokuSession().removeEnvVariable(app.getName(), envKey);
-	}
-
-	@Override
-	public void scaleProcess(String appName, String dynoName, int quantity) throws HerokuServiceException {
-		getOrCreateHerokuSession().scaleProcess(appName, dynoName, quantity);
+	public void removeEnvVariable(final IProgressMonitor pm, final App app, final String envKey) throws HerokuServiceException {
+		runCancellableOperation(pm, new RunnableWithReturn<Object>() {
+			@Override
+			public Object run() throws HerokuServiceException {
+				getOrCreateHerokuSession(pm).removeEnvVariable(app.getName(), envKey);
+				return new Object();
+			}
+		});
 	}
 
 	@Override
 	public boolean isAppNameBasicallyValid(String appName) {
 		return VALID_APPNAME.matcher(appName).matches();
 	}
+
+	@Override
+	public void scaleProcess(final IProgressMonitor pm, final String appName, final String dynoName, final int quantity) throws HerokuServiceException {
+		runCancellableOperation(pm, new RunnableWithReturn<Object>() {
+			@Override
+			public Object run() throws HerokuServiceException {
+				getOrCreateHerokuSession(pm).scaleProcess(appName, dynoName, quantity);
+				return new Object();
+			}
+		});
+	}
+	
+	@SuppressWarnings({ "deprecation", "unchecked" })
+	private <V> V runCancellableOperation(IProgressMonitor pm, final RunnableWithReturn<V> r) throws HerokuServiceException {
+		final AtomicReference<Object> rv = new AtomicReference<Object>();
+		Thread t = new Thread(){
+			@Override
+			public void run() {
+				try {
+					rv.set(r.run());
+				}
+				catch (HerokuServiceException e) {
+					rv.set(e);
+				}
+			}
+		};
+		
+		t.setDaemon(true);
+		t.start();
+		
+		while ( rv.get() == null ) {
+			if ( pm.isCanceled() ) {
+				t.stop();
+				throw new HerokuServiceException(HerokuServiceException.OPERATION_CANCELLED, "thread interrupted"); //$NON-NLS-1$
+			}
+			try {
+				Thread.sleep(100);
+			}
+			catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		if ( rv.get() instanceof HerokuServiceException ) {
+			throw (HerokuServiceException)rv.get();
+		}
+		
+		return (V) rv.get();
+	}
+	
+	interface RunnableWithReturn<O> {
+		public O run() throws HerokuServiceException;
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
