@@ -490,6 +490,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 									quantity = 0;
 									break;
 								}
+								else {
+									quantity++;
+								}
 							}
 						}
 						else {
