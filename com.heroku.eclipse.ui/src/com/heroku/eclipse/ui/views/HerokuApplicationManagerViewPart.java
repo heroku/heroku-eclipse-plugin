@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -104,9 +105,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	private List<ServiceRegistration<EventHandler>> handlerRegistrations;
 
-	private Map<String, List<HerokuProc>> appProcesses = new HashMap<String, List<HerokuProc>>();
-	private Map<String, String> procApps = new HashMap<String, String>();
-
+	private Map<String, List<HerokuProc>> appProcesses = Collections.synchronizedMap(new HashMap<String, List<HerokuProc>>());
+	private Map<String, String> procApps = Collections.synchronizedMap(new HashMap<String, String>());
+	
 	private Map<String, Thread> logThreads = new HashMap<String, Thread>();
 
 	private Timer refreshTimer = new Timer(true);
@@ -838,7 +839,10 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					@Override
 					protected IStatus run(IProgressMonitor monitor) {
 						try {
-							saveRefreshApplications(refreshProcs);
+							if ( saveRefreshApplications(refreshProcs) ) {
+								// 2nd run: refresh procs now as well 
+								saveRefreshApplications(true);
+							}
 						}
 						catch (HerokuServiceException e) {
 							if (Display.getCurrent() != null) {
@@ -870,12 +874,14 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		}
 	}
 
-	private void saveRefreshApplications(boolean refreshProcs) throws HerokuServiceException {
+	private boolean saveRefreshApplications(boolean refreshProcs) throws HerokuServiceException {
+		boolean rv = true;
+		
 		appProcesses.clear();
 		procApps.clear();
 		if (herokuService.isReady()) {
 			List<App> applications = herokuService.listApps();
-			if (refreshProcs || applications.size() < 10) {
+			if (refreshProcs) { // || applications.size() < 10) {
 				for (App a : applications) {
 					List<HerokuProc> procs = herokuService.listProcesses(a);
 					appProcesses.put(a.getId(), procs);
@@ -885,6 +891,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						}
 					}
 				}
+				rv = false;
 			}
 			HerokuUtils.runOnDisplay(true, viewer, applications, ViewerOperations.input(viewer));
 		}
@@ -895,6 +902,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		if (refreshTask != null) {
 			refreshTask.cancel();
 		}
+		
+		return rv;
 
 		// scheduleRefresh();
 	}
@@ -959,7 +968,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		@Override
 		public boolean hasChildren(Object element) {
-			return element instanceof App;
+			return getChildren(element).length > 0;
 		}
 
 	}
