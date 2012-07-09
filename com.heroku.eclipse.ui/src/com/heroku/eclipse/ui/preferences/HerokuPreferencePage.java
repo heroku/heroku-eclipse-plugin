@@ -462,11 +462,14 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 			});
 		}
 		catch (InvocationTargetException e1) {
-			if (!(e1.getCause() instanceof HerokuServiceException)) {
-				HerokuUtils.internalError(getShell(), e1);
+			if ((e1.getCause() instanceof HerokuServiceException)) {
+				HerokuServiceException e2 = (HerokuServiceException) e1.getCause();
+				if ( e2.getErrorCode() != HerokuServiceException.LOGIN_FAILED ) {
+					HerokuUtils.herokuError(getShell(), e1);
+				}
 			}
 			else {
-				HerokuUtils.herokuError(getShell(), e1);
+				HerokuUtils.internalError(getShell(), e1);
 			}
 		}
 		catch (InterruptedException e1) {
