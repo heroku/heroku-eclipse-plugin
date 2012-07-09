@@ -2,6 +2,7 @@ package com.heroku.eclipse.ui.views.dialog;
 
 import java.util.List;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
@@ -144,7 +145,7 @@ public class CollaboratorsPart {
 												.getLogger()
 												.log(LogService.LOG_INFO,
 														"trying to transfer app '" + domainObject.getName() + "' to new owner '" + c.getEmail() + "'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-										Activator.getDefault().getService().transferApplication(domainObject, c.getEmail());
+										Activator.getDefault().getService().transferApplication(new NullProgressMonitor(), domainObject, c.getEmail());
 										Activator.getDefault().getLogger()
 												.log(LogService.LOG_INFO, "transfer of app '" + domainObject.getName() + "' complete"); //$NON-NLS-1$ //$NON-NLS-2$
 									}
@@ -186,7 +187,7 @@ public class CollaboratorsPart {
 				}
 
 				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "about to remove of " + collaborators.size() + " collaborator"); //$NON-NLS-1$ //$NON-NLS-2$
-				Activator.getDefault().getService().removeCollaborators(domainObject, emails);
+				Activator.getDefault().getService().removeCollaborators(new NullProgressMonitor(), domainObject, emails);
 				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "removal of " + collaborators.size() + " collaborators complete"); //$NON-NLS-1$ //$NON-NLS-2$
 				refreshCollaboratorList();
 			}
@@ -239,7 +240,7 @@ public class CollaboratorsPart {
 					}
 
 					try {
-						Activator.getDefault().getService().addCollaborator(domainObject, email);
+						Activator.getDefault().getService().addCollaborator(new NullProgressMonitor(), domainObject, email);
 						super.okPressed();
 						refreshCollaboratorList();
 					}
@@ -279,7 +280,7 @@ public class CollaboratorsPart {
 
 	private void refreshCollaboratorList() {
 		try {
-			collaboratorsList = Activator.getDefault().getService().getCollaborators(domainObject);
+			collaboratorsList = Activator.getDefault().getService().getCollaborators(new NullProgressMonitor(), domainObject);
 
 			if (domainObject.getOwnerEmail() != null) {
 				for (Collaborator c : collaboratorsList) {

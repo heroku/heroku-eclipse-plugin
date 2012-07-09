@@ -251,13 +251,13 @@ public class HerokuAppCreatePage extends WizardPage {
 			PlatformUI.getWorkbench().getProgressService().busyCursorWhile(new IRunnableWithProgress() {
 
 				@Override
-				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+				public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					group.getDisplay().asyncExec(new Runnable() {
 
 						@Override
 						public void run() {
 							try {
-								List<AppTemplate> templates = service.listTemplates();
+								List<AppTemplate> templates = service.listTemplates(monitor);
 
 								if (templates == null || templates.size() == 0) {
 									Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "no application templates found"); //$NON-NLS-1$
@@ -308,7 +308,7 @@ public class HerokuAppCreatePage extends WizardPage {
 	
 	@Override
 	public boolean isPageComplete() {		
-		return HerokuUtils.isNotEmpty(tAppName.getText()) && getAppTemplate() != null ? true : false;
+		return getAppTemplate() != null ? true : false;
 	}
 
 	/**
@@ -352,7 +352,7 @@ public class HerokuAppCreatePage extends WizardPage {
 	 * @return the name of the new application to create
 	 */
 	public String getAppName() {
-		return tAppName.getText();
+		return HerokuUtils.ensureNotNull(tAppName.getText()).trim();
 	}
 	
 	/**

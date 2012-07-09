@@ -1,6 +1,7 @@
 package com.heroku.eclipse.core.services.junit;
 import junit.framework.TestCase;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.FrameworkUtil;
@@ -23,8 +24,8 @@ public abstract class HerokuSessionTest extends TestCase {
 	
 	protected HerokuSession getSession() {
 		try {
-			getService().setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
-			return getService().getOrCreateHerokuSession();
+			getService().setAPIKey(new NullProgressMonitor(), Credentials.VALID_JUNIT_APIKEY1);
+			return getService().getOrCreateHerokuSession(new NullProgressMonitor());
 		}
 		catch (Exception e) {
 			fail("HerokuService not available: " + e.getMessage());
@@ -34,8 +35,8 @@ public abstract class HerokuSessionTest extends TestCase {
 	
 	protected HerokuSession getInvalidSession() {
 		try {
-			getService().setAPIKey("bla");
-			return getService().getOrCreateHerokuSession();
+			getService().setAPIKey(new NullProgressMonitor(), "bla");
+			return getService().getOrCreateHerokuSession(new NullProgressMonitor());
 		}
 		catch (Exception e) {
 			fail("HerokuService not available: " + e.getMessage());

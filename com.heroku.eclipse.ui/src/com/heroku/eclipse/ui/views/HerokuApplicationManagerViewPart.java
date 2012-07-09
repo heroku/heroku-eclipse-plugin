@@ -107,7 +107,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	private Map<String, List<HerokuProc>> appProcesses = Collections.synchronizedMap(new HashMap<String, List<HerokuProc>>());
 	private Map<String, String> procApps = Collections.synchronizedMap(new HashMap<String, String>());
-	
+
 	private Map<String, Thread> logThreads = new HashMap<String, Thread>();
 
 	private Timer refreshTimer = new Timer(true);
@@ -205,14 +205,14 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		// register our action to global refresher
 		getViewSite().getActionBars().setGlobalActionHandler(ActionFactory.REFRESH.getId(), refreshAction);
 
-		refreshApplications(false);
+		refreshApplications(new NullProgressMonitor(), false);
 		subscribeToEvents();
 	}
 
 	private void createToolbar() {
 		refreshAction = new Action(null, IconKeys.getImageDescriptor(IconKeys.ICON_APPSLIST_REFRESH)) {
 			public void run() {
-				refreshApplications(true);
+				refreshApplications(new NullProgressMonitor(), true);
 			}
 		};
 		refreshAction.setToolTipText(Messages.getString("HerokuAppManagerViewPart_Refresh_Tooltip")); //$NON-NLS-1$
@@ -263,7 +263,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			@Override
 			public void run() {
-				refreshApplications(true);
+				refreshApplications(new NullProgressMonitor(), true);
 			}
 		};
 		refreshTimer.schedule(refreshTask, Integer.parseInt(HerokuProperties.getString("heroku.eclipse.appsList.refreshInterval"))); //$NON-NLS-1$
@@ -287,7 +287,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		if (app == null) {
 			HerokuProc proc = getSelectedProc();
 			if (proc != null) {
-				app = herokuService.getApp(proc.getHerokuProc().getAppName());
+				app = herokuService.getApp(new NullProgressMonitor(), proc.getHerokuProc().getAppName());
 			}
 		}
 
@@ -302,7 +302,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		Action refresh = new Action(Messages.getString("HerokuAppManagerViewPart_Refresh")) { //$NON-NLS-1$
 			@Override
 			public void run() {
-				refreshApplications(true);
+				refreshApplications(new NullProgressMonitor(), true);
 			}
 		};
 
@@ -370,7 +370,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 									monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingApp", app.getName()), 2); //$NON-NLS-1$
 									monitor.worked(1);
 									try {
-										herokuService.restartApplication(app);
+										herokuService.restartApplication(monitor, app);
 										monitor.worked(1);
 										monitor.done();
 									}
@@ -380,12 +380,15 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 									}
 								}
 							});
-							refreshApplications(true);
+							refreshApplications(new NullProgressMonitor(), true);
 
 						}
 						catch (InvocationTargetException e) {
-							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
-							HerokuUtils.internalError(getShell(), e);
+							HerokuServiceException se = extractHerokuException(e, "unknown error when trying to restart app " + app.getName()); //$NON-NLS-1$
+							if (se != null) {
+								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
+								HerokuUtils.herokuError(getShell(), e);
+							}
 						}
 						catch (InterruptedException e) {
 							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
@@ -408,7 +411,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 												Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingProc", proc.getDynoName()), 2); //$NON-NLS-1$
 										monitor.worked(1);
 										try {
-											herokuService.restartDyno(proc);
+											herokuService.restartDyno(monitor, proc);
 											monitor.worked(1);
 											monitor.done();
 										}
@@ -418,14 +421,17 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 										}
 									}
 								});
-								refreshApplications(true);
+								refreshApplications(new NullProgressMonitor(), true);
 
 							}
 							catch (InvocationTargetException e) {
-								Activator.getDefault().getLogger()
-										.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getDynoName() + "' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
-								e.printStackTrace();
-								HerokuUtils.internalError(getShell(), e);
+								HerokuServiceException se = extractHerokuException(e,
+										"unknown error when trying to restart all '" + proc.getDynoName() + "' processes"); //$NON-NLS-1$ //$NON-NLS-2$
+								if (se != null) {
+									Activator.getDefault().getLogger()
+											.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getDynoName() + "' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
+									HerokuUtils.herokuError(getShell(), e);
+								}
 							}
 							catch (InterruptedException e) {
 								Activator.getDefault().getLogger()
@@ -536,9 +542,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 										monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_Scaling", process), 3); //$NON-NLS-1$
 										monitor.worked(1);
 										try {
-											herokuService.scaleProcess(appName, process, Integer.parseInt(quantity));
+											herokuService.scaleProcess(monitor, appName, process, Integer.parseInt(quantity));
 											monitor.worked(1);
-											refreshApplications(true);
+											refreshApplications(monitor, true);
 											monitor.done();
 										}
 										catch (HerokuServiceException e) {
@@ -604,7 +610,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 									getShell(),
 									Messages.getString("HerokuAppManagerViewPart_Destroy"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Destroy", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 						try {
-							herokuService.destroyApplication(app);
+							herokuService.destroyApplication(new NullProgressMonitor(), app);
 						}
 						catch (HerokuServiceException e) {
 							if (e.getErrorCode() == HerokuServiceException.NOT_ALLOWED) {
@@ -637,6 +643,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			@Override
 			public void menuAboutToShow(IMenuManager manager) {
+				NullProgressMonitor pm = new NullProgressMonitor();
 				IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
 
 				boolean enabled = !s.isEmpty();
@@ -653,7 +660,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					if (s.getFirstElement() instanceof App) {
 						App app = (App) s.getFirstElement();
 						try {
-							if (herokuService.isOwnApp(app)) {
+							if (herokuService.isOwnApp(pm, app)) {
 								scale.setEnabled(true);
 								destroy.setEnabled(true);
 							}
@@ -669,8 +676,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						importApp.setEnabled(false);
 						open.setEnabled(false);
 						try {
-							App app = herokuService.getApp(proc.getHerokuProc().getAppName());
-							if (herokuService.isOwnApp(app)) {
+							App app = herokuService.getApp(pm, proc.getHerokuProc().getAppName());
+							if (herokuService.isOwnApp(pm, app)) {
 								scale.setEnabled(true);
 							}
 						}
@@ -722,10 +729,10 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						try {
 							InputStream is;
 							if (procName == null) {
-								is = herokuService.getApplicationLogStream(appName);
+								is = herokuService.getApplicationLogStream(new NullProgressMonitor(), appName);
 							}
 							else {
-								is = herokuService.getProcessLogStream(appName, procName);
+								is = herokuService.getProcessLogStream(new NullProgressMonitor(), appName, procName);
 							}
 							while ((bytesRead = is.read(buffer)) != -1) {
 								if (out.isClosed()) {
@@ -787,7 +794,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			@Override
 			public void handleEvent(Event event) {
-				refreshApplications(true);
+				refreshApplications(new NullProgressMonitor(), true);
 			}
 		};
 
@@ -795,7 +802,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			@Override
 			public void handleEvent(Event event) {
-				refreshApplications(true);
+				refreshApplications(new NullProgressMonitor(), true);
 			}
 		};
 
@@ -803,7 +810,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			@Override
 			public void handleEvent(Event event) {
-				refreshApplications(true);
+				refreshApplications(new NullProgressMonitor(), true);
 			}
 		};
 
@@ -811,7 +818,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			@Override
 			public void handleEvent(Event event) {
-				refreshApplications(true);
+				refreshApplications(new NullProgressMonitor(), true);
 			}
 		};
 
@@ -819,7 +826,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			@Override
 			public void handleEvent(Event event) {
-				refreshApplications(true);
+				refreshApplications(new NullProgressMonitor(), true);
 			}
 		};
 
@@ -831,17 +838,17 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(destroyedApplicationHandler, HerokuServices.TOPIC_APPLICATION_DESTROYED));
 	}
 
-	private void refreshApplications(final boolean refreshProcs) {
+	private void refreshApplications(final IProgressMonitor pm, final boolean refreshProcs) {
 		try {
-			if (herokuService.isReady()) {
+			if (herokuService.isReady(pm)) {
 				final Job o = new Job(Messages.getString("HerokuAppManagerViewPart_RefreshApps")) { //$NON-NLS-1$
 
 					@Override
 					protected IStatus run(IProgressMonitor monitor) {
 						try {
-							if ( saveRefreshApplications(refreshProcs) ) {
-								// 2nd run: refresh procs now as well 
-								saveRefreshApplications(true);
+							if (saveRefreshApplications(pm, refreshProcs)) {
+								// 2nd run: refresh procs now as well
+								saveRefreshApplications(pm, true);
 							}
 						}
 						catch (HerokuServiceException e) {
@@ -874,16 +881,16 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		}
 	}
 
-	private boolean saveRefreshApplications(boolean refreshProcs) throws HerokuServiceException {
+	private boolean saveRefreshApplications(IProgressMonitor pm, boolean refreshProcs) throws HerokuServiceException {
 		boolean rv = true;
-		
+
 		appProcesses.clear();
 		procApps.clear();
-		if (herokuService.isReady()) {
-			List<App> applications = herokuService.listApps();
+		if (herokuService.isReady(pm)) {
+			List<App> applications = herokuService.listApps(pm);
 			if (refreshProcs) { // || applications.size() < 10) {
 				for (App a : applications) {
-					List<HerokuProc> procs = herokuService.listProcesses(a);
+					List<HerokuProc> procs = herokuService.listProcesses(pm, a);
 					appProcesses.put(a.getId(), procs);
 					if (procs.size() > 0) {
 						if (!procApps.containsKey(procs.get(0).getUniqueId())) {
@@ -902,7 +909,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		if (refreshTask != null) {
 			refreshTask.cancel();
 		}
-		
+
 		return rv;
 
 		// scheduleRefresh();
@@ -1004,8 +1011,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 			final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
 			try {
-				herokuService.materializeGitApp(app, IMPORT_TYPES.AUTODETECT, null, destinationDir, timeout,
-						Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, new NullProgressMonitor()); //$NON-NLS-1$
+				herokuService.materializeGitApp(new NullProgressMonitor(), app, IMPORT_TYPES.AUTODETECT, null, destinationDir, timeout,
+						Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred); //$NON-NLS-1$
 			}
 			catch (HerokuServiceException e) {
 				if (e.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION) {
@@ -1036,5 +1043,26 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		}
 
 		return dynoProcs;
+	}
+
+	private HerokuServiceException extractHerokuException(Exception e, String defaultError) {
+		Exception rv = e;
+		if (e instanceof InvocationTargetException) {
+			rv = (Exception) e.getCause();
+		}
+
+		if (rv instanceof HerokuServiceException) {
+			// "Operation cancelled" means that the user pressed "cancel", so we
+			// ignore that in terms of the thrown exception and return null
+			if (((HerokuServiceException) rv).getErrorCode() != HerokuServiceException.OPERATION_CANCELLED) {
+				return (HerokuServiceException) rv;
+			}
+		}
+		else {
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, defaultError, e);
+			HerokuUtils.internalError(getShell(), e);
+		}
+
+		return null;
 	}
 }

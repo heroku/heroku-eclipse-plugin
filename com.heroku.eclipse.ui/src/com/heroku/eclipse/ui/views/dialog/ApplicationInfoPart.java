@@ -1,5 +1,6 @@
 package com.heroku.eclipse.ui.views.dialog;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -57,7 +58,7 @@ public class ApplicationInfoPart {
 					try {
 						Activator.getDefault().getLogger()
 								.log(LogService.LOG_INFO, "about to rename app from '" + domainObject.getName() + "' to '" + appName.getText() + "'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-						Activator.getDefault().getService().renameApp(domainObject, appName.getText());
+						Activator.getDefault().getService().renameApp(new NullProgressMonitor(), domainObject, appName.getText());
 						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "app rename complete"); //$NON-NLS-1$
 					}
 					catch (HerokuServiceException e1) {

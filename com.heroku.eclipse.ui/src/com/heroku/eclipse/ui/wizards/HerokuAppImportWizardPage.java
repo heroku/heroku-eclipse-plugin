@@ -6,6 +6,7 @@ package com.heroku.eclipse.ui.wizards;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -115,7 +116,7 @@ public class HerokuAppImportWizardPage extends WizardPage {
 
 		List<App> apps = new ArrayList<App>();
 		try {
-			apps = service.listApps();
+			apps = service.listApps(new NullProgressMonitor());
 		}
 		catch (HerokuServiceException e) {
 			HerokuUtils.internalError(parent.getShell(), e);

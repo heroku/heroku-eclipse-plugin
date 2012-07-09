@@ -8,6 +8,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.egit.ui.UIPreferences;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -57,7 +58,7 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 	public void addPages() {
 		setNeedsProgressMonitor(false);
 
-		if (HerokuUtils.verifyPreferences(service, Display.getCurrent().getActiveShell())) {
+		if (HerokuUtils.verifyPreferences(new NullProgressMonitor(), service, Display.getCurrent().getActiveShell())) {
 			try {
 				listPage = new HerokuAppImportWizardPage();
 				addPage(listPage);
@@ -109,8 +110,8 @@ public class HerokuAppImport extends Wizard implements IImportWizard {
 								}
 							}
 
-							service.materializeGitApp(app, importType, existingProject, destinationDir, timeout,
-									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, monitor); //$NON-NLS-1$
+							service.materializeGitApp(monitor, app, importType, existingProject, destinationDir, timeout,
+									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred); //$NON-NLS-1$
 						}
 						catch (HerokuServiceException e) {
 							// clean up previously created "new project"

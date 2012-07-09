@@ -1,4 +1,6 @@
 package com.heroku.eclipse.core.services.junit;
+import org.eclipse.core.runtime.NullProgressMonitor;
+
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.junit.common.Credentials;
@@ -19,7 +21,7 @@ public class HerokuSessionSimpleTest extends HerokuSessionTest {
 	
 	public void testIsNotValid() throws HerokuServiceException {
 		try {
-			getService().setAPIKey("bla");
+			getService().setAPIKey(new NullProgressMonitor(), "bla");
 		}
 		catch ( HerokuServiceException e ) {
 			assertEquals("Setting an invalid API key must fail", HerokuServiceException.INVALID_API_KEY, e.getErrorCode() );

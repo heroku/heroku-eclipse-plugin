@@ -49,7 +49,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 	public void addPages() {
 		setNeedsProgressMonitor(true);
 
-		if (HerokuUtils.verifyPreferences(service, Display.getCurrent().getActiveShell())) {
+		if (HerokuUtils.verifyPreferences(new NullProgressMonitor(), service, Display.getCurrent().getActiveShell())) {
 			try {
 				createPage = new HerokuAppCreatePage();
 				addPage(createPage);
@@ -69,72 +69,77 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 
 		try {
 			// ensure that the name is available
-			if (service.isAppNameBasicallyValid(appName) && service.appNameExists(appName)) {
+			if (HerokuUtils.isNotEmpty(appName) && (!service.isAppNameBasicallyValid(appName) || service.appNameExists(new NullProgressMonitor(), appName))) {
 				createPage.displayInvalidNameWarning();
 				return false;
 			}
-			else {
-				final AppTemplate template = createPage.getAppTemplate();
 
-				final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
-				final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
-				final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
+			final AppTemplate template = createPage.getAppTemplate();
 
-				try {
-					getContainer().run(true, false, new IRunnableWithProgress() {
-						@Override
-						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+			final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
+			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
+			final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
+
+			try {
+				getContainer().run(true, true, new IRunnableWithProgress() {
+					@Override
+					public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+						if ( HerokuUtils.isNotEmpty(appName)) {
 							monitor.beginTask(Messages.getFormattedString("HerokuAppCreate_CreatingApp", appName), 2); //$NON-NLS-1$
-							monitor.subTask(Messages.getString("HerokuAppCreate_CloningTemplate")); //$NON-NLS-1$
-							monitor.worked(1);
-							// then materialize
-							try {
-								// first clone
-								App app = service.createAppFromTemplate(appName, template.getTemplateName(), monitor);
-								if (app != null) {
-									monitor.subTask(Messages.getString("HerokuAppCreate_FetchingApp")); //$NON-NLS-1$
-									service.materializeGitApp(app, IMPORT_TYPES.AUTODETECT, null, destinationDir, timeout,
-											Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, monitor); //$NON-NLS-1$
-									monitor.worked(1);
-									monitor.done();
-								}
-							}
-							catch (HerokuServiceException e) {
-								throw new InvocationTargetException(e);
-							}
-						}
-					});
-				}
-				catch (InvocationTargetException e) {
-					if (e.getCause() instanceof HerokuServiceException) {
-						HerokuServiceException e1 = (HerokuServiceException) e.getCause();
-						
-						if (e1.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
-							Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "Application '" + appName + "' already exists, denying creation", e); //$NON-NLS-1$ //$NON-NLS-2$
-							createPage.displayInvalidNameWarning();
-						}
-						else if (e1.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION) {
-							HerokuUtils
-									.userError(
-											getShell(),
-											Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir + System.getProperty("file.separator") + appName)); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
 						}
 						else {
-							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
-							HerokuUtils.herokuError(getShell(), e);
+							monitor.beginTask(Messages.getString("HerokuAppCreate_CreatingArbitraryApp"), 2); //$NON-NLS-1$
+						}
+						monitor.subTask(Messages.getString("HerokuAppCreate_CloningTemplate")); //$NON-NLS-1$
+						monitor.worked(1);
+						// then materialize
+						try {
+							// first clone
+							App app = service.createAppFromTemplate(monitor, appName, template.getTemplateName());
+						
+							if (app != null) {
+								monitor.subTask(Messages.getString("HerokuAppCreate_FetchingApp")); //$NON-NLS-1$
+								service.materializeGitApp(monitor, app, IMPORT_TYPES.AUTODETECT, null, destinationDir, timeout,
+										Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred); //$NON-NLS-1$
+								monitor.worked(1);
+								monitor.done();
+							}
+						}
+						catch (HerokuServiceException e) {
+							throw new InvocationTargetException(e);
 						}
 					}
-					else {
-						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
-						HerokuUtils.internalError(getShell(), e);
+				});
+			}
+			catch (InvocationTargetException e) {
+				if (e.getCause() instanceof HerokuServiceException) {
+					HerokuServiceException e1 = (HerokuServiceException) e.getCause();
+
+					if (e1.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
+						Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "Application '" + appName + "' already exists, denying creation", e); //$NON-NLS-1$ //$NON-NLS-2$
+						createPage.displayInvalidNameWarning();
 					}
-					return false;
+					else if (e1.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION) {
+						HerokuUtils
+								.userError(
+										getShell(),
+										Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir + System.getProperty("file.separator") + appName)); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
+					}
+					else if ( e1.getErrorCode() != HerokuServiceException.OPERATION_CANCELLED ) {
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
+						HerokuUtils.herokuError(getShell(), e);
+					}
 				}
-				catch (InterruptedException e) {
+				else {
 					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
 					HerokuUtils.internalError(getShell(), e);
-					return false;
 				}
+				return false;
+			}
+			catch (InterruptedException e) {
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error, aborting ...", e); //$NON-NLS-1$
+				HerokuUtils.internalError(getShell(), e);
+				return false;
 			}
 		}
 		catch (HerokuServiceException e1) {

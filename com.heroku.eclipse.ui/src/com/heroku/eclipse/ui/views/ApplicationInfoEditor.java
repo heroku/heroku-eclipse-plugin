@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
@@ -100,7 +101,7 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 			public void handleEvent(Event event) {
 				if( getApp().getId().equals(event.getProperty(HerokuServices.KEY_APPLICATION_ID))) {
 					try {
-						App app = Activator.getDefault().getService().getApp((String)event.getProperty(HerokuServices.KEY_APPLICATION_NAME));
+						App app = Activator.getDefault().getService().getApp(new NullProgressMonitor(), (String)event.getProperty(HerokuServices.KEY_APPLICATION_NAME));
 						updateApp(app);
 					} catch (HerokuServiceException e) {
 						// TODO Auto-generated catch block
@@ -118,7 +119,7 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 			public void handleEvent(Event event) {
 				if( getApp().getId().equals(event.getProperty(HerokuServices.KEY_APPLICATION_ID))) {
 					try {
-						App app = Activator.getDefault().getService().getApp(getApp().getName());
+						App app = Activator.getDefault().getService().getApp(new NullProgressMonitor(), getApp().getName());
 						updateApp(app);
 					} catch (HerokuServiceException e) {
 						// TODO Auto-generated catch block

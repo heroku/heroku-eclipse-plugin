@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -237,7 +238,7 @@ public class EnvironmentVariablesPart {
 						HashMap<String, String> map = new HashMap<String, String>();
 						map.put(key, value);
 
-						Activator.getDefault().getService().addEnvVariables(domainObject, map);
+						Activator.getDefault().getService().addEnvVariables(monitor, domainObject, map);
 						monitor.worked(1);
 						monitor.done();
 					}
@@ -294,7 +295,7 @@ public class EnvironmentVariablesPart {
 					try {
 						for (KeyValue env : envList) {
 							monitor.subTask(Messages.getFormattedString("HerokuAppInformationEnvironment_Progress_RemovingEnv", env.getKey())); //$NON-NLS-1$
-							Activator.getDefault().getService().removeEnvVariable(domainObject, env.getKey());
+							Activator.getDefault().getService().removeEnvVariable(monitor, domainObject, env.getKey());
 							monitor.worked(1);
 						}
 						monitor.done();
@@ -337,7 +338,7 @@ public class EnvironmentVariablesPart {
 
 	private void refreshEnvVariables() {
 		try {
-			envList = Activator.getDefault().getService().listEnvVariables(domainObject);
+			envList = Activator.getDefault().getService().listEnvVariables(new NullProgressMonitor(), domainObject);
 			HerokuUtils.runOnDisplay(true, viewer, envList, ViewerOperations.input(viewer));
 		}
 		catch (HerokuServiceException e) {

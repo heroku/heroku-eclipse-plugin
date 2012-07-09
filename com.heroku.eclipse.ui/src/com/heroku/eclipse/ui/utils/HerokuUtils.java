@@ -2,6 +2,7 @@ package com.heroku.eclipse.ui.utils;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -246,12 +247,12 @@ public class HerokuUtils {
 	 * @param parent
 	 * @return true, if the prefs are OK, false if not
 	 */
-	public static boolean verifyPreferences(HerokuServices service, Shell parent) {
+	public static boolean verifyPreferences(IProgressMonitor pm, HerokuServices service, Shell parent) {
 		boolean isOk = true;
 		
 		// ensure that we have valid prefs
 		try {
-			while ( ! service.isReady() ) {
+			while ( ! service.isReady(pm) ) {
 				if ( MessageDialog.openQuestion(parent, Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Question")) ) { //$NON-NLS-1$ //$NON-NLS-2$
 					PreferenceDialog p = PreferencesUtil.createPreferenceDialogOn(null, HerokuPreferencePage.ID, null, null);
 					p.open();

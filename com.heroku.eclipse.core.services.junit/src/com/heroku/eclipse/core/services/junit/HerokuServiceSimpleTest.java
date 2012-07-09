@@ -1,5 +1,7 @@
 package com.heroku.eclipse.core.services.junit;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
@@ -11,7 +13,7 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		HerokuServices h = getService();
 
 		try {
-			h.obtainAPIKey("nouser@example.com", "nopassword"); //$NON-NLS-1$ //$NON-NLS-2$
+			h.obtainAPIKey(getProgressMonitor(), "nouser@example.com", "nopassword"); //$NON-NLS-1$ //$NON-NLS-2$
 			fail("The login with nouser@example.com/nopassword has to fail"); //$NON-NLS-1$
 		}
 		catch (HerokuServiceException e) {
@@ -20,7 +22,7 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		}
 
 		try {
-			h.obtainAPIKey(Credentials.VALID_JUNIT_USER1, "nopassword"); //$NON-NLS-1$ //$NON-NLS-2$
+			h.obtainAPIKey(getProgressMonitor(), Credentials.VALID_JUNIT_USER1, "nopassword"); //$NON-NLS-1$ //$NON-NLS-2$
 			fail("The login has to fail because the password for eclipse-junit@bestsolution.at is different to 'nopassword'"); //$NON-NLS-1$
 		}
 		catch (HerokuServiceException e) {
@@ -29,7 +31,7 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		}
 
 		try {
-			String apiKey = h.obtainAPIKey(Credentials.VALID_JUNIT_USER1, Credentials.VALID_JUNIT_PWD1); //$NON-NLS-1$ //$NON-NLS-2$
+			String apiKey = h.obtainAPIKey(getProgressMonitor(), Credentials.VALID_JUNIT_USER1, Credentials.VALID_JUNIT_PWD1); //$NON-NLS-1$ //$NON-NLS-2$
 			assertNotNull(apiKey);
 			assertEquals(Credentials.VALID_JUNIT_APIKEY1, apiKey);
 		}
@@ -43,7 +45,7 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		HerokuServices h = getService();
 		try {
 			assertNull(h.getAPIKey());
-			h.setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
+			h.setAPIKey(getProgressMonitor(), Credentials.VALID_JUNIT_APIKEY1);
 			assertEquals(Credentials.VALID_JUNIT_APIKEY1, h.getAPIKey());
 		}
 		catch (HerokuServiceException e) {
@@ -55,7 +57,7 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 	public void testValidateAPIKey() {
 		HerokuServices h = getService();
 		try {
-			h.validateAPIKey(Credentials.VALID_JUNIT_APIKEY1);
+			h.validateAPIKey(getProgressMonitor(), Credentials.VALID_JUNIT_APIKEY1);
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -63,7 +65,7 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		}
 
 		try {
-			h.validateAPIKey("noapikeyatall");
+			h.validateAPIKey(getProgressMonitor(), "noapikeyatall");
 			fail("The key 'noapikeyatall' is a valid API key");
 		}
 		catch (HerokuServiceException e) {
@@ -72,9 +74,10 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 	}
 
 	public void testSetAPIKey() {
+		IProgressMonitor pm = getProgressMonitor();
 		HerokuServices h = getService();
 		try {
-			h.setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
+			h.setAPIKey(pm, Credentials.VALID_JUNIT_APIKEY1);
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -82,7 +85,7 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		}
 
 		try {
-			h.setAPIKey("noapikeyatall");
+			h.setAPIKey(pm, "noapikeyatall");
 			fail("The key 'noapikeyatall' is a valid API key");
 		}
 		catch (HerokuServiceException e) {
@@ -90,8 +93,8 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		}
 
 		try {
-			h.setAPIKey("");
-			h.setAPIKey(null);
+			h.setAPIKey(pm, "");
+			h.setAPIKey(pm, null);
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -144,18 +147,19 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 	}
 	
 	public void testSetSSHKey() {
+		IProgressMonitor pm = getProgressMonitor();
 		HerokuServices h = getService();
 		assertNull(h.getSSHKey());
 		try {
-			h.setSSHKey(Credentials.VALID_PUBLIC_SSH_KEY1);
+			h.setSSHKey(pm, Credentials.VALID_PUBLIC_SSH_KEY1);
 		}
 		catch (HerokuServiceException e) {
 			assertEquals("SSH key must not be settable w/o API key", HerokuServiceException.NO_API_KEY, e.getErrorCode());
 		}
 
 		try {
-			h.setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
-			h.setSSHKey(Credentials.VALID_PUBLIC_SSH_KEY1);
+			h.setAPIKey(pm, Credentials.VALID_JUNIT_APIKEY1);
+			h.setSSHKey(pm, Credentials.VALID_PUBLIC_SSH_KEY1);
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -165,8 +169,8 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		assertEquals(Credentials.VALID_PUBLIC_SSH_KEY1, h.getSSHKey());
 
 		try {
-			h.setSSHKey("");
-			h.setSSHKey(null);
+			h.setSSHKey(pm, "");
+			h.setSSHKey(pm, null);
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -175,10 +179,10 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 	}
 
 	public void testGetOrCreateHerokuSession() {
+		IProgressMonitor pm = getProgressMonitor();
 		HerokuServices h = getService();
-
 		try {
-			h.getOrCreateHerokuSession();
+			h.getOrCreateHerokuSession(pm);
 			fail("There's no API key configured so the tests should fail");
 		}
 		catch (HerokuServiceException e) {
@@ -186,21 +190,21 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		}
 
 		try {
-			h.setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
-			HerokuSession session = h.getOrCreateHerokuSession();
+			h.setAPIKey(pm, Credentials.VALID_JUNIT_APIKEY1);
+			HerokuSession session = h.getOrCreateHerokuSession(pm);
 			assertNotNull(session);
-			assertSame(session, h.getOrCreateHerokuSession());
+			assertSame(session, h.getOrCreateHerokuSession(pm));
 			assertTrue("The session should be valid", session.isValid());
-			h.setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
+			h.setAPIKey(pm, Credentials.VALID_JUNIT_APIKEY1);
 			assertTrue("The session should be still valid because the key hasn't changed", session.isValid());
 
 			// applying a different, albeit valid API key
-			h.setAPIKey(Credentials.VALID_JUNIT_APIKEY2);
+			h.setAPIKey(pm, Credentials.VALID_JUNIT_APIKEY2);
 			assertFalse("The session should be invalidated because the API-key changed", session.isValid());
-			assertNotSame(session, h.getOrCreateHerokuSession());
+			assertNotSame(session, h.getOrCreateHerokuSession(pm));
 
 			// resetting
-			h.setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
+			h.setAPIKey(pm, Credentials.VALID_JUNIT_APIKEY1);
 			assertFalse("The session should be invalidated because the API-key changed", session.isValid());
 		}
 		catch (HerokuServiceException e) {
@@ -210,18 +214,19 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 	}
 	
 	public void testRemoveSSHKey() {
+		IProgressMonitor pm = getProgressMonitor();
 		HerokuServices h = getService();
 		assertNull(h.getSSHKey());
 		try {
-			h.removeSSHKey(Credentials.VALID_PUBLIC_SSH_KEY1);
+			h.removeSSHKey(pm, Credentials.VALID_PUBLIC_SSH_KEY1);
 		}
 		catch (HerokuServiceException e) {
 			assertEquals("SSH key must not be removeable w/o API key", HerokuServiceException.NO_API_KEY, e.getErrorCode());
 		}
 
 		try {
-			h.setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
-			h.setSSHKey(Credentials.VALID_PUBLIC_SSH_KEY1);
+			h.setAPIKey(pm, Credentials.VALID_JUNIT_APIKEY1);
+			h.setSSHKey(pm, Credentials.VALID_PUBLIC_SSH_KEY1);
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -229,7 +234,7 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		}
 
 		try {
-			h.removeSSHKey(Credentials.VALID_PUBLIC_SSH_KEY2);
+			h.removeSSHKey(pm, Credentials.VALID_PUBLIC_SSH_KEY2);
 			fail("expecting removal of unregistered SSH key to fail");
 		}
 		catch (HerokuServiceException e) {
@@ -237,7 +242,7 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 		}
 		
 		try {
-			h.removeSSHKey(Credentials.VALID_PUBLIC_SSH_KEY1);
+			h.removeSSHKey(pm, Credentials.VALID_PUBLIC_SSH_KEY1);
 		}
 		catch (HerokuServiceException e) {
 			e.printStackTrace();
@@ -247,23 +252,24 @@ public class HerokuServiceSimpleTest extends HerokuServicesTest {
 
 
 	public void testIsReady() {
+		IProgressMonitor pm = getProgressMonitor();
 		HerokuServices h = getService();
 		try {
-			h.setAPIKey(null);
-			h.setSSHKey(null);
+			h.setAPIKey(pm, null);
+			h.setSSHKey(pm, null);
 
-			assertEquals("Service must not signal 'ready' when neither SSH key nor API key is present", false, h.isReady());
+			assertEquals("Service must not signal 'ready' when neither SSH key nor API key is present", false, h.isReady(pm));
 
-			h.setAPIKey(Credentials.VALID_JUNIT_APIKEY1);
-			assertEquals("Service must not signal 'ready' when no SSH key is present", false, h.isReady());
+			h.setAPIKey(pm, Credentials.VALID_JUNIT_APIKEY1);
+			assertEquals("Service must not signal 'ready' when no SSH key is present", false, h.isReady(pm));
 
-			h.setSSHKey(Credentials.VALID_PUBLIC_SSH_KEY1);
-			assertEquals("Service must not signal 'ready' when both API and SSH keys are present", true, h.isReady());
+			h.setSSHKey(pm, Credentials.VALID_PUBLIC_SSH_KEY1);
+			assertEquals("Service must not signal 'ready' when both API and SSH keys are present", true, h.isReady(pm));
 
-			h.setAPIKey(null);
-			assertEquals("Service must not signal 'ready' when no API key is present", false, h.isReady());
+			h.setAPIKey(pm, null);
+			assertEquals("Service must not signal 'ready' when no API key is present", false, h.isReady(pm));
 
-			h.setSSHKey(null);
+			h.setSSHKey(pm, null);
 
 		}
 		catch (HerokuServiceException e) {

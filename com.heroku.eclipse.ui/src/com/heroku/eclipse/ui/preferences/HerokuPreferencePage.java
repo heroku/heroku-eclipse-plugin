@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -81,7 +82,6 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		service = Activator.getDefault().getService();
 	}
 
-
 	@Override
 	public void init(IWorkbench workbench) {
 	}
@@ -99,9 +99,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		layout.verticalSpacing = convertVerticalDLUsToPixels(IDialogConstants.VERTICAL_SPACING);
 		layout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
 		group.setLayout(layout);
-
-		getShell().setSize(convertWidthInCharsToPixels(120), convertHeightInCharsToPixels(30));
-
+		
 		// Email
 		{
 			Label l = new Label(group, SWT.NONE);
@@ -170,7 +168,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 
 							try {
 								((Text) widgetRegistry.get(PreferenceConstants.P_API_KEY)).setText(""); //$NON-NLS-1$
-								service.setAPIKey(null);
+								service.setAPIKey(new NullProgressMonitor(), null);
 							}
 							catch (HerokuServiceException e1) {
 								isValid = false;
@@ -450,7 +448,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 					monitor.beginTask(Messages.getString("HerokuPreferencePage_Progress_Login"), 2); //$NON-NLS-1$
 					monitor.worked(1);
 					try {
-						apiKey.set(service.obtainAPIKey(email, password));
+						apiKey.set(service.obtainAPIKey(monitor, email, password));
 						monitor.worked(1);
 						monitor.done();
 					}
@@ -493,7 +491,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 					monitor.beginTask(Messages.getString("HerokuPreferencePage_Progress_ValidateApiKey"), 2); //$NON-NLS-1$
 					monitor.worked(1);
 					try {
-						service.setAPIKey(apiKey);
+						service.setAPIKey(monitor, apiKey);
 						monitor.worked(1);
 						monitor.done();
 					}
@@ -541,10 +539,10 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 					monitor.worked(1);
 					try {
 
-						service.setAPIKey(apiKey);
+						service.setAPIKey(monitor, apiKey);
 						monitor.worked(1);
 
-						service.setSSHKey(sshKey);
+						service.setSSHKey(monitor, sshKey);
 						monitor.worked(1);
 
 						monitor.done();
@@ -600,7 +598,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 					monitor.beginTask(Messages.getString("HerokuPreferencePage_Progress_StoringSSHKey"), 2); //$NON-NLS-1$
 					monitor.worked(1);
 					try {
-						service.setSSHKey(sshKey);
+						service.setSSHKey(monitor, sshKey);
 						monitor.worked(1);
 						monitor.done();
 					}
@@ -651,7 +649,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 					monitor.beginTask(Messages.getString("HerokuPreferencePage_Progress_RemovingSSHKey"), 2); //$NON-NLS-1$
 					monitor.worked(1);
 					try {
-						service.removeSSHKey(sshKey);
+						service.removeSSHKey(monitor, sshKey);
 						monitor.worked(1);
 						monitor.done();
 					}
@@ -884,8 +882,8 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		super.performDefaults();
 
 		try {
-			service.setAPIKey(null);
-			service.setSSHKey(null);
+			service.setAPIKey(new NullProgressMonitor(), null);
+			service.setSSHKey(new NullProgressMonitor(), null);
 
 			initialize();
 		}

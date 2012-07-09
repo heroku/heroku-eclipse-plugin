@@ -344,7 +344,12 @@ public class RestHerokuSession implements HerokuSession {
 	public App createAppFromTemplate(App app, String templateName) throws HerokuServiceException {
 		checkValid();
 		try {
-			return api.cloneApp(templateName, app);
+			if ( app == null ) {
+				return api.cloneApp(templateName);
+			}
+			else {
+				return api.cloneApp(templateName, app);
+			}
 		}
 		catch (RequestFailedException e) {
 			throw checkException(e);

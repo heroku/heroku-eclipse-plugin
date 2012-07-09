@@ -106,12 +106,14 @@ public interface HerokuSession {
 
 	/**
 	 * Creates a new app based on the given template name. Only works on the
-	 * cedar stack.
+	 * cedar stack. If to App object is passed it, a new, arbitrary App is
+	 * created.
 	 * 
 	 * @param app
 	 *            an {@link App} object with name filled. Typically created
-	 *            using new App().named(...)
-	 * @param templateName 
+	 *            using new App().named(...). May be null. If null, an
+	 *            arbitrary, new app is created.
+	 * @param templateName
 	 * @return the newly created app
 	 * @throws HerokuServiceException
 	 *             if {@link #isValid()} is false
@@ -242,13 +244,14 @@ public interface HerokuSession {
 	 * @throws HerokuServiceException
 	 */
 	public void removeEnvVariable(String appName, String envKey) throws HerokuServiceException;
-	
+
 	/**
 	 * Scales the given process type to the given quantity
+	 * 
 	 * @param appName
 	 * @param processType
 	 * @param quantity
-	 * @throws HerokuServiceException 
+	 * @throws HerokuServiceException
 	 */
 	public void scaleProcess(String appName, String processType, int quantity) throws HerokuServiceException;
 }

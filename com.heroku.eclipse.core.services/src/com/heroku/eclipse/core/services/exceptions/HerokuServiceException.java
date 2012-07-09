@@ -86,6 +86,11 @@ public class HerokuServiceException extends Exception {
 	 */
 	public static final int INSUFFICIENT_DATA = 14;
 
+	/**
+	 * indicates that the user has cancelled an operation
+	 */
+	public static final int OPERATION_CANCELLED = 15;
+
 	private final int errorCode;
 
 	public HerokuServiceException(Throwable t) {
