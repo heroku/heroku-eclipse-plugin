@@ -24,6 +24,7 @@ import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
 
 import com.heroku.api.App;
+import com.heroku.eclipse.core.constants.HerokuEditorConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.ui.Activator;
@@ -51,6 +52,7 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 
 		{
 			TabItem item = new TabItem(folder, SWT.NONE);
+			item.setData(HerokuServices.ROOT_WIDGET_ID, HerokuEditorConstants.P_INFO);
 			item.setText(Messages.getString("HerokuAppManagerViewPart_AppInfo")); //$NON-NLS-1$
 			infopart = new ApplicationInfoPart(this);
 			item.setControl(infopart.createUI(folder));
@@ -59,6 +61,7 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 
 		{
 			TabItem item = new TabItem(folder, SWT.NONE);
+			item.setData(HerokuServices.ROOT_WIDGET_ID, HerokuEditorConstants.P_COLLABORATION);
 			item.setText(Messages.getString("HerokuAppManagerViewPart_Collaborators")); //$NON-NLS-1$
 			collabpart = new CollaboratorsPart();
 			item.setControl(collabpart.createUI(folder));
@@ -67,6 +70,7 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 
 		{
 			TabItem item = new TabItem(folder, SWT.NONE);
+			item.setData(HerokuServices.ROOT_WIDGET_ID, HerokuEditorConstants.P_ENVIRONMENT);
 			item.setText(Messages.getString("HerokuAppManagerViewPart_EnvironmentVariables")); //$NON-NLS-1$
 			envpart = new EnvironmentVariablesPart();
 			item.setControl(envpart.createUI(folder));

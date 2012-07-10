@@ -41,6 +41,11 @@ public class RestHerokuSession implements HerokuSession {
 	private static Pattern PATTERN_NOT_FOUND = Pattern.compile(".*(No such type as).*"); //$NON-NLS-1$
 	
 	/**
+	 * Pattern helpful for determining the real meaning of a HTTP 422 response code, mapped to {@link HerokuServiceException#NOT_ALLOWED}
+	 */
+	private static Pattern PATTERN_NOT_ALLOWED = Pattern.compile(".*(The owner of.*must be verified before you can scale processes|only the owner).*"); //$NON-NLS-1$
+	
+	/**
 	 * @param apiKey
 	 */
 	public RestHerokuSession(String apiKey) {
@@ -82,6 +87,9 @@ public class RestHerokuSession implements HerokuSession {
 				}
 				else if (PATTERN_NOT_FOUND.matcher(e.getResponseBody()).matches()) {
 					return new HerokuServiceException(HerokuServiceException.NOT_FOUND, extractErrorField(e.getResponseBody()), e);
+				}
+				else if (PATTERN_NOT_ALLOWED.matcher(e.getResponseBody()).matches()) {
+					return new HerokuServiceException(HerokuServiceException.NOT_ALLOWED, extractErrorField(e.getResponseBody()), e);
 				}
 				else {
 					return new HerokuServiceException(HerokuServiceException.REQUEST_FAILED, extractErrorField(e.getResponseBody()), e);

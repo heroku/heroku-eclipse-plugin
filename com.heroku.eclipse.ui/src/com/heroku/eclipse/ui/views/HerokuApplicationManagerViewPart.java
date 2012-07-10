@@ -29,7 +29,6 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -41,7 +40,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -70,6 +68,7 @@ import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
+import com.heroku.eclipse.core.constants.HerokuViewConstants;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
@@ -130,6 +129,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		viewer.setContentProvider(new ContentProviderImpl());
 		viewer.getTree().setHeaderVisible(true);
 		viewer.getTree().setLinesVisible(true);
+		viewer.getTree().setData(HerokuServices.ROOT_WIDGET_ID, HerokuViewConstants.V_APPS_LIST);
 		viewer.setComparer(new ElementComparerImpl());
 		viewer.setComparator(new AppComparator());
 
@@ -258,16 +258,16 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		return selectionAdapter;
 	}
 
-	private void scheduleRefresh() {
-		refreshTask = new TimerTask() {
-
-			@Override
-			public void run() {
-				refreshApplications(new NullProgressMonitor(), true);
-			}
-		};
-		refreshTimer.schedule(refreshTask, Integer.parseInt(HerokuProperties.getString("heroku.eclipse.appsList.refreshInterval"))); //$NON-NLS-1$
-	}
+	// private void scheduleRefresh() {
+	// refreshTask = new TimerTask() {
+	//
+	// @Override
+	// public void run() {
+	// refreshApplications(new NullProgressMonitor(), true);
+	// }
+	// };
+	//		refreshTimer.schedule(refreshTask, Integer.parseInt(HerokuProperties.getString("heroku.eclipse.appsList.refreshInterval"))); //$NON-NLS-1$
+	// }
 
 	App getSelectedApp() {
 		IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
@@ -468,6 +468,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					private Text processField;
 					private Spinner quantityField;
 					private String appName;
+					private String appOwner;
 
 					@Override
 					protected Control createDialogArea(Composite parent) {
@@ -478,6 +479,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						if (app != null) {
 							List<HerokuProc> procs = appProcesses.get(app.getId());
 							appName = app.getName();
+							appOwner = app.getOwnerEmail();
 
 							// if the app has only one process type, prepopulate
 							for (HerokuProc herokuProc : procs) {
@@ -500,6 +502,16 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							dynoName = proc.getDynoName();
 							quantity = findDynoProcs(proc).size();
 							appName = proc.getHerokuProc().getAppName();
+							appOwner = null;
+							
+							try {
+								App procApp = herokuService.getApp(new NullProgressMonitor(), appName);
+								appOwner = procApp.getOwnerEmail();
+							}
+							catch (HerokuServiceException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
 						}
 
 						Composite container = (Composite) super.createDialogArea(parent);
@@ -561,8 +573,13 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							catch (InvocationTargetException e) {
 								if ((e.getCause() instanceof HerokuServiceException)) {
 									HerokuServiceException e1 = (HerokuServiceException) e.getCause();
-
-									if (e1.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
+									if (e1.getErrorCode() == HerokuServiceException.NOT_ALLOWED) {
+										HerokuUtils
+												.userError(
+														getShell(),
+														Messages.getString("HerokuAppManagerViewPart_Scale_Error_ScalingUnauthorized_Title"), Messages.getFormattedString("HerokuAppManagerViewPart_Scale_Error_ScalingUnauthorized", appOwner, appName)); //$NON-NLS-1$ //$NON-NLS-2$
+									}
+									else if (e1.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
 										HerokuUtils
 												.userError(
 														getShell(),
@@ -655,26 +672,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				open.setEnabled(enabled);
 				restart.setEnabled(enabled);
 				viewLogs.setEnabled(enabled);
+				scale.setEnabled(enabled);
+				destroy.setEnabled(enabled);
 
-				// owner restricted actions
-				scale.setEnabled(false);
-				destroy.setEnabled(false);
 				if (enabled) {
-					if (s.getFirstElement() instanceof App) {
-						App app = (App) s.getFirstElement();
-						try {
-							if (herokuService.isOwnApp(pm, app)) {
-								scale.setEnabled(true);
-								destroy.setEnabled(true);
-							}
-						}
-						catch (HerokuServiceException e) {
-							Activator.getDefault().getLogger()
-									.log(LogService.LOG_ERROR, "unknown error when trying to determine if app " + app.getName() + " is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
-							HerokuUtils.herokuError(getShell(), e);
-						}
-					}
-					else if (s.getFirstElement() instanceof HerokuProc) {
+					if (s.getFirstElement() instanceof HerokuProc) {
 						HerokuProc proc = (HerokuProc) s.getFirstElement();
 						importApp.setEnabled(false);
 						open.setEnabled(false);
