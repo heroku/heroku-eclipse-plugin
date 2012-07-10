@@ -40,7 +40,9 @@ public class NewFromTemplate extends TestCase {
 	@Test
 	public void testCreateNewProjectFromTemplate() throws Exception {
 		// close the welcome tab
-		bot.viewByTitle("Welcome").close();
+		if (Boolean.TRUE.toString().equals(System.getProperty("heroku.devel"))) {
+			bot.viewByTitle("Welcome").close();
+		}
 
 		bot.menu("File").menu("New").menu("Other...").click();
 		bot.tree().getTreeItem(Messages.getString("HerokuUI.heroku")).expand().getNode(Messages.getString("HerokuUI.CreateWizardName")).select();
