@@ -3,7 +3,8 @@
       id="com.heroku.eclipse.feature"
       label="Heroku Eclipse Plugin"
       version="0.1.0.qualifier"
-      provider-name="HEROKU">
+      provider-name="HEROKU"
+      plugin="com.heroku.eclipse.ui">
 
    <description url="http://www.example.com/description">
       [Enter Feature Description here.]
