@@ -26,10 +26,11 @@ import com.heroku.eclipse.ui.utils.RunnableWithParameter;
 public class ApplicationInfoPart {
 	private App domainObject;
 	private Text appName;
-	private Link appUrl;
-	private Label appGitUrl;
-	private Label appDomainName;
+	private Text appUrl;
+	private Text appGitUrl;
+	private Text appDomainName;
 	private Button renameApp;
+	private Composite parent;
 
 	private WebsiteOpener websiteOpener;
 
@@ -42,6 +43,7 @@ public class ApplicationInfoPart {
 	 * @return
 	 */
 	public Composite createUI(Composite parent) {
+		this.parent = parent;
 		Composite container = new Composite(parent, SWT.NONE);
 		container.setLayout(new GridLayout(3, false));
 
@@ -81,30 +83,48 @@ public class ApplicationInfoPart {
 		}
 
 		{
-			Label l = new Label(container, SWT.NONE);
-			l.setText(Messages.getString("HerokuAppInformationPart_URL")); //$NON-NLS-1$
-			appUrl = new Link(container, SWT.NONE);
-			appUrl.setLayoutData(new GridData(GridData.FILL, SWT.CENTER, true, false, 2, 1));
+			Link l = new Link(container, SWT.NONE);
+			l.setText("<a>"+ Messages.getString("HerokuAppInformationPart_URL")+"</a>"); //$NON-NLS-1$
+			l.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					websiteOpener.openInternal(domainObject);
+				}
+			});
+			
+//			Composite layoutComp = new Composite(container, SWT.NONE);
+//			layoutComp.setLayoutData(new GridData(GridData.FILL, SWT.CENTER, true, false, 2, 1));
+//			layoutComp.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).create());
+			
+			appUrl = new Text(container, SWT.READ_ONLY);
+			appUrl.setLayoutData(new GridData(GridData.BEGINNING, SWT.CENTER, true, false, 2, 1));
 			appUrl.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					websiteOpener.openInternal(domainObject);
 				}
 			});
+			appUrl.setBackground(parent.getBackground());
+			
+//			Button b = new Button(layoutComp, SWT.PUSH);
+//			b.setText("Hello World");
 		}
 
 		{
 			Label l = new Label(container, SWT.NONE);
 			l.setText(Messages.getString("HerokuAppInformationPart_GitRepositoryURL")); //$NON-NLS-1$
-			appGitUrl = new Label(container, SWT.NONE);
-			appGitUrl.setLayoutData(new GridData(GridData.FILL, SWT.CENTER, true, false, 2, 1));
+			appGitUrl = new Text(container, SWT.READ_ONLY);
+			appGitUrl.setLayoutData(new GridData(GridData.BEGINNING, SWT.CENTER, true, false, 2, 1));
+			appGitUrl.setEditable(false);
+			appGitUrl.setBackground(parent.getBackground());
 		}
 
 		{
-			Label l = new Label(container, SWT.NONE);
+			Label l = new Label(container, SWT.READ_ONLY);
 			l.setText(Messages.getString("HerokuAppInformationPart_DomainName")); //$NON-NLS-1$
-			appDomainName = new Label(container, SWT.NONE);
-			appDomainName.setLayoutData(new GridData(GridData.FILL, SWT.CENTER, true, false, 2, 1));
+			appDomainName = new Text(container, SWT.NONE);
+			appDomainName.setLayoutData(new GridData(GridData.BEGINNING, SWT.CENTER, true, false, 2, 1));
+			appDomainName.setBackground(parent.getBackground());
 		}
 
 		return container;
@@ -117,9 +137,10 @@ public class ApplicationInfoPart {
 			@Override
 			public void run(App argument) {
 				appName.setText(HerokuUtils.ensureNotNull(argument.getName()));
-				appUrl.setText("<a>" + HerokuUtils.ensureNotNull(argument.getWebUrl()) + "</a>"); //$NON-NLS-1$ //$NON-NLS-2$
+				appUrl.setText(HerokuUtils.ensureNotNull(argument.getWebUrl())); //$NON-NLS-1$ //$NON-NLS-2$
 				appGitUrl.setText(HerokuUtils.ensureNotNull(argument.getGitUrl()));
 				appDomainName.setText(argument.getDomain() == null ? "" : HerokuUtils.ensureNotNull(argument.getDomain().getDomain())); //$NON-NLS-1$
+				parent.layout(true, true);
 			}
 		});
 
