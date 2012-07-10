@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.heroku.eclipse.core.constants.HerokuEditorConstants;
 import com.heroku.eclipse.core.constants.HerokuViewConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.ui.messages.Messages;
@@ -105,6 +106,9 @@ public class HerokuView extends TestCase {
 
 		SWTBotEditor editor = bot.editorByTitle(firstProjectName);
 		assertEquals(firstProjectName, editor.bot().text().getText());
+		
+		editor.bot().tabItemWithId(HerokuEditorConstants.P_COLLABORATION);
+		editor.bot().tabItemWithId(HerokuEditorConstants.P_ENVIRONMENT);
 		
 		assertTrue(true);
 		
