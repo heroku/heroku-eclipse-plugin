@@ -1,10 +1,13 @@
 package com.heroku.eclipse.ui.views.dialog;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
@@ -20,6 +23,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PlatformUI;
 import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
@@ -279,27 +283,42 @@ public class CollaboratorsPart {
 	}
 
 	private void refreshCollaboratorList() {
-		try {
-			collaboratorsList = Activator.getDefault().getService().getCollaborators(new NullProgressMonitor(), domainObject);
+			try {
+				PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
+					
+					@Override
+					public void run(IProgressMonitor monitor) throws InvocationTargetException,
+							InterruptedException {
+						try {
+							collaboratorsList = Activator.getDefault().getService().getCollaborators(monitor, domainObject);
 
-			if (domainObject.getOwnerEmail() != null) {
-				for (Collaborator c : collaboratorsList) {
-					if (domainObject.getOwnerEmail().equals(c.getEmail())) {
-						currentOwner = c;
-						break;
+							if (domainObject.getOwnerEmail() != null) {
+								for (Collaborator c : collaboratorsList) {
+									if (domainObject.getOwnerEmail().equals(c.getEmail())) {
+										currentOwner = c;
+										break;
+									}
+								}
+							}
+							else {
+								currentOwner = null;
+							}
+
+							HerokuUtils.runOnDisplay(true, viewer, collaboratorsList, ViewerOperations.input(viewer));
+						}
+						catch (HerokuServiceException e) {
+							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
+							HerokuUtils.internalError(parent.getShell(), e);
+						}
 					}
-				}
+				});
+			} catch (InvocationTargetException e) { 
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			else {
-				currentOwner = null;
-			}
-
-			HerokuUtils.runOnDisplay(true, viewer, collaboratorsList, ViewerOperations.input(viewer));
-		}
-		catch (HerokuServiceException e) {
-			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
-			HerokuUtils.internalError(parent.getShell(), e);
-		}
 	}
 
 	public void dispose() {

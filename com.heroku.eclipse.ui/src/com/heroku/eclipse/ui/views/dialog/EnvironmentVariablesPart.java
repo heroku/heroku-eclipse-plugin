@@ -3,10 +3,8 @@ package com.heroku.eclipse.ui.views.dialog;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -229,7 +227,7 @@ public class EnvironmentVariablesPart {
 	private boolean doAddEnv(Shell shell, final String key, final String value) {
 		boolean rv = false;
 		try {
-			PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+			PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask(Messages.getString("HerokuAppInformationEnvironment_Progress_AddingEnv"), 2); //$NON-NLS-1$
@@ -287,7 +285,7 @@ public class EnvironmentVariablesPart {
 	private boolean doRemoveEnv(Shell shell, final List<KeyValue> envList) {
 		boolean rv = false;
 		try {
-			PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+			PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask(Messages.getString("HerokuAppInformationEnvironment_Progress_RemovingEnv_Title"), envList.size() + 1); //$NON-NLS-1$
@@ -338,12 +336,27 @@ public class EnvironmentVariablesPart {
 
 	private void refreshEnvVariables() {
 		try {
-			envList = Activator.getDefault().getService().listEnvVariables(new NullProgressMonitor(), domainObject);
-			HerokuUtils.runOnDisplay(true, viewer, envList, ViewerOperations.input(viewer));
-		}
-		catch (HerokuServiceException e) {
-			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
-			HerokuUtils.internalError(parent.getShell(), e);
+			PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
+				
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException,
+						InterruptedException {
+					try {
+						envList = Activator.getDefault().getService().listEnvVariables(monitor, domainObject);
+						HerokuUtils.runOnDisplay(true, viewer, envList, ViewerOperations.input(viewer));
+					}
+					catch (HerokuServiceException e) {
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
+						HerokuUtils.internalError(parent.getShell(), e);
+					}				
+				}
+			});
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 
