@@ -29,7 +29,6 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.IOpenListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -41,7 +40,6 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -70,6 +68,7 @@ import org.osgi.service.event.EventHandler;
 import org.osgi.service.log.LogService;
 
 import com.heroku.api.App;
+import com.heroku.eclipse.core.constants.HerokuViewConstants;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
@@ -130,6 +129,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		viewer.setContentProvider(new ContentProviderImpl());
 		viewer.getTree().setHeaderVisible(true);
 		viewer.getTree().setLinesVisible(true);
+		viewer.getTree().setData(HerokuServices.ROOT_WIDGET_ID, HerokuViewConstants.V_APPS_LIST);
 		viewer.setComparer(new ElementComparerImpl());
 		viewer.setComparator(new AppComparator());
 
@@ -258,16 +258,16 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		return selectionAdapter;
 	}
 
-	private void scheduleRefresh() {
-		refreshTask = new TimerTask() {
-
-			@Override
-			public void run() {
-				refreshApplications(new NullProgressMonitor(), true);
-			}
-		};
-		refreshTimer.schedule(refreshTask, Integer.parseInt(HerokuProperties.getString("heroku.eclipse.appsList.refreshInterval"))); //$NON-NLS-1$
-	}
+	// private void scheduleRefresh() {
+	// refreshTask = new TimerTask() {
+	//
+	// @Override
+	// public void run() {
+	// refreshApplications(new NullProgressMonitor(), true);
+	// }
+	// };
+	//		refreshTimer.schedule(refreshTask, Integer.parseInt(HerokuProperties.getString("heroku.eclipse.appsList.refreshInterval"))); //$NON-NLS-1$
+	// }
 
 	App getSelectedApp() {
 		IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
