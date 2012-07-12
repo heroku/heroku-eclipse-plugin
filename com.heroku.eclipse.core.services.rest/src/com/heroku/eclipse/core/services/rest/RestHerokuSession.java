@@ -43,7 +43,7 @@ public class RestHerokuSession implements HerokuSession {
 	/**
 	 * Pattern helpful for determining the real meaning of a HTTP 422 response code, mapped to {@link HerokuServiceException#NOT_ALLOWED}
 	 */
-	private static Pattern PATTERN_NOT_ALLOWED = Pattern.compile(".*(The owner of.*must be verified before you can scale processes|only the owner).*"); //$NON-NLS-1$
+	private static Pattern PATTERN_NOT_ALLOWED = Pattern.compile(".*(The owner of.*must be verified before you can scale processes|only the owner|Only the app owner).*"); //$NON-NLS-1$
 	
 	/**
 	 * @param apiKey
