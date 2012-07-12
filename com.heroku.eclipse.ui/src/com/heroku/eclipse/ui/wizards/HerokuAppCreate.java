@@ -65,7 +65,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 
 	@Override
 	public boolean performFinish() {
-		final String appName = createPage.getAppName();
+		final String appName = createPage.getAppName().toLowerCase();
 
 		try {
 			// ensure that the name is available

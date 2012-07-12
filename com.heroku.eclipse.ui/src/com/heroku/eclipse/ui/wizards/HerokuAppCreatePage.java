@@ -64,8 +64,6 @@ public class HerokuAppCreatePage extends WizardPage {
 
 	private AppTemplate appTemplate;
 
-	private ControlDecoration decAppName;
-
 	/**
 	 * 
 	 */
@@ -96,28 +94,19 @@ public class HerokuAppCreatePage extends WizardPage {
 
 			tAppName = new Text(name, SWT.BORDER);
 			tAppName.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
-			tAppName.setTextLimit(100);
+			tAppName.setTextLimit(30);
 			tAppName.setData(HerokuServices.ROOT_WIDGET_ID, AppCreateConstants.C_APP_NAME);
 			tAppName.addModifyListener(new ModifyListener() {
 
 				@Override
 				public void modifyText(ModifyEvent e) {
 					setErrorMessage(null);
-					decAppName.hide();
-					if (!HerokuUtils.isNotEmpty(tAppName.getText())) {
-						setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameEmpty")); //$NON-NLS-1$
-					}
-					else if ( ! service.isAppNameBasicallyValid(tAppName.getText())) {
-						decAppName.show();
+					if ( HerokuUtils.isNotEmpty(tAppName.getText()) && ! service.isAppNameBasicallyValid(tAppName.getText().toLowerCase())) {
+						setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists_Hint")); //$NON-NLS-1$
 					}
 					setPageComplete(isPageComplete());
 				}
 			});
-			
-			decAppName = new ControlDecoration(tAppName, SWT.BOTTOM | SWT.LEFT);
-			decAppName.setImage(FieldDecorationRegistry.getDefault().getFieldDecoration(FieldDecorationRegistry.DEC_ERROR).getImage());
-			decAppName.setDescriptionText(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists_Hint")); //$NON-NLS-1$
-			decAppName.hide();
 		}
 		
 		Composite left = new Composite(group, SWT.FILL);
@@ -307,7 +296,11 @@ public class HerokuAppCreatePage extends WizardPage {
 	}
 	
 	@Override
-	public boolean isPageComplete() {		
+	public boolean isPageComplete() {
+		if ( HerokuUtils.isNotEmpty(tAppName.getText()) && ! service.isAppNameBasicallyValid(tAppName.getText().toLowerCase())) {
+			return false;
+		}
+		
 		return getAppTemplate() != null ? true : false;
 	}
 
@@ -333,7 +326,6 @@ public class HerokuAppCreatePage extends WizardPage {
 		super.setVisible(visible);
 		if (visible) {
 			tAppName.setFocus();
-			decAppName.hide();
 		}
 	}
 	
@@ -361,6 +353,6 @@ public class HerokuAppCreatePage extends WizardPage {
 	public void displayInvalidNameWarning() {
 		setVisible(true);
 		setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
-		decAppName.show();
+		tAppName.setFocus();
 	}
 }
