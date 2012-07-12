@@ -126,6 +126,7 @@ public class HerokuUtils {
 
 	/**
 	 * Finds or creates the named console
+	 * 
 	 * @param consoleName
 	 * @return the MessageConsole
 	 */
@@ -238,22 +239,25 @@ public class HerokuUtils {
 			}
 		}
 	}
-	
+
 	/**
-	 * Verifies that the preferences are valid and if not, asks the user if he/she
-	 * wants to setup the preferences, otherwise return null
+	 * Verifies that the preferences are valid and if not, asks the user if
+	 * he/she wants to setup the preferences, otherwise return null
 	 * 
-	 * @param service 
+	 * @param service
 	 * @param parent
 	 * @return true, if the prefs are OK, false if not
 	 */
 	public static boolean verifyPreferences(IProgressMonitor pm, HerokuServices service, Shell parent) {
 		boolean isOk = true;
-		
+
 		// ensure that we have valid prefs
 		try {
-			while ( ! service.isReady(pm) ) {
-				if ( MessageDialog.openQuestion(parent, Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Question")) ) { //$NON-NLS-1$ //$NON-NLS-2$
+			while (!service.isReady(pm)) {
+				if (MessageDialog
+						.openQuestion(
+								parent,
+								Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"), Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Question"))) { //$NON-NLS-1$ //$NON-NLS-2$
 					PreferenceDialog p = PreferencesUtil.createPreferenceDialogOn(null, HerokuPreferencePage.ID, null, null);
 					p.open();
 				}
@@ -277,5 +281,19 @@ public class HerokuUtils {
 		return isOk;
 	}
 
-
+	/**
+	 * Determines if the given String is a valid integer value
+	 * 
+	 * @param something
+	 * @return the truth
+	 */
+	public static boolean isInteger(String something) {
+		try {
+			Integer.parseInt(something);
+			return true;
+		}
+		catch (NumberFormatException e) {
+			return false;
+		}
+	}
 }

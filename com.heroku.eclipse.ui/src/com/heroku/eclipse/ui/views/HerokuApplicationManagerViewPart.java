@@ -503,7 +503,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 							quantity = findDynoProcs(proc).size();
 							appName = proc.getHerokuProc().getAppName();
 							appOwner = null;
-							
+
 							try {
 								App procApp = herokuService.getApp(new NullProgressMonitor(), appName);
 								appOwner = procApp.getOwnerEmail();
@@ -549,6 +549,16 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					protected void okPressed() {
 						final String process = processField.getText().trim();
 						final String quantity = quantityField.getText();
+
+						if (!HerokuUtils.isNotEmpty(quantity) || !HerokuUtils.isInteger(quantity)) {
+							HerokuUtils
+									.userError(
+											getShell(),
+											Messages.getString("HerokuAppManagerViewPart_Scale_Error_MissingInput_Title"), Messages.getString("HerokuAppManagerViewPart_Scale_Error_QuantintyNaN")); //$NON-NLS-1$ //$NON-NLS-2$
+							quantityField.setFocus();
+							return;
+						}
+
 						if (HerokuUtils.isNotEmpty(process)) {
 							try {
 								PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
