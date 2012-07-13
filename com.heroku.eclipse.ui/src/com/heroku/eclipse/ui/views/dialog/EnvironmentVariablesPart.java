@@ -1,6 +1,7 @@
 package com.heroku.eclipse.ui.views.dialog;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -9,7 +10,9 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.swt.SWT;
@@ -48,6 +51,7 @@ public class EnvironmentVariablesPart {
 	private TableViewer viewer;
 	private Button addButton;
 	private Button removeButton;
+	private Button editButton;
 
 	/**
 	 * Creates the UI
@@ -85,6 +89,24 @@ public class EnvironmentVariablesPart {
 			}
 
 			viewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
+			
+			viewer.addSelectionChangedListener(new ISelectionChangedListener() {
+
+				@Override
+				public void selectionChanged(SelectionChangedEvent event) {
+					List<KeyValue> envVars = (((IStructuredSelection) viewer.getSelection()).toList());
+					editButton.setEnabled(false);
+					removeButton.setEnabled(false);
+					if (envVars.size() == 1 ) {
+						editButton.setEnabled(true);
+						removeButton.setEnabled(true);
+					}
+					else if ( envVars.size() > 1 ) {
+						removeButton.setEnabled(true);
+					}
+				}
+			});
+
 		}
 
 		{
@@ -117,17 +139,102 @@ public class EnvironmentVariablesPart {
 						}
 					}
 				});
+				removeButton.setEnabled(false);
+			}
+			
+			{
+				editButton = new Button(controls, SWT.PUSH);
+				editButton.setText(Messages.getString("HerokuAppInformationEnvironment_Edit")); //$NON-NLS-1$
+				editButton.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+				editButton.addSelectionListener(new SelectionAdapter() {
+					@Override
+					public void widgetSelected(SelectionEvent e) {
+						@SuppressWarnings("unchecked")
+						List<KeyValue> envVars = ((IStructuredSelection) viewer.getSelection()).toList();
+						if (envVars.size() == 1 ) {
+							handleEdit(editButton.getShell(), envVars.get(0));
+						}
+					}
+				});
+				editButton.setEnabled(false);
 			}
 		}
 
 		return container;
 	}
 
+	void handleEdit(final Shell shell, final KeyValue envVar) {
+		TrayDialog d = new TrayDialog(shell) {
+
+			private Text keyField;
+			private Text valueField;
+
+			@Override
+			protected Control createDialogArea(Composite parent) {
+				Composite container = (Composite) super.createDialogArea(parent);
+				getShell().setText(Messages.getString("HerokuAppInformationEnvironment_Edit_Title")); //$NON-NLS-1$
+
+				Composite area = new Composite(container, SWT.NONE);
+				area.setLayout(new GridLayout(2, false));
+				area.setLayoutData(new GridData(GridData.FILL_BOTH));
+
+				{
+					Label l = new Label(area, SWT.NONE);
+					l.setText(Messages.getString("HerokuAppInformationEnvironment_Edit_Key")); //$NON-NLS-1$
+
+					keyField = new Text(area, SWT.BORDER|SWT.READ_ONLY);
+					keyField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					keyField.setText(envVar.getKey());
+					keyField.setEnabled(false);
+				}
+
+				{
+					Label l = new Label(area, SWT.NONE);
+					l.setText(Messages.getString("HerokuAppInformationEnvironment_Edit_Value")); //$NON-NLS-1$
+
+					valueField = new Text(area, SWT.BORDER);
+					valueField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+					valueField.setText(envVar.getValue());
+				}
+
+				return container;
+			}
+
+			@Override
+			protected void okPressed() {
+				String key = keyField.getText().trim();
+				String value = valueField.getText().trim();
+				if (HerokuUtils.isNotEmpty(value)) {
+					if (doAddEnv(shell, key, value)) {
+						super.okPressed();
+						refreshEnvVariables();
+					}
+				}
+				// emtpy value = ask if user wants to remove
+				else {
+					if (MessageDialog.openQuestion(shell, Messages.getString("HerokuAppInformationEnvironment_Remove_Title"), Messages.getFormattedString("HerokuAppInformationEnvironment_Remove_QuestionSingle", envVar.getKey()))) { //$NON-NLS-1$ //$NON-NLS-2$
+						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "about to remove env variable " + envVar.getKey() +" via edit" ); //$NON-NLS-1$ //$NON-NLS-2$
+						
+						ArrayList<KeyValue> removeSingle = new ArrayList<KeyValue>();
+						removeSingle.add(envVar);
+						
+						if (doRemoveEnv(shell, removeSingle)) {
+							Activator.getDefault().getLogger().log(LogService.LOG_INFO, "removal of single env variable " + envVar.getKey() + " via edit complete"); //$NON-NLS-1$ //$NON-NLS-2$
+							refreshEnvVariables();
+						}
+					}
+				}
+			}
+		};
+
+		d.open();
+	}
+
 	void handleRemove(Shell shell, List<KeyValue> envList) {
 		String message;
 
 		if (envList.size() == 1) {
-			message = Messages.getFormattedString("HerokuAppInformationEnvironment_Remove_QuestionSingle", ((KeyValue) envList.get(0)).getKey()); //$NON-NLS-1$
+			message = Messages.getFormattedString("HerokuAppInformationEnvironment_Remove_QuestionSingle", envList.get(0).getKey()); //$NON-NLS-1$
 		}
 		else {
 			String removed = ""; //$NON-NLS-1$
@@ -138,7 +245,7 @@ public class EnvironmentVariablesPart {
 		}
 
 		if (MessageDialog.openQuestion(shell, Messages.getString("HerokuAppInformationEnvironment_Remove_Title"), message)) { //$NON-NLS-1$
-			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "about to remove of " + envList.size() + " environment variables"); //$NON-NLS-1$ //$NON-NLS-2$
+			Activator.getDefault().getLogger().log(LogService.LOG_INFO, "about to remove " + envList.size() + " environment variables"); //$NON-NLS-1$ //$NON-NLS-2$
 
 			if (doRemoveEnv(shell, envList)) {
 				Activator.getDefault().getLogger().log(LogService.LOG_INFO, "removal of " + envList.size() + " environment variables complete"); //$NON-NLS-1$ //$NON-NLS-2$
