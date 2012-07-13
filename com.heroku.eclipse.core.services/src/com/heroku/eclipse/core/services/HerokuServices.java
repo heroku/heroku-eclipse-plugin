@@ -435,10 +435,10 @@ public interface HerokuServices {
 	 * @param pm 
 	 * @param app
 	 * @param envMap
-	 *            Map of key-value environment variables pairs
+	 *            a KeyValue list of environment variables
 	 * @throws HerokuServiceException
 	 */
-	public void addEnvVariables(IProgressMonitor pm, App app, Map<String, String> envMap) throws HerokuServiceException;
+	public void addEnvVariables(IProgressMonitor pm, App app, List<KeyValue> envMap) throws HerokuServiceException;
 
 	/**
 	 * Lists the environment variables
@@ -476,6 +476,23 @@ public interface HerokuServices {
 	 * @return <code>true</code> if the name is valid, <code>false</code> if not
 	 */
 	public boolean isAppNameBasicallyValid(String appName);
+
+	/**
+	 * <p>
+	 * Performs some <b>basic</b> checks if an environment variable name is valid.
+	 * </p>
+	 * <p>Currently the following checks are performed:
+	 * <ul>
+	 * <li>must start with a letter</li>
+	 * <li>must only contain letters, numbers or underscores</li>
+	 * </ul>
+	 * <p>"Basic" checks means that the checks are done without asking the
+	 * HerokuAPI and thus not all actual requirements might be checked.</p>
+	 * 
+	 * @param envName
+	 * @return <code>true</code> if the name is valid, <code>false</code> if not
+	 */
+	public boolean isEnvNameBasicallyValid(String envName);
 
 	/**
 	 * Checks if an App with the given name already exists.

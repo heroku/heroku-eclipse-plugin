@@ -89,7 +89,7 @@ public class EnvironmentVariablesPart {
 			}
 
 			viewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
-			
+
 			viewer.addSelectionChangedListener(new ISelectionChangedListener() {
 
 				@Override
@@ -97,11 +97,11 @@ public class EnvironmentVariablesPart {
 					List<KeyValue> envVars = (((IStructuredSelection) viewer.getSelection()).toList());
 					editButton.setEnabled(false);
 					removeButton.setEnabled(false);
-					if (envVars.size() == 1 ) {
+					if (envVars.size() == 1) {
 						editButton.setEnabled(true);
 						removeButton.setEnabled(true);
 					}
-					else if ( envVars.size() > 1 ) {
+					else if (envVars.size() > 1) {
 						removeButton.setEnabled(true);
 					}
 				}
@@ -134,14 +134,14 @@ public class EnvironmentVariablesPart {
 					public void widgetSelected(SelectionEvent e) {
 						@SuppressWarnings("unchecked")
 						List<KeyValue> envVars = ((IStructuredSelection) viewer.getSelection()).toList();
-						if (envVars.size() > 0 ) {
+						if (envVars.size() > 0) {
 							handleRemove(removeButton.getShell(), envVars);
 						}
 					}
 				});
 				removeButton.setEnabled(false);
 			}
-			
+
 			{
 				editButton = new Button(controls, SWT.PUSH);
 				editButton.setText(Messages.getString("HerokuAppInformationEnvironment_Edit")); //$NON-NLS-1$
@@ -151,7 +151,7 @@ public class EnvironmentVariablesPart {
 					public void widgetSelected(SelectionEvent e) {
 						@SuppressWarnings("unchecked")
 						List<KeyValue> envVars = ((IStructuredSelection) viewer.getSelection()).toList();
-						if (envVars.size() == 1 ) {
+						if (envVars.size() == 1) {
 							handleEdit(editButton.getShell(), envVars.get(0));
 						}
 					}
@@ -182,7 +182,7 @@ public class EnvironmentVariablesPart {
 					Label l = new Label(area, SWT.NONE);
 					l.setText(Messages.getString("HerokuAppInformationEnvironment_Edit_Key")); //$NON-NLS-1$
 
-					keyField = new Text(area, SWT.BORDER|SWT.READ_ONLY);
+					keyField = new Text(area, SWT.BORDER | SWT.READ_ONLY);
 					keyField.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 					keyField.setText(envVar.getKey());
 					keyField.setEnabled(false);
@@ -212,14 +212,19 @@ public class EnvironmentVariablesPart {
 				}
 				// emtpy value = ask if user wants to remove
 				else {
-					if (MessageDialog.openQuestion(shell, Messages.getString("HerokuAppInformationEnvironment_Remove_Title"), Messages.getFormattedString("HerokuAppInformationEnvironment_Remove_QuestionSingle", envVar.getKey()))) { //$NON-NLS-1$ //$NON-NLS-2$
-						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "about to remove env variable " + envVar.getKey() +" via edit" ); //$NON-NLS-1$ //$NON-NLS-2$
-						
+					if (MessageDialog
+							.openQuestion(
+									shell,
+									Messages.getString("HerokuAppInformationEnvironment_Remove_Title"), Messages.getFormattedString("HerokuAppInformationEnvironment_Remove_QuestionSingle", envVar.getKey()))) { //$NON-NLS-1$ //$NON-NLS-2$
+						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "about to remove env variable " + envVar.getKey() + " via edit"); //$NON-NLS-1$ //$NON-NLS-2$
+
 						ArrayList<KeyValue> removeSingle = new ArrayList<KeyValue>();
 						removeSingle.add(envVar);
-						
+
 						if (doRemoveEnv(shell, removeSingle)) {
-							Activator.getDefault().getLogger().log(LogService.LOG_INFO, "removal of single env variable " + envVar.getKey() + " via edit complete"); //$NON-NLS-1$ //$NON-NLS-2$
+							Activator.getDefault().getLogger()
+									.log(LogService.LOG_INFO, "removal of single env variable " + envVar.getKey() + " via edit complete"); //$NON-NLS-1$ //$NON-NLS-2$
+							super.okPressed();
 							refreshEnvVariables();
 						}
 					}
@@ -293,6 +298,15 @@ public class EnvironmentVariablesPart {
 				String key = keyField.getText().trim();
 				String value = valueField.getText().trim();
 				if (HerokuUtils.isNotEmpty(key) && HerokuUtils.isNotEmpty(value)) {
+					if (!Activator.getDefault().getService().isEnvNameBasicallyValid(key)) {
+						Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "rejecting to add invalid named env variable '" + key + "'"); //$NON-NLS-1$ //$NON-NLS-2$
+						HerokuUtils
+								.userError(
+										shell,
+										Messages.getString("HerokuAppInformationEnvironment_Error_KeyOrValueInvalid_Title"), Messages.getFormattedString("HerokuAppInformationEnvironment_Error_KeyInvalid", key)); //$NON-NLS-1$ //$NON-NLS-2$
+						return;
+					}
+
 					for (KeyValue entry : envList) {
 						if (entry.getKey().equals(keyField.getText().trim())) {
 							Activator.getDefault().getLogger()
@@ -340,10 +354,11 @@ public class EnvironmentVariablesPart {
 					monitor.beginTask(Messages.getString("HerokuAppInformationEnvironment_Progress_AddingEnv"), 2); //$NON-NLS-1$
 					monitor.worked(1);
 					try {
-						HashMap<String, String> map = new HashMap<String, String>();
-						map.put(key, value);
 
-						Activator.getDefault().getService().addEnvVariables(monitor, domainObject, map);
+						ArrayList<KeyValue> envList = new ArrayList<KeyValue>();
+						envList.add(new KeyValue(key, value));
+
+						Activator.getDefault().getService().addEnvVariables(monitor, domainObject, envList);
 						monitor.worked(1);
 						monitor.done();
 					}
@@ -444,24 +459,31 @@ public class EnvironmentVariablesPart {
 	private void refreshEnvVariables() {
 		try {
 			PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
-				
+
 				@Override
-				public void run(IProgressMonitor monitor) throws InvocationTargetException,
-						InterruptedException {
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
 						envList = Activator.getDefault().getService().listEnvVariables(monitor, domainObject);
 						HerokuUtils.runOnDisplay(true, viewer, envList, ViewerOperations.input(viewer));
 					}
 					catch (HerokuServiceException e) {
-						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
-						HerokuUtils.internalError(parent.getShell(), e);
-					}				
+						throw new InvocationTargetException(e);
+					}
 				}
 			});
-		} catch (InvocationTargetException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (InterruptedException e) {
+		}
+		catch (InvocationTargetException e) {
+			if (e.getCause() instanceof HerokuServiceException) {
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
+				HerokuUtils.herokuError(parent.getShell(), e);
+			}
+			else {
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
+				HerokuUtils.internalError(parent.getShell(), e);
+
+			}
+		}
+		catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

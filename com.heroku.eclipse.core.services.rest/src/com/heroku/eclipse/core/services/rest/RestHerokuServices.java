@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
-import java.net.InterfaceAddress;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -13,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -23,7 +21,6 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.type.TypeReference;
-import org.eclipse.core.internal.runtime.IRuntimeConstants;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -91,6 +88,11 @@ public class RestHerokuServices<O> implements HerokuServices {
 	 * Pattern defining a valid appname
 	 */
 	private static Pattern VALID_APPNAME = Pattern.compile("^[a-z][a-z0-9-]+$"); //$NON-NLS-1$
+
+	/**
+	 * Pattern defining a valid environment variable name
+	 */
+	private static Pattern VALID_ENVVAR_NAME = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]+$"); //$NON-NLS-1$
 
 	/**
 	 * @param eventAdmin
@@ -418,7 +420,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 				App app = null;
 				String nameOnStack = appName;
 				if (appName == null || appName.trim().isEmpty()) {
-					nameOnStack = "[not defined yet]";
+					nameOnStack = "[not defined yet]"; //$NON-NLS-1$
 				}
 				try {
 					if (appName != null && !appName.trim().isEmpty()) {
@@ -427,7 +429,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 						app = getOrCreateHerokuSession(pm).createAppFromTemplate(new App().named(appName), templateName);
 					}
 					else {
-						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new unnamed Heroku App from template '" + templateName + "'"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new unnamed Heroku App from template '" + templateName + "'"); //$NON-NLS-1$ //$NON-NLS-2$
 						app = getOrCreateHerokuSession(pm).createAppFromTemplate(null, templateName);
 					}
 					Map<String, Object> map = new HashMap<String, Object>();
@@ -921,10 +923,14 @@ public class RestHerokuServices<O> implements HerokuServices {
 	}
 
 	@Override
-	public void addEnvVariables(final IProgressMonitor pm, final App app, final Map<String, String> envMap) throws HerokuServiceException {
+	public void addEnvVariables(final IProgressMonitor pm, final App app, final List<KeyValue> envList) throws HerokuServiceException {
 		runCancellableOperation(pm, new RunnableWithReturn<Object>() {
 			@Override
 			public Object run() throws HerokuServiceException {
+				HashMap<String,String> envMap = new HashMap<String, String>();
+				for (KeyValue keyValue : envList) {
+					envMap.put(keyValue.getKey(), keyValue.getValue());
+				}
 				getOrCreateHerokuSession(pm).addEnvVariables(app.getName(), envMap);
 				return new VoidReturn();
 			}
@@ -961,6 +967,11 @@ public class RestHerokuServices<O> implements HerokuServices {
 	@Override
 	public boolean isAppNameBasicallyValid(String appName) {
 		return VALID_APPNAME.matcher(appName).matches();
+	}
+
+	@Override
+	public boolean isEnvNameBasicallyValid(String envName) {
+		return VALID_ENVVAR_NAME.matcher(envName).matches();
 	}
 
 	@Override
