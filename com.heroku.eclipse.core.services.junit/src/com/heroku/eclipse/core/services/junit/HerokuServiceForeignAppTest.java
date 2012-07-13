@@ -33,7 +33,7 @@ public class HerokuServiceForeignAppTest extends HerokuServicesTest {
 		// remove all apps
 		destroyAllOwnApps(pm, service);
 
-		foreignApp = service.getOrCreateHerokuSession(pm).createApp(new App().named(HerokuTestConstants.VALID_APP1_NAME));
+		foreignApp = service.createAppFromTemplate(getProgressMonitor(), HerokuTestConstants.VALID_APP1_NAME, getTestTemplate().getTemplateName());
 		service.addCollaborator(pm, foreignApp, Credentials.VALID_JUNIT_USER2);
 
 		service.setAPIKey(pm, Credentials.VALID_JUNIT_APIKEY2);

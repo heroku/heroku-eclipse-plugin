@@ -15,5 +15,5 @@ public class HerokuTestConstants {
 	public static final String INVALID_DYNO_NAME = "gandalf";
 
 	public static final String VALID_ENV_VAR_NAME = "FOOBAR";
-	public static final String INVALID_ENV_VAR_NAME = "FO$ BÄR";
+	public static final String INVALID_ENV_VAR_NAME = "FOO$ %BÄR";
 }

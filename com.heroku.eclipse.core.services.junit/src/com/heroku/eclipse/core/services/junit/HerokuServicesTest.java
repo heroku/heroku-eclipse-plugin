@@ -1,5 +1,7 @@
 package com.heroku.eclipse.core.services.junit;
 
+import java.util.List;
+
 import junit.framework.TestCase;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -10,6 +12,8 @@ import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceReference;
 
 import com.heroku.eclipse.core.services.HerokuServices;
+import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.AppTemplate;
 
 /**
  * Base test class for the HerokuServices methods
@@ -17,6 +21,7 @@ import com.heroku.eclipse.core.services.HerokuServices;
  */
 public class HerokuServicesTest extends TestCase {
 	IProgressMonitor pm = null;
+	List<AppTemplate> templatesList = null;
 
 	protected HerokuServices getService() {
 		Bundle b = FrameworkUtil.getBundle(HerokuServicesTest.class);
@@ -44,4 +49,16 @@ public class HerokuServicesTest extends TestCase {
 		
 		return pm;
 	}
+	
+	protected AppTemplate getTestTemplate() throws HerokuServiceException {
+		if ( templatesList == null ) {
+			templatesList = getService().listTemplates(getProgressMonitor());
+			if ( templatesList.size() <= 0 ) {
+				throw new HerokuServiceException(HerokuServiceException.UNKNOWN_ERROR, "unable to list templates");
+			}
+		}
+		
+		return templatesList.get(0);
+	}
+
 }
