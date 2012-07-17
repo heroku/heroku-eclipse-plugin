@@ -478,22 +478,24 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						App app = getSelectedApp();
 						if (app != null) {
 							List<HerokuProc> procs = appProcesses.get(app.getId());
-							appName = app.getName();
-							appOwner = app.getOwnerEmail();
-
-							// if the app has only one process type, prepopulate
-							for (HerokuProc herokuProc : procs) {
-								if (dynoName.equals("")) { //$NON-NLS-1$
-									dynoName = herokuProc.getDynoName();
-									quantity++;
-								}
-								else if (!herokuProc.getDynoName().equals(dynoName)) {
-									dynoName = ""; //$NON-NLS-1$
-									quantity = 0;
-									break;
-								}
-								else {
-									quantity++;
+							if ( procs != null ) {
+								appName = app.getName();
+								appOwner = app.getOwnerEmail();
+							
+								// if the app has only one process type, prepopulate
+								for (HerokuProc herokuProc : procs) {
+									if (dynoName.equals("")) { //$NON-NLS-1$
+										dynoName = herokuProc.getDynoName();
+										quantity++;
+									}
+									else if (!herokuProc.getDynoName().equals(dynoName)) {
+										dynoName = ""; //$NON-NLS-1$
+										quantity = 0;
+										break;
+									}
+									else {
+										quantity++;
+									}
 								}
 							}
 						}
