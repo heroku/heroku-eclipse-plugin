@@ -34,64 +34,57 @@ public class Preferences extends TestCase {
 	@Before
 	public void before() throws Exception {
 		super.before();
-		preferencePage = new Eclipse().openPreferencePage(preferencePage);
+		preferencePage = new Eclipse().openPreferencePage(null);
 		SWTBotTreeItem herokuItem = preferencePage.bot().tree()
 				.getTreeItem("Heroku");
 		herokuItem.select();
 	}
 
-	private SWTBotText textApiKey() {
+	@After
+	public void after() throws Exception {
+	}
+
+	private SWTBotText getTextApiKey() {
 		return preferencePage.bot().textWithId(PreferenceConstants.P_API_KEY);
 	}
 
-	private SWTBotText textUsername() {
+	private SWTBotText getTextUsername() {
 		return preferencePage.bot().textWithId(PreferenceConstants.P_EMAIL);
 	}
 
-	private SWTBotText textPassword() {
+	private SWTBotText getTextPassword() {
 		return preferencePage.bot().textWithId(PreferenceConstants.P_PASSWORD);
 	}
 
-	private SWTBotButton buttonGetApiKey() {
+	private SWTBotButton getButtonGetApiKey() {
 		return preferencePage.bot().buttonWithId(
 				PreferenceConstants.B_FETCH_API_KEY);
 	}
 
 	@Test
-	public void testOpenPreferences() throws Exception {
-	}
-
-	@Test
 	public void testInvalidLogin() throws InterruptedException {
-		textApiKey().setText("blabla"); // first remove the api key
+		getTextApiKey().setText("blabla"); // first remove the api key
 
-		textUsername().setText("bli");
-		textPassword().setText("bla");
+		getTextUsername().setText("bli");
+		getTextPassword().setText("bla");
 
-		bot.waitUntil(new TextChangeOnButtonClickCondition(textApiKey(),
-				buttonGetApiKey()), 5000); 
+		bot.waitUntil(new TextChangeOnButtonClickCondition(getTextApiKey(),
+				getButtonGetApiKey()), 20 * 1000);
 
-		Assert.assertEquals("", textApiKey().getText());
+		Assert.assertEquals("", getTextApiKey().getText());
 	}
 
 	@Test
 	public void testValidLogin() throws InterruptedException {
-		textApiKey().setText(""); // first remove the api key
+		getTextApiKey().setText(""); // first remove the api key
 
-		textUsername().setText(Credentials.VALID_JUNIT_USER1);
-		textPassword().setText(Credentials.VALID_JUNIT_PWD1);
+		getTextUsername().setText(Credentials.VALID_JUNIT_USER1);
+		getTextPassword().setText(Credentials.VALID_JUNIT_PWD1);
 
-		bot.waitUntil(new TextChangeOnButtonClickCondition(textApiKey(),
-				buttonGetApiKey()), 5000); 
+		bot.waitUntil(new TextChangeOnButtonClickCondition(getTextApiKey(),
+				getButtonGetApiKey()), 5000);
 
-		Assert.assertEquals(Credentials.VALID_JUNIT_APIKEY1, textApiKey()
+		Assert.assertEquals(Credentials.VALID_JUNIT_APIKEY1, getTextApiKey()
 				.getText());
-	}
-
-	@After
-	public void after() throws Exception {
-		if (preferencePage != null) {
-			preferencePage.close();
-		}
 	}
 }

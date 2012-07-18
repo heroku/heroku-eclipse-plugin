@@ -8,9 +8,10 @@ import org.junit.runners.Suite.SuiteClasses;
 @SuiteClasses({
 	Preferences.class, 
 	NewFromTemplate.class,
-//	HerokuView.class,
+	HerokuView.class,
 //	Delete.class,
 //	Import.class,
+	CleanUp.class,
 })
 public class AllTests {
 
