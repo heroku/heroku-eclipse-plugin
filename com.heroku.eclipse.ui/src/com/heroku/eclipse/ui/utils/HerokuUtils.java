@@ -269,7 +269,7 @@ public class HerokuUtils {
 		catch (HerokuServiceException e) {
 			if (e.getErrorCode() == HerokuServiceException.SECURE_STORE_ERROR) {
 				HerokuUtils.userError(parent,
-						Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid_Title"), Messages.getString("HerokuApp_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$ //$NON-NLS-2$
+						Messages.getString("Heroku_Common_Error_SecureStoreInvalid_Title"), Messages.getString("Heroku_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$ //$NON-NLS-2$
 				return false;
 			}
 			else {

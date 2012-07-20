@@ -14,13 +14,11 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.egit.ui.UIPreferences;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -65,7 +63,6 @@ import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.part.ViewPart;
-import org.eclipse.ui.wizards.IWizardDescriptor;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
@@ -76,11 +73,9 @@ import com.heroku.eclipse.core.constants.HerokuViewConstants;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
-import com.heroku.eclipse.core.services.HerokuServices.IMPORT_TYPES;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.HerokuProc;
 import com.heroku.eclipse.ui.Activator;
-import com.heroku.eclipse.ui.git.HerokuCredentialsProvider;
 import com.heroku.eclipse.ui.messages.Messages;
 import com.heroku.eclipse.ui.utils.AppComparator;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
@@ -900,7 +895,12 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		}
 		catch (HerokuServiceException e) {
-			HerokuUtils.herokuError(getShell(), e);
+			if ( e.getErrorCode() == HerokuServiceException.SECURE_STORE_ERROR ) {
+				MessageDialog.openError(getShell(), Messages.getString("Heroku_Common_Error_SecureStoreInvalid_Title"), Messages.getString("Heroku_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			else {
+				HerokuUtils.herokuError(getShell(), e);
+			}
 		}
 	}
 
