@@ -39,7 +39,7 @@ import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
 
 /**
- * View part responsible for displaying environment variables for Heroku Apps
+ * Displays all environment variables associated to an Heroku App
  * 
  * @author tom.schindl@bestsolution.at
  */

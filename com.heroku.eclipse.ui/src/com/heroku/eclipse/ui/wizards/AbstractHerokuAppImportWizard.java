@@ -29,7 +29,7 @@ import com.heroku.eclipse.ui.messages.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 
 /**
- * Import wizard for existing Heroku apps
+ * Semi abstract wizard for importing Heroku apps
  * 
  * @author udo.rader@bestsolution.at
  * 

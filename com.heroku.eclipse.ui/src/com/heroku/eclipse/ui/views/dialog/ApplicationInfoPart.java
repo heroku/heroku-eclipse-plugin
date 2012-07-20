@@ -21,6 +21,7 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.RunnableWithParameter;
 
 /**
+ * Displays basic information about an Heroku App
  * @author tom.schindl@bestsolution.at
  */
 public class ApplicationInfoPart {

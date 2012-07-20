@@ -7,8 +7,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.jface.fieldassist.ControlDecoration;
-import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -47,7 +45,7 @@ import com.heroku.eclipse.ui.messages.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 
 /**
- * 
+ * Wizard page displaying everything needed to create a new Heroku App
  * @author udo.rader@bestsolution.at
  * 
  */

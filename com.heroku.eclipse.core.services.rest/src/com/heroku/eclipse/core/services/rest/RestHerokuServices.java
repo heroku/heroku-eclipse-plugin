@@ -439,10 +439,6 @@ public class RestHerokuServices<O> implements HerokuServices {
 					eventAdmin.postEvent(event);
 				}
 				catch (HerokuServiceException e) {
-					// remove dead cloned template
-					// TODO: dead code, but removing breaks unit tests ...
-					// if (app != null && e.getErrorCode() ==
-					// HerokuServiceException.NOT_ACCEPTABLE) {
 					if (e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
 						destroyApplication(pm, app);
 						throw e;
@@ -466,7 +462,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '" + app.getName() + "' in workspace, import type " + importType); //$NON-NLS-1$ //$NON-NLS-2$
 		try {
 			URIish uri = new URIish(app.getGitUrl());
-
+			
 			final File workdir = new File(gitLocation, app.getName());
 
 			boolean created = workdir.exists();
@@ -493,6 +489,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 
 			cloneOp.setCredentialsProvider(cred);
 			cloneOp.setCloneSubmodules(true);
+			System.err.println(cloneOp.getGitDir());
 			runAsJob(uri, cloneOp, app, importType, existingProject, dialogTitle);
 
 			rv = true;

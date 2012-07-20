@@ -25,6 +25,7 @@ import com.heroku.eclipse.ui.messages.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 
 /**
+ * Wizard allowing to create a new Heroku App
  * @author udo.rader@bestsolution.at
  * 
  */
@@ -59,6 +60,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 			}
 		}
 		else {
+			// TODO: closes the entire Eclipse when the failure was due to the secure store
 			Display.getDefault().getActiveShell().close();
 		}
 	}

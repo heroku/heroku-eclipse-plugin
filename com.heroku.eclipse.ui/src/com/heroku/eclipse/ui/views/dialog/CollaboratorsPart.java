@@ -37,6 +37,7 @@ import com.heroku.eclipse.ui.utils.RunnableWithReturn;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
 
 /**
+ * Displays all collaborators of an Heroku App
  * @author tom.schindl@bestsolution.at
  */
 public class CollaboratorsPart {

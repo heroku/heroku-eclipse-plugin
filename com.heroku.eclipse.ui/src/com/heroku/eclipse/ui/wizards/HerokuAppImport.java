@@ -41,6 +41,7 @@ public class HerokuAppImport extends AbstractHerokuAppImportWizard implements II
 			}
 		}
 		else {
+			// TODO: closes the entire Eclipse when the failure was due to the secure store
 			Display.getDefault().getActiveShell().close();
 		}
 	}

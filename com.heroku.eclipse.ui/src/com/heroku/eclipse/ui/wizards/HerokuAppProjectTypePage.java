@@ -64,10 +64,6 @@ public class HerokuAppProjectTypePage extends WizardPage {
 		autodetect.addSelectionListener(getSelectionListener());
 		autodetect.setData(HerokuServices.ROOT_WIDGET_ID, AppImportConstants.B_AUTODETECT);
 
-//		newProject = new Button(group, SWT.RADIO);
-//		newProject.setText(Messages.getString("HerokuAppProjectType_Import_NewProjectWizard")); //$NON-NLS-1$
-//		newProject.addSelectionListener(getSelectionListener());
-//
 		generalProject = new Button(group, SWT.RADIO);
 		generalProject.setText(Messages.getString("HerokuAppProjectType_Import_GeneralProject")); //$NON-NLS-1$
 		generalProject.addSelectionListener(getSelectionListener());

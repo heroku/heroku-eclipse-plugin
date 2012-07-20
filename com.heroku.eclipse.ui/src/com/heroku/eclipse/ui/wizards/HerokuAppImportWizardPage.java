@@ -36,7 +36,7 @@ import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 
 /**
- * 
+ * Wizard page listing all accessible Heroku Apps for the logged in user
  * @author udo.rader@bestsolution.at
  * 
  */

@@ -22,7 +22,7 @@ public class HerokuSingleAppImport extends AbstractHerokuAppImportWizard impleme
 	/**
 	 * @param app 
 	 */
-	public HerokuSingleAppImport( App app) {
+	public HerokuSingleAppImport(App app) {
 		super();
 		this.app = app;
 	}
