@@ -76,7 +76,8 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 
 			final AppTemplate template = createPage.getAppTemplate();
 
-			final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
+			final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR)+
+					System.getProperty("file.separator")+HerokuProperties.getString("defaultRepo"); //$NON-NLS-1$ //$NON-NLS-2$
 			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 			final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
 

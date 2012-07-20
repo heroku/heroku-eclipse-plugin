@@ -98,7 +98,7 @@ public class HerokuAppProjectTypePage extends WizardPage {
 		super.setVisible(visible);
 		if (visible) {
 			String detectedType = Messages.getString("HerokuAppProjectType_Import_Autodetect"); //$NON-NLS-1$
-			App activeApp = ((HerokuAppImport) getWizard()).getActiveApp();
+			App activeApp = ((AbstractHerokuAppImportWizard) getWizard()).getActiveApp();
 			if ( activeApp != null && HerokuUtils.isNotEmpty(activeApp.getBuildpackProvidedDescription())) {
 				IMPORT_TYPES type = service.getProjectType(activeApp.getBuildpackProvidedDescription());
 				
@@ -121,9 +121,8 @@ public class HerokuAppProjectTypePage extends WizardPage {
 	}
 
 	/**
-	 * Delivers the choosen import type
-	 * @return the type of import the user has choosen
-	 * @return
+	 * Delivers the chosen import type
+	 * @return the type of import the user has chosen
 	 */
 	public IMPORT_TYPES getImportType() {
 		return importType;

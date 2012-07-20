@@ -6,23 +6,25 @@ import org.eclipse.ui.IImportWizard;
 
 import com.heroku.api.App;
 import com.heroku.eclipse.core.services.HerokuServices.IMPORT_TYPES;
+import com.heroku.eclipse.ui.messages.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 
 /**
- * Import wizard for existing Heroku apps
+ * Import wizard for one, predefined existing Heroku App
  * 
  * @author udo.rader@bestsolution.at
  * 
  */
-public class HerokuAppImport extends AbstractHerokuAppImportWizard implements IImportWizard {
-	private HerokuAppImportWizardPage listPage;
+public class HerokuSingleAppImport extends AbstractHerokuAppImportWizard implements IImportWizard {
 	private HerokuAppProjectTypePage projectTypePage;
+	private App app;
 
 	/**
-	 * 
+	 * @param app 
 	 */
-	public HerokuAppImport() {
+	public HerokuSingleAppImport( App app) {
 		super();
+		this.app = app;
 	}
 
 	@Override
@@ -31,9 +33,8 @@ public class HerokuAppImport extends AbstractHerokuAppImportWizard implements II
 
 		if (HerokuUtils.verifyPreferences(new NullProgressMonitor(), service, Display.getCurrent().getActiveShell())) {
 			try {
-				listPage = new HerokuAppImportWizardPage();
-				addPage(listPage);
 				projectTypePage = new HerokuAppProjectTypePage();
+				projectTypePage.setTitle(Messages.getString("HerokuAppProjectType_SingleTitle")); //$NON-NLS-1$
 				addPage(projectTypePage);
 			}
 			catch (Exception e) {
@@ -45,18 +46,13 @@ public class HerokuAppImport extends AbstractHerokuAppImportWizard implements II
 		}
 	}
 
-	public boolean canFinish() {
-		return !listPage.isCurrentPage();
-	}
-
 	@Override
 	public App getActiveApp() {
-		return listPage.getSelectedApp();
+		return app;
 	}
 	
 	@Override
 	public IMPORT_TYPES getProjectType() {
 		return projectTypePage.getImportType();
 	}
-
 }

@@ -14,6 +14,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -37,6 +38,8 @@ import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.wizard.IWizard;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -62,6 +65,7 @@ import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.ui.wizards.IWizardDescriptor;
 import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.event.Event;
 import org.osgi.service.event.EventHandler;
@@ -85,6 +89,7 @@ import com.heroku.eclipse.ui.utils.LabelProviderFactory;
 import com.heroku.eclipse.ui.utils.RunnableWithReturn;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
 import com.heroku.eclipse.ui.views.dialog.WebsiteOpener;
+import com.heroku.eclipse.ui.wizards.HerokuSingleAppImport;
 
 /**
  * The main view of the Heroclipse plugin
@@ -478,11 +483,12 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						App app = getSelectedApp();
 						if (app != null) {
 							List<HerokuProc> procs = appProcesses.get(app.getId());
-							if ( procs != null ) {
+							if (procs != null) {
 								appName = app.getName();
 								appOwner = app.getOwnerEmail();
-							
-								// if the app has only one process type, prepopulate
+
+								// if the app has only one process type,
+								// prepopulate
 								for (HerokuProc herokuProc : procs) {
 									if (dynoName.equals("")) { //$NON-NLS-1$
 										dynoName = herokuProc.getDynoName();
@@ -1023,28 +1029,15 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	}
 
 	private void importApp(final App app) throws HerokuServiceException {
-		if (app != null) {
-			final String destinationDir = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getString(UIPreferences.DEFAULT_REPO_DIR);
-			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
-			final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
-			try {
-				herokuService.materializeGitApp(new NullProgressMonitor(), app, IMPORT_TYPES.AUTODETECT, null, destinationDir, timeout,
-						Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred); //$NON-NLS-1$
-			}
-			catch (HerokuServiceException e) {
-				if (e.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION) {
-					HerokuUtils
-							.userError(
-									getShell(),
-									Messages.getString("HerokuAppCreateNamePage_Error_GitLocationInvalid_Title"), Messages.getFormattedString("HerokuAppCreateNamePage_Error_GitLocationInvalid", destinationDir + System.getProperty("file.separator") + app.getName())); //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$
-				}
-				else {
-					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "internal error during git checkout, aborting ...", e); //$NON-NLS-1$
-					HerokuUtils.internalError(getShell(), e);
-				}
-			}
+		try {
+			IWizard wizard = new HerokuSingleAppImport( app );
+			WizardDialog wd = new WizardDialog(getShell(), wizard);
+			wd.setTitle(wizard.getWindowTitle());
+			wd.open();
 		}
-
+		catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	private List<HerokuProc> findDynoProcs(HerokuProc proc) {
