@@ -7,11 +7,11 @@ import org.junit.runners.Suite.SuiteClasses;
 @RunWith(Suite.class)
 @SuiteClasses({
 	Preferences.class, 
-	NewFromTemplate.class,
-	HerokuView.class,
+//	NewFromTemplate.class,
+//	HerokuView.class,
 //	Delete.class,
 //	Import.class,
-	CleanUp.class,
+//	CleanUp.class,
 })
 public class AllTests {
 
