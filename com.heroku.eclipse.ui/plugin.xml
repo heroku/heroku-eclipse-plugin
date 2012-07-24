@@ -74,5 +74,15 @@
             name="%HerokuUI.AppEditorName">
       </editor>
    </extension>
+   <extension
+         point="org.eclipse.help.toc">
+      <toc
+            file="toc.xml">
+      </toc>
+      <toc
+            file="herokuToc.xml"
+            primary="true">
+      </toc>
+   </extension>
 
 </plugin>
