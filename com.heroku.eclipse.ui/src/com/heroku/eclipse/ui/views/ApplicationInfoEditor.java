@@ -82,7 +82,7 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 		{
 			TabItem item = new TabItem(folder, SWT.NONE);
 			item.setData(HerokuServices.ROOT_WIDGET_ID, HerokuEditorConstants.P_PROCESSES);
-			item.setText(Messages.getString("HerokuAppManagerViewPart_AppInfo")); //$NON-NLS-1$
+			item.setText(Messages.getString("HerokuAppManagerViewPart_Processes")); //$NON-NLS-1$
 			processPart = new ProcessListingPart();
 			item.setControl(processPart.createUI(folder));
 			processPart.setDomainObject(getApp());

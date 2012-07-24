@@ -3,6 +3,7 @@ package com.heroku.eclipse.core.services.rest;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 
@@ -462,7 +464,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '" + app.getName() + "' in workspace, import type " + importType); //$NON-NLS-1$ //$NON-NLS-2$
 		try {
 			URIish uri = new URIish(app.getGitUrl());
-			
+
 			final File workdir = new File(gitLocation, app.getName());
 
 			boolean created = workdir.exists();
@@ -489,8 +491,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 
 			cloneOp.setCredentialsProvider(cred);
 			cloneOp.setCloneSubmodules(true);
-			System.err.println(cloneOp.getGitDir());
-			runAsJob(uri, cloneOp, app, importType, existingProject, dialogTitle);
+			runCloneJob(uri, cloneOp, app, importType, existingProject, dialogTitle);
 
 			rv = true;
 		}
@@ -504,7 +505,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 		return rv;
 	}
 
-	private void runAsJob(final URIish uri, final CloneOperation op, final App app, final IMPORT_TYPES importType, final IProject existingProject,
+	private void runCloneJob(final URIish uri, final CloneOperation op, final App app, final IMPORT_TYPES importType, final IProject existingProject,
 			String dialogTitle) {
 		final Job job = new Job(dialogTitle) {
 			@Override
@@ -618,9 +619,8 @@ public class RestHerokuServices<O> implements HerokuServices {
 								configurationManager.updateProjectConfiguration(newProject, actMonitor);
 							}
 						}
-						catch (CoreException ex) {
-							// TODO: throw ite
-							ex.printStackTrace();
+						catch (CoreException e) {
+							throw new RuntimeException(e);
 						}
 					}
 				}
@@ -924,7 +924,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 		runCancellableOperation(pm, new RunnableWithReturn<Object>() {
 			@Override
 			public Object run() throws HerokuServiceException {
-				HashMap<String,String> envMap = new HashMap<String, String>();
+				HashMap<String, String> envMap = new HashMap<String, String>();
 				for (KeyValue keyValue : envList) {
 					envMap.put(keyValue.getKey(), keyValue.getValue());
 				}
@@ -1019,8 +1019,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 				Thread.sleep(100);
 			}
 			catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				// nothing to do, just being happy if we are interrupted
 			}
 		}
 		if (rv.get() instanceof HerokuServiceException) {
@@ -1036,9 +1035,91 @@ public class RestHerokuServices<O> implements HerokuServices {
 
 	/**
 	 * Container for void return values of the #runCancellableOperation
-	 * 
-	 * @author udo.rader@bestsolution.at
 	 */
 	private static class VoidReturn {
 	}
+
+	@Override
+	public void startAppLogThread(IProgressMonitor pm, final App app, final LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler) {
+		startLogThread(pm, "logstream-app-" + app.getId(), streamCreator, exceptionHandler, app.getName(), null); //$NON-NLS-1$
+	}
+
+	@Override
+	public void startProcessLogThread(IProgressMonitor pm, HerokuProc proc, final LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler) {
+		startLogThread(pm, "logstream-proc-" + proc.getUniqueId(), streamCreator, exceptionHandler, proc.getHerokuProc().getAppName(), proc.getDynoName()); //$NON-NLS-1$
+	}
+
+	/**
+	 * Starts a thread connecting a Heroku log stream with a
+	 * MessageConsoleStream
+	 * 
+	 * @param streamName
+	 * @param streamCreator
+	 */
+	private void startLogThread(final IProgressMonitor pm, String streamName, final LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler, final String appName, final String procName) {
+		// only start new log thread for the given stream if we have not created
+		// one before
+		if (!logThreads.containsKey(streamName)) {
+
+			Thread t = new Thread(streamName) {
+				LogStream out = streamCreator.create();
+				AtomicBoolean wantsFun = new AtomicBoolean(true);
+
+				@Override
+				public void run() {
+					while (wantsFun.get()) {
+						byte[] buffer = new byte[1024];
+						int bytesRead;
+						try {
+							InputStream is;
+							if (procName == null) {
+								is = getApplicationLogStream(pm, appName);
+							}
+							else {
+								is = getProcessLogStream(pm, appName, procName);
+							}
+
+							while ((bytesRead = is.read(buffer)) != -1) {
+								if (out.isClosed()) {
+									break;
+								}
+								out.write(buffer, 0, bytesRead);
+							}
+						}
+						catch (IOException e) {
+							throw new RuntimeException(e);
+						}
+						catch (HerokuServiceException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				}
+
+				@Override
+				public void interrupt() {
+					wantsFun.set(false);
+					try {
+						out.close();
+					}
+					catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+					super.interrupt();
+				}
+			};
+
+			t.setUncaughtExceptionHandler(exceptionHandler);
+			t.setDaemon(true);
+			t.start();
+
+			logThreads.put(streamName, t);
+		}
+	}
+
+	interface LogThread extends Runnable {
+		public void setException(Exception e);
+
+		public Exception getException();
+	}
+
 }

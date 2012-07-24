@@ -1,5 +1,6 @@
 package com.heroku.eclipse.ui.utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -16,6 +17,7 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.dialogs.PreferencesUtil;
+import org.osgi.service.log.LogService;
 
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
@@ -155,7 +157,7 @@ public class HerokuUtils {
 	 * @param viewer
 	 * @param argument
 	 * @param runnable
-	 * @return
+	 * @return a generic return value
 	 */
 	public static <R, A> R runOnDisplay(Viewer viewer, final A argument, final RunnableWithReturn<R, A> runnable) {
 		return runOnDisplay(viewer.getControl(), argument, runnable);
@@ -168,7 +170,7 @@ public class HerokuUtils {
 	 * @param control
 	 * @param argument
 	 * @param runnable
-	 * @return
+	 * @return a generic return value
 	 */
 	public static <R, A> R runOnDisplay(Control control, final A argument, final RunnableWithReturn<R, A> runnable) {
 		if (control.getDisplay() != null && !control.getDisplay().isDisposed()) {
@@ -243,7 +245,7 @@ public class HerokuUtils {
 	/**
 	 * Verifies that the preferences are valid and if not, asks the user if
 	 * he/she wants to setup the preferences, otherwise return null
-	 * 
+	 * @param pm 
 	 * @param service
 	 * @param parent
 	 * @return true, if the prefs are OK, false if not
@@ -295,5 +297,39 @@ public class HerokuUtils {
 		catch (NumberFormatException e) {
 			return false;
 		}
+	}
+	
+	/**
+	 * Either extracts and returns an HerokuServiceException wrapped in an InvocationTargetException or
+	 * opens up an "internal error" popup showing the error to the user  
+	 * @param shell 
+	 * @param e
+	 * @param defaultError
+	 * 				the error message to log if the exception is not an HerokuServiceException 
+	 * @return either the found HerokuServiceException or null, if no HerokuServiceException was found
+	 */
+	public static HerokuServiceException extractHerokuException(Shell shell, Throwable e, String defaultError) {
+		Throwable rv = e;
+		
+		if ( e instanceof HerokuServiceException ) {
+			return (HerokuServiceException) e;
+		}
+		else if (e instanceof InvocationTargetException) {
+			rv = (Exception) e.getCause();
+		}
+
+		if (rv instanceof HerokuServiceException) {
+			// "Operation cancelled" means that the user pressed "cancel", so we
+			// ignore that in terms of the thrown exception and return null
+			if (((HerokuServiceException) rv).getErrorCode() != HerokuServiceException.OPERATION_CANCELLED) {
+				return (HerokuServiceException) rv;
+			}
+		}
+		else {
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, defaultError, e);
+			HerokuUtils.internalError(shell, e);
+		}
+
+		return null;
 	}
 }

@@ -1,18 +1,16 @@
 package com.heroku.eclipse.ui.views;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -73,6 +71,8 @@ import com.heroku.eclipse.core.constants.HerokuViewConstants;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
+import com.heroku.eclipse.core.services.HerokuServices.LogStream;
+import com.heroku.eclipse.core.services.HerokuServices.LogStreamCreator;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.HerokuProc;
 import com.heroku.eclipse.ui.Activator;
@@ -81,7 +81,6 @@ import com.heroku.eclipse.ui.utils.AppComparator;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.IconKeys;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
-import com.heroku.eclipse.ui.utils.RunnableWithReturn;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
 import com.heroku.eclipse.ui.views.dialog.WebsiteOpener;
 import com.heroku.eclipse.ui.wizards.HerokuSingleAppImport;
@@ -103,9 +102,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	private static HerokuServices herokuService;
 
 	private List<ServiceRegistration<EventHandler>> handlerRegistrations;
-
-	private Map<String, List<HerokuProc>> appProcesses = Collections.synchronizedMap(new HashMap<String, List<HerokuProc>>());
-	private Map<String, String> procApps = Collections.synchronizedMap(new HashMap<String, String>());
 
 	private Map<String, Thread> logThreads = new HashMap<String, Thread>();
 
@@ -135,12 +131,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		{
 			nameColumn = new TreeViewerColumn(viewer, SWT.NONE);
-			nameColumn.setLabelProvider(LabelProviderFactory.createName(new RunnableWithReturn<List<HerokuProc>, App>() {
-				@Override
-				public List<HerokuProc> run(App argument) {
-					return appProcesses.get(argument.getId());
-				}
-			}));
+			nameColumn.setLabelProvider(LabelProviderFactory.createApp_Name());
 
 			TreeColumn col = nameColumn.getColumn();
 			col.setText(Messages.getString("HerokuAppManagerViewPart_Name")); //$NON-NLS-1$
@@ -347,88 +338,41 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			@Override
 			public void run() {
 				final App app = getSelectedApp();
-				if (app != null) {
-					if (MessageDialog
-							.openQuestion(
-									getShell(),
-									Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Restart", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
-						try {
-							PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
-								@Override
-								public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-									monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingApp", app.getName()), 2); //$NON-NLS-1$
+				if (MessageDialog
+						.openQuestion(
+								getShell(),
+								Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_Restart", app.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
+					try {
+						PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
+							@Override
+							public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+								monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingApp", app.getName()), 2); //$NON-NLS-1$
+								monitor.worked(1);
+								try {
+									herokuService.restartApplication(monitor, app);
 									monitor.worked(1);
-									try {
-										herokuService.restartApplication(monitor, app);
-										monitor.worked(1);
-										monitor.done();
-									}
-									catch (HerokuServiceException e) {
-										// rethrow to outer space
-										throw new InvocationTargetException(e);
-									}
+									monitor.done();
 								}
-							});
-							refreshApplications(new NullProgressMonitor(), true);
-
-						}
-						catch (InvocationTargetException e) {
-							HerokuServiceException se = extractHerokuException(e, "unknown error when trying to restart app " + app.getName()); //$NON-NLS-1$
-							if (se != null) {
-								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
-								HerokuUtils.herokuError(getShell(), e);
+								catch (HerokuServiceException e) {
+									// rethrow to outer space
+									throw new InvocationTargetException(e);
+								}
 							}
-						}
-						catch (InterruptedException e) {
+						});
+						refreshApplications(new NullProgressMonitor(), true);
+
+					}
+					catch (InvocationTargetException e) {
+						HerokuServiceException se = HerokuUtils.extractHerokuException(getShell(), e,
+								"unknown error when trying to restart app " + app.getName()); //$NON-NLS-1$
+						if (se != null) {
 							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
-							HerokuUtils.internalError(getShell(), e);
+							HerokuUtils.herokuError(getShell(), e);
 						}
 					}
-				}
-				else {
-					final HerokuProc proc = getSelectedProc();
-					if (proc != null) {
-						if (MessageDialog
-								.openQuestion(
-										getShell(),
-										Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", proc.getDynoName()))) { //$NON-NLS-1$ //$NON-NLS-2$
-							try {
-								PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
-									@Override
-									public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-										monitor.beginTask(
-												Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingProc", proc.getDynoName()), 2); //$NON-NLS-1$
-										monitor.worked(1);
-										try {
-											herokuService.restartDyno(monitor, proc);
-											monitor.worked(1);
-											monitor.done();
-										}
-										catch (HerokuServiceException e) {
-											// rethrow to outer space
-											throw new InvocationTargetException(e);
-										}
-									}
-								});
-								refreshApplications(new NullProgressMonitor(), true);
-
-							}
-							catch (InvocationTargetException e) {
-								HerokuServiceException se = extractHerokuException(e,
-										"unknown error when trying to restart all '" + proc.getDynoName() + "' processes"); //$NON-NLS-1$ //$NON-NLS-2$
-								if (se != null) {
-									Activator.getDefault().getLogger()
-											.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getDynoName() + "' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
-									HerokuUtils.herokuError(getShell(), e);
-								}
-							}
-							catch (InterruptedException e) {
-								Activator.getDefault().getLogger()
-										.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getDynoName() + "' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
-								e.printStackTrace();
-								HerokuUtils.internalError(getShell(), e);
-							}
-						}
+					catch (InterruptedException e) {
+						Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to restart app " + app.getName(), e); //$NON-NLS-1$
+						HerokuUtils.internalError(getShell(), e);
 					}
 				}
 			}
@@ -437,15 +381,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		final Action viewLogs = new Action(Messages.getString("HerokuAppManagerViewPart_ViewLogs")) { //$NON-NLS-1$
 			@Override
 			public void run() {
-				final App app = getSelectedApp();
-				if (app != null) {
-					openLog(app.getId(), app.getName(), null);
-				}
-				else {
-					// opening log for the entire process group
-					HerokuProc proc = getSelectedProc();
-					openLog(proc.getUniqueId(), proc.getHerokuProc().getAppName(), proc.getDynoName());
-				}
+				openLog(getSelectedApp());
 			}
 		};
 
@@ -464,45 +400,33 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						int quantity = 0;
 						String dynoName = ""; //$NON-NLS-1$
 
-						App app = getSelectedApp();
-						if (app != null) {
-							List<HerokuProc> procs = appProcesses.get(app.getId());
-							if (procs != null) {
-								appName = app.getName();
-								appOwner = app.getOwnerEmail();
-
-								// if the app has only one process type,
-								// prepopulate
-								for (HerokuProc herokuProc : procs) {
-									if (dynoName.equals("")) { //$NON-NLS-1$
-										dynoName = herokuProc.getDynoName();
-										quantity++;
-									}
-									else if (!herokuProc.getDynoName().equals(dynoName)) {
-										dynoName = ""; //$NON-NLS-1$
-										quantity = 0;
-										break;
-									}
-									else {
-										quantity++;
-									}
-								}
-							}
+						final App app = getSelectedApp();
+						List<HerokuProc> procs = null;
+						try {
+							procs = Activator.getDefault().getService().listProcesses(new NullProgressMonitor(), app);
 						}
-						else {
-							HerokuProc proc = getSelectedProc();
-							dynoName = proc.getDynoName();
-							quantity = findDynoProcs(proc).size();
-							appName = proc.getHerokuProc().getAppName();
-							appOwner = null;
+						catch (HerokuServiceException e) {
+							// just ignoring any errors and leaving the process name field empty ...
+						}
 
-							try {
-								App procApp = herokuService.getApp(new NullProgressMonitor(), appName);
-								appOwner = procApp.getOwnerEmail();
-							}
-							catch (HerokuServiceException e) {
-								HerokuUtils.herokuError(getShell(), e);
-								return null;
+						if (procs != null) {
+							appName = app.getName();
+							appOwner = app.getOwnerEmail();
+							// if the app has only one process type,
+							// prepopulate
+							for (HerokuProc herokuProc : procs) {
+								if (dynoName.equals("")) { //$NON-NLS-1$
+									dynoName = herokuProc.getDynoName();
+									quantity++;
+								}
+								else if (!herokuProc.getDynoName().equals(dynoName)) {
+									dynoName = ""; //$NON-NLS-1$
+									quantity = 0;
+									break;
+								}
+								else {
+									quantity++;
+								}
 							}
 						}
 
@@ -705,77 +629,51 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		return mgr;
 	}
 
-	private void openLog(final String uniqueId, final String appName, final String procName) {
-		String consoleName = ""; //$NON-NLS-1$
-		String streamName = "logstream-"; //$NON-NLS-1$
+	private void openLog(final App app) {
+		String consoleName = Messages.getFormattedString("HerokuAppManagerViewPart_AppConsole_Title", app.getName()); //$NON-NLS-1$
 
-		if (procName == null) {
-			consoleName = Messages.getFormattedString("HerokuAppManagerViewPart_AppConsole_Title", appName); //$NON-NLS-1$
-			streamName += "app-" + uniqueId; //$NON-NLS-1$
-		}
-		else {
-			consoleName += Messages.getFormattedString("HerokuAppManagerViewPart_ProcConsole_Title", appName, procName); //$NON-NLS-1$
-			streamName += "proc-" + uniqueId; //$NON-NLS-1$
-		}
-
-		MessageConsole console = HerokuUtils.findConsole(consoleName);
+		// add and activate the fitting console
+		final MessageConsole console = HerokuUtils.findConsole(consoleName);
 		ConsolePlugin.getDefault().getConsoleManager().showConsoleView(console);
 		console.activate();
 
-		// only open new log stream if we have not opened it before
-		if (!logThreads.containsKey(streamName)) {
-			final MessageConsoleStream out = console.newMessageStream();
-			Thread t = new Thread(streamName) {
-				AtomicBoolean wantsFun = new AtomicBoolean(true);
+		final LogStream out = new LogStream() {
+			private final MessageConsoleStream out = console.newMessageStream();
 
-				@Override
-				public void run() {
-					while (wantsFun.get()) {
-						byte[] buffer = new byte[1024];
-						int bytesRead;
-						try {
-							InputStream is;
-							if (procName == null) {
-								is = herokuService.getApplicationLogStream(new NullProgressMonitor(), appName);
-							}
-							else {
-								is = herokuService.getProcessLogStream(new NullProgressMonitor(), appName, procName);
-							}
-							while ((bytesRead = is.read(buffer)) != -1) {
-								if (out.isClosed()) {
-									break;
-								}
-								out.write(buffer, 0, bytesRead);
-							}
-						}
-						catch (IOException e) {
-							HerokuUtils.internalError(getShell(), e);
-						}
-						catch (HerokuServiceException e) {
-							HerokuUtils.herokuError(getShell(), e);
-						}
-					}
+			@Override
+			public void write(byte[] buffer, int i, int bytesRead) throws IOException {
+				out.write(buffer, i, bytesRead);
+			}
+
+			@Override
+			public boolean isClosed() throws IOException {
+				return out.isClosed();
+			}
+
+			@Override
+			public void close() throws IOException {
+				out.close();
+			}
+		};
+
+		UncaughtExceptionHandler exceptionHandler = new UncaughtExceptionHandler() {
+			@Override
+			public void uncaughtException(Thread t, Throwable e) {
+				e.printStackTrace();
+				HerokuServiceException e1 = HerokuUtils.extractHerokuException(getShell(), e, "unexpected error displaying log for app " + app.getName()); //$NON-NLS-1$
+
+				if (e1 != null) {
+
 				}
+			}
+		};
 
-				@Override
-				public void interrupt() {
-					wantsFun.set(false);
-					try {
-						out.close();
-					}
-					catch (IOException e) {
-						e.printStackTrace();
-					}
-					super.interrupt();
-				}
-			};
-
-			t.setDaemon(true);
-			t.start();
-
-			logThreads.put(streamName, t);
-		}
-
+		Activator.getDefault().getService().startAppLogThread(new NullProgressMonitor(), app, new LogStreamCreator() {
+			@Override
+			public LogStream create() {
+				return out;
+			}
+		}, exceptionHandler);
 	}
 
 	@Override
@@ -853,10 +751,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					@Override
 					protected IStatus run(IProgressMonitor monitor) {
 						try {
-							if (saveRefreshApplications(pm, refreshProcs)) {
-								// 2nd run: refresh procs now as well
-								saveRefreshApplications(pm, true);
-							}
+							saveRefreshApplications(pm);
 						}
 						catch (HerokuServiceException e) {
 							if (Display.getCurrent() != null) {
@@ -894,25 +789,11 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		}
 	}
 
-	private boolean saveRefreshApplications(IProgressMonitor pm, boolean refreshProcs) throws HerokuServiceException {
+	private boolean saveRefreshApplications(IProgressMonitor pm) throws HerokuServiceException {
 		boolean rv = true;
 
-		appProcesses.clear();
-		procApps.clear();
 		if (herokuService.isReady(pm)) {
 			List<App> applications = herokuService.listApps(pm);
-			if (refreshProcs) { // || applications.size() < 10) {
-				for (App a : applications) {
-					List<HerokuProc> procs = herokuService.listProcesses(pm, a);
-					appProcesses.put(a.getId(), procs);
-					if (procs.size() > 0) {
-						if (!procApps.containsKey(procs.get(0).getUniqueId())) {
-							procApps.put(procs.get(0).getUniqueId(), a.getId());
-						}
-					}
-				}
-				rv = false;
-			}
 			HerokuUtils.runOnDisplay(true, viewer, applications, ViewerOperations.input(viewer));
 		}
 		else {
@@ -934,8 +815,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	@Override
 	public void dispose() {
-		appProcesses.clear();
-		procApps.clear();
 		refreshTimer.cancel();
 
 		if (logThreads != null) {
@@ -971,12 +850,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		@Override
 		public Object[] getChildren(Object parentElement) {
-			if (parentElement instanceof App) {
-				List<HerokuProc> l = appProcesses.get(((App) parentElement).getId());
-				if (l != null) {
-					return l.toArray();
-				}
-			}
 			return new Object[0];
 		}
 
@@ -1028,41 +901,5 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	private List<HerokuProc> findDynoProcs(HerokuProc proc) {
-		// create process list for the given dyno
-		List<HerokuProc> allProcs = appProcesses.get(procApps.get(proc.getUniqueId()));
-		final String dynoName = proc.getDynoName();
-
-		final List<HerokuProc> dynoProcs = new ArrayList<HerokuProc>();
-		for (HerokuProc herokuProc : allProcs) {
-			if (herokuProc.getDynoName().equals(dynoName)) {
-				dynoProcs.add(herokuProc);
-			}
-		}
-
-		return dynoProcs;
-	}
-
-	private HerokuServiceException extractHerokuException(Exception e, String defaultError) {
-		Exception rv = e;
-		if (e instanceof InvocationTargetException) {
-			rv = (Exception) e.getCause();
-		}
-
-		if (rv instanceof HerokuServiceException) {
-			// "Operation cancelled" means that the user pressed "cancel", so we
-			// ignore that in terms of the thrown exception and return null
-			if (((HerokuServiceException) rv).getErrorCode() != HerokuServiceException.OPERATION_CANCELLED) {
-				return (HerokuServiceException) rv;
-			}
-		}
-		else {
-			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, defaultError, e);
-			HerokuUtils.internalError(getShell(), e);
-		}
-
-		return null;
 	}
 }

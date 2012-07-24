@@ -1,6 +1,10 @@
 package com.heroku.eclipse.core.services;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -10,7 +14,6 @@ import org.eclipse.jgit.transport.CredentialsProvider;
 
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
-import com.heroku.api.Proc;
 import com.heroku.api.User;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
@@ -23,7 +26,6 @@ import com.heroku.eclipse.core.services.model.KeyValue;
  * @author udo.rader@bestsolution.at
  */
 public interface HerokuServices {
-
 	/**
 	 * Root topic of all heroku events
 	 */
@@ -96,9 +98,14 @@ public interface HerokuServices {
 	 * Key used for all widgets of the project
 	 */
 	public static final String ROOT_WIDGET_ID = "com.heroku.eclipse.identifier"; //$NON-NLS-1$
+	
+	/**
+	 * HashMap containing references to all open log threads
+	 */
+	static Map<String, Thread> logThreads = Collections.synchronizedMap(new HashMap<String, Thread>());
 
 	/**
-	 * Event key holding the session modified
+	 * Keys for various events, ie when the session has been modified, when an app has been created.
 	 * 
 	 * @see #TOPIC_SESSION_INVALID
 	 * @see #TOPIC_SESSION_CREATED
@@ -115,8 +122,6 @@ public interface HerokuServices {
 
 	/**
 	 * Enum representing some fields of an App
-	 * 
-	 * @author udo.rader@bestsolution.at
 	 */
 	public static enum APP_FIELDS {
 		APP_NAME, APP_GIT_URL, APP_WEB_URL
@@ -124,8 +129,6 @@ public interface HerokuServices {
 
 	/**
 	 * Enum representing the various import types for existing projects
-	 * 
-	 * @author udo.rader@bestsolution.at
 	 */
 	public static enum IMPORT_TYPES {
 		AUTODETECT, NEW_PROJECT_WIZARD, GENERAL_PROJECT, MAVEN, PLAY
@@ -540,4 +543,59 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public void scaleProcess(IProgressMonitor pm, String appName, String dynoName, int quantity) throws HerokuServiceException;
+	
+	/**
+	 * Delivers the thread responsible for displaying the log for the given App. The thread is either
+	 * reused from a previous call or newly created 
+	 * @param pm 
+	 * @param app 
+	 * @param streamCreator 
+	 * @param exceptionHandler 
+	 */
+	public void startAppLogThread(IProgressMonitor pm, App app, LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler);
+	
+	/**
+	 * Delivers the thread responsible for displaying the log for the given HerokuProc. The thread is either
+	 * reused from a previous call or newly created 
+	 * @param pm 
+	 * @param proc
+	 * @param streamCreator 
+	 * @param exceptionHandler 
+	 */
+	public void startProcessLogThread(IProgressMonitor pm, HerokuProc proc, LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler);
+	
+	/**
+	 * Delegate interface to wrap the UI MessageConsoleStream into something serviceable.  
+	 * @author udo.rader@bestsolution.at
+	 */
+	interface LogStream {
+		/**
+		 * @return the state of the stream
+		 * @throws IOException 
+		 */
+		boolean isClosed() throws IOException;
+		/**
+		 * @throws IOException 
+		 */
+		void close() throws IOException;
+		
+		/**
+		 * @param buffer
+		 * @param i
+		 * @param bytesRead
+		 * @throws IOException 
+		 */
+		void write(byte[] buffer, int i, int bytesRead) throws IOException;
+	}
+	
+	/**
+	 * Delegate interface intended to wrap the creation of a UI MessageConsoleStream on the service side of life.
+	 * @author udo.rader@bestsolution.at
+	 */
+	interface LogStreamCreator {
+		LogStream create();
+	}
+
 }
+
+

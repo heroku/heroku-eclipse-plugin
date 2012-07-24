@@ -7,8 +7,6 @@ import org.eclipse.swt.graphics.Image;
 
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
-import com.heroku.api.Proc;
-import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.model.HerokuProc;
 import com.heroku.eclipse.core.services.model.KeyValue;
 
@@ -245,33 +243,16 @@ public class LabelProviderFactory {
 	 * @param procListCallback 
 	 * @return the verbose process type as a LabelProvider
 	 */
-	public static ColumnLabelProvider createProcess_dynoCount(final HerokuProc proc, final RunnableWithReturn<List<HerokuProc>, App> procListCallback) {
+	public static ColumnLabelProvider createProcess_dynoCount(final RunnableWithReturn<List<HerokuProc>, HerokuProc> procListCallback) {
 		return new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
 				int quantity = 0;
-				List<HerokuProc> procs = procListCallback.run((App) element);
-				if (procs != null) {
-					String currentDyno = ""; //$NON-NLS-1$
-					// if the app has only one process type,
-					// prepopulate
-					for (HerokuProc herokuProc : procs) {
-						if (currentDyno.equals("")) { //$NON-NLS-1$
-							currentDyno = herokuProc.getDynoName();
-							quantity++;
-						}
-						else if (!herokuProc.getDynoName().equals(currentDyno)) {
-							currentDyno = ""; //$NON-NLS-1$
-							quantity = 0;
-							break;
-						}
-						else {
-							quantity++;
-						}
-					}
-				}
-
+				List<HerokuProc> procs = procListCallback.run((HerokuProc) element);
 				
+				if (procs != null) {
+					quantity = procs.size();
+				}
 				return Integer.toString(quantity);
 			}
 		};

@@ -176,18 +176,59 @@ public interface HerokuSession {
 	 */
 	public InputStream getProcessLogStream(String appName, String processName) throws HerokuServiceException;
 
+	/**
+	 * Restarts the given App
+	 * @param app
+	 * @throws HerokuServiceException
+	 */
 	public void restart(App app) throws HerokuServiceException;
 
+	/**
+	 * Destroys the given App
+	 * @param app
+	 * @throws HerokuServiceException
+	 */
 	public void destroyApp(App app) throws HerokuServiceException;
 
+	/**
+	 * Delivers the given App's collaborators
+	 * @param app
+	 * @return a list containing the App's collaborators
+	 * @throws HerokuServiceException
+	 */
 	public List<Collaborator> getCollaborators(App app) throws HerokuServiceException;
 
+	/**
+	 * Adds the given collaborator to the given App
+	 * @param app
+	 * @param email 
+	 * @throws HerokuServiceException
+	 */
 	public void addCollaborator(App app, String email) throws HerokuServiceException;
 
+	/**
+	 * Removes the given collaborator from the given App
+	 * @param app
+	 * @param email 
+	 * @throws HerokuServiceException
+	 */
 	public void removeCollaborator(App app, String email) throws HerokuServiceException;
 
+	/**
+	 * Transfers the given App to a new owner
+	 * @param app
+	 * @param newOwner
+	 * 			the email address of the new owner
+	 * @throws HerokuServiceException
+	 */
 	public void transferApplication(App app, String newOwner) throws HerokuServiceException;
 
+	/**
+	 * List all processes for the given app
+	 * @param app
+	 * @return the list of found processes
+	 * @throws HerokuServiceException
+	 */
 	public List<Proc> listProcesses(App app) throws HerokuServiceException;
 
 	/**
