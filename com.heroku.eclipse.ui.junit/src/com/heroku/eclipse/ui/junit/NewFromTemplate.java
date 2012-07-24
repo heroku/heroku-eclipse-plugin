@@ -1,5 +1,6 @@
 package com.heroku.eclipse.ui.junit;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -24,8 +25,7 @@ import com.heroku.eclipse.ui.messages.Messages;
 @RunWith(SWTBotJunit4ClassRunner.class)
 public class NewFromTemplate extends TestCase {
 
-	private static final String INVALID_PROJECT_NAME = "MylittleSWTBotTest";
-	private static final String PROJECT_NAME_PREFIX = "besojunit";
+	private static final String INVALID_PROJECT_NAME = "45MylittleSWTBotTest";
 	private static final SWTWorkbenchBot bot = new SWTWorkbenchBot();
 
 	{
@@ -39,11 +39,6 @@ public class NewFromTemplate extends TestCase {
 
 	@Test
 	public void testCreateNewProjectFromTemplate() throws Exception {
-		// close the welcome tab
-		if (Boolean.TRUE.toString().equals(System.getProperty("heroku.devel"))) {
-			bot.viewByTitle("Welcome").close();
-		}
-
 		bot.menu("File").menu("New").menu("Other...").click();
 		bot.tree().getTreeItem(Messages.getString("HerokuUI.heroku")).expand().getNode(Messages.getString("HerokuUI.CreateWizardName")).select();
 		bot.button("Next >").click();
@@ -64,8 +59,9 @@ public class NewFromTemplate extends TestCase {
 
 		// an project name including invalid characters
 		shellProject.bot().textWithId(AppCreateConstants.C_APP_NAME).setText(INVALID_PROJECT_NAME);
-		shellProject.bot().button("Finish").click();
-		shellProject.bot().text(" "	+ Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists"));
+		assertFalse("Finish button must be disabled on invalid project name",
+				shellProject.bot().button("Finish").isEnabled());
+		shellProject.bot().text(" "	+ Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists_Hint"));
 
 		// this project already exists
 		shellProject.bot().textWithId(AppCreateConstants.C_APP_NAME).setText(HerokuTestConstants.EXISTING_FOREIGN_APP);
@@ -73,7 +69,7 @@ public class NewFromTemplate extends TestCase {
 		shellProject.bot().text(" "	+ Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists"));
 
 		// this project name should work
-		final  String projectName = PROJECT_NAME_PREFIX + System.currentTimeMillis();
+		final  String projectName = TESTPROJECT_NAME_PREFIX + System.currentTimeMillis();
 		shellProject.bot().textWithId(AppCreateConstants.C_APP_NAME).setText(projectName);
 		final SWTBotButton bFinish = shellProject.bot().button("Finish");
 		final SWTBot packExplorer =  bot.viewByTitle("Project Explorer").bot();
@@ -93,7 +89,6 @@ public class NewFromTemplate extends TestCase {
 
 			@Override
 			public void init(SWTBot bot) {
-				// TODO Auto-generated method stub
 				bFinish .click();
 			}
 

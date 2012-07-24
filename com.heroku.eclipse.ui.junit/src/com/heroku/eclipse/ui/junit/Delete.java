@@ -64,7 +64,7 @@ public class Delete extends TestCase {
 					return "Project was not deleted from project explorer";
 				}
 
-			}, 60000);
+			}, 20 * 1000);
 
 		}
 	}
