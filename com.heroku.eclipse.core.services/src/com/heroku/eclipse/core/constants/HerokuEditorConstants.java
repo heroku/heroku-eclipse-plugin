@@ -13,4 +13,5 @@ public class HerokuEditorConstants {
 	public static final String P_INFO = "partInformation"; //$NON-NLS-1$
 	public static final String P_COLLABORATION = "partCollaboration"; //$NON-NLS-1$
 	public static final String P_ENVIRONMENT = "partEnvironment"; //$NON-NLS-1$
+	public static final String P_PROCESSES = "partProcesses"; //$NON-NLS-1$
 }

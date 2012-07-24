@@ -135,7 +135,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		{
 			nameColumn = new TreeViewerColumn(viewer, SWT.NONE);
-			nameColumn.setLabelProvider(LabelProviderFactory.createName(herokuService, new RunnableWithReturn<List<HerokuProc>, App>() {
+			nameColumn.setLabelProvider(LabelProviderFactory.createName(new RunnableWithReturn<List<HerokuProc>, App>() {
 				@Override
 				public List<HerokuProc> run(App argument) {
 					return appProcesses.get(argument.getId());
@@ -257,17 +257,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		};
 		return selectionAdapter;
 	}
-
-	// private void scheduleRefresh() {
-	// refreshTask = new TimerTask() {
-	//
-	// @Override
-	// public void run() {
-	// refreshApplications(new NullProgressMonitor(), true);
-	// }
-	// };
-	//		refreshTimer.schedule(refreshTask, Integer.parseInt(HerokuProperties.getString("heroku.eclipse.appsList.refreshInterval"))); //$NON-NLS-1$
-	// }
 
 	App getSelectedApp() {
 		IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
@@ -512,8 +501,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 								appOwner = procApp.getOwnerEmail();
 							}
 							catch (HerokuServiceException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+								HerokuUtils.herokuError(getShell(), e);
+								return null;
 							}
 						}
 
@@ -895,8 +884,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		}
 		catch (HerokuServiceException e) {
-			if ( e.getErrorCode() == HerokuServiceException.SECURE_STORE_ERROR ) {
-				MessageDialog.openError(getShell(), Messages.getString("Heroku_Common_Error_SecureStoreInvalid_Title"), Messages.getString("Heroku_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$ //$NON-NLS-2$
+			if (e.getErrorCode() == HerokuServiceException.SECURE_STORE_ERROR) {
+				MessageDialog.openError(getShell(),
+						Messages.getString("Heroku_Common_Error_SecureStoreInvalid_Title"), Messages.getString("Heroku_Common_Error_SecureStoreInvalid")); //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			else {
 				HerokuUtils.herokuError(getShell(), e);
@@ -1030,7 +1020,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	private void importApp(final App app) throws HerokuServiceException {
 		try {
-			IWizard wizard = new HerokuSingleAppImport( app );
+			IWizard wizard = new HerokuSingleAppImport(app);
 			WizardDialog wd = new WizardDialog(getShell(), wizard);
 			wd.setTitle(wizard.getWindowTitle());
 			wd.open();

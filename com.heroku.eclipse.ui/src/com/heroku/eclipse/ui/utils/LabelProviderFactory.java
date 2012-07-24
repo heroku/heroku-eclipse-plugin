@@ -25,11 +25,10 @@ public class LabelProviderFactory {
 	 */
 
 	/**
-	 * @param services
 	 * @param procListCallback
 	 * @return the fitting LabelProvider
 	 */
-	public static ColumnLabelProvider createName(final HerokuServices services, final RunnableWithReturn<List<HerokuProc>, App> procListCallback) {
+	public static ColumnLabelProvider createName(final RunnableWithReturn<List<HerokuProc>, App> procListCallback) {
 		return new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -193,6 +192,99 @@ public class LabelProviderFactory {
 			@Override
 			public String getText(Object element) {
 				return ((KeyValue)element).getValue();
+			}
+		};
+	}
+	
+	/*
+	 * ========================================== 
+	 * Processes
+	 * ==========================================
+	 */
+
+	/**
+	 * @return the state of a process as a LabelProvider
+	 */
+	public static ColumnLabelProvider createProcess_state() {
+		return new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ""; //$NON-NLS-1$
+			}
+			
+			@Override
+			public Image getImage(Object element) {
+				HerokuProc p = (HerokuProc) element;
+				return getStateIcon(ProcessState.parseRest(p.getHerokuProc().getState()));
+			}
+
+			private Image getStateIcon(ProcessState state) {
+				if (state == ProcessState.UP || state == ProcessState.IDLE ) {
+					return IconKeys.getImage(IconKeys.ICON_PROCESS_UP);
+				}
+				else {
+					return IconKeys.getImage(IconKeys.ICON_PROCESS_UNKNOWN);
+				}
+			}
+		};
+	}
+
+	/**
+	 * @return the verbose process type as a LabelProvider
+	 */
+	public static ColumnLabelProvider createProcess_type() {
+		return new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ((HerokuProc)element).getDynoName();
+			}
+		};
+	}
+	
+	/**
+	 * @param procListCallback 
+	 * @return the verbose process type as a LabelProvider
+	 */
+	public static ColumnLabelProvider createProcess_dynoCount(final HerokuProc proc, final RunnableWithReturn<List<HerokuProc>, App> procListCallback) {
+		return new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				int quantity = 0;
+				List<HerokuProc> procs = procListCallback.run((App) element);
+				if (procs != null) {
+					String currentDyno = ""; //$NON-NLS-1$
+					// if the app has only one process type,
+					// prepopulate
+					for (HerokuProc herokuProc : procs) {
+						if (currentDyno.equals("")) { //$NON-NLS-1$
+							currentDyno = herokuProc.getDynoName();
+							quantity++;
+						}
+						else if (!herokuProc.getDynoName().equals(currentDyno)) {
+							currentDyno = ""; //$NON-NLS-1$
+							quantity = 0;
+							break;
+						}
+						else {
+							quantity++;
+						}
+					}
+				}
+
+				
+				return Integer.toString(quantity);
+			}
+		};
+	}
+	
+	/**
+	 * @return the verbose process type as a LabelProvider
+	 */
+	public static ColumnLabelProvider createProcess_Command() {
+		return new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ((HerokuProc)element).getHerokuProc().getCommand();
 			}
 		};
 	}

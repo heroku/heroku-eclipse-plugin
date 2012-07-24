@@ -35,6 +35,7 @@ import com.heroku.eclipse.ui.utils.WorkbenchOperations.IWorkbenchPartExtension;
 import com.heroku.eclipse.ui.views.dialog.ApplicationInfoPart;
 import com.heroku.eclipse.ui.views.dialog.CollaboratorsPart;
 import com.heroku.eclipse.ui.views.dialog.EnvironmentVariablesPart;
+import com.heroku.eclipse.ui.views.dialog.ProcessListingPart;
 import com.heroku.eclipse.ui.views.dialog.WebsiteOpener;
 
 public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, IWorkbenchPartExtension {
@@ -42,6 +43,7 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 	private ApplicationInfoPart infopart;
 	private CollaboratorsPart collabpart;
 	private EnvironmentVariablesPart envpart;
+	private ProcessListingPart processPart;
 	
 	private TabFolder folder;
 	private List<ServiceRegistration<EventHandler>> handlerRegistrations;
@@ -75,6 +77,15 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 			envpart = new EnvironmentVariablesPart();
 			item.setControl(envpart.createUI(folder));
 			envpart.setDomainObject(getApp());
+		}
+		
+		{
+			TabItem item = new TabItem(folder, SWT.NONE);
+			item.setData(HerokuServices.ROOT_WIDGET_ID, HerokuEditorConstants.P_PROCESSES);
+			item.setText(Messages.getString("HerokuAppManagerViewPart_AppInfo")); //$NON-NLS-1$
+			processPart = new ProcessListingPart();
+			item.setControl(processPart.createUI(folder));
+			processPart.setDomainObject(getApp());
 		}
 
 		folder.setSelection(0);

@@ -1,6 +1,5 @@
 package com.heroku.eclipse.core.services.junit;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
