@@ -9,6 +9,7 @@ import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IImportWizard;
 import org.eclipse.ui.IWorkbench;
 import org.osgi.service.log.LogService;
@@ -49,8 +50,9 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 	@Override
 	public void addPages() {
 		setNeedsProgressMonitor(true);
+		Shell shell = Display.getCurrent().getActiveShell();
 
-		if (HerokuUtils.verifyPreferences(new NullProgressMonitor(), service, Display.getCurrent().getActiveShell())) {
+		if (HerokuUtils.verifyPreferences(new NullProgressMonitor(), service, shell)) {
 			try {
 				createPage = new HerokuAppCreatePage();
 				addPage(createPage);
@@ -60,8 +62,7 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 			}
 		}
 		else {
-			// TODO: closes the entire Eclipse when the failure was due to the secure store
-			Display.getDefault().getActiveShell().close();
+			shell.close();
 		}
 	}
 

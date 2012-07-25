@@ -2,6 +2,7 @@ package com.heroku.eclipse.ui.wizards;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IImportWizard;
 
 import com.heroku.api.App;
@@ -28,8 +29,9 @@ public class HerokuAppImport extends AbstractHerokuAppImportWizard implements II
 	@Override
 	public void addPages() {
 		setNeedsProgressMonitor(false);
-
-		if (HerokuUtils.verifyPreferences(new NullProgressMonitor(), service, Display.getCurrent().getActiveShell())) {
+		Shell shell = Display.getCurrent().getActiveShell();
+		
+		if (HerokuUtils.verifyPreferences(new NullProgressMonitor(), service, shell)) {
 			try {
 				listPage = new HerokuAppImportWizardPage();
 				addPage(listPage);
@@ -41,8 +43,7 @@ public class HerokuAppImport extends AbstractHerokuAppImportWizard implements II
 			}
 		}
 		else {
-			// TODO: closes the entire Eclipse when the failure was due to the secure store
-			Display.getDefault().getActiveShell().close();
+			shell.close();
 		}
 	}
 

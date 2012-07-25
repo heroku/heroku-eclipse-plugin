@@ -156,4 +156,9 @@ public class ApplicationInfoPart {
 		});
 
 	}
+	
+	/**
+	 * Sets the default focus
+	 */
+	public void setFocus() {}
 }

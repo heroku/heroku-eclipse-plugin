@@ -856,7 +856,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		@Override
 		public Object getParent(Object element) {
-			// TODO We could implement this but it is not required
 			return null;
 		}
 

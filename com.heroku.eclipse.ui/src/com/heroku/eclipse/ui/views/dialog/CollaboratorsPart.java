@@ -329,4 +329,10 @@ public class CollaboratorsPart {
 	Shell getShell() {
 		return parent.getShell();
 	}
+	
+	/**
+	 * Sets the default focus
+	 */
+	public void setFocus() {}
+
 }
