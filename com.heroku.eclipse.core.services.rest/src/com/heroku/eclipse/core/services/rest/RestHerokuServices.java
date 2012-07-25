@@ -1007,7 +1007,7 @@ public class RestHerokuServices implements HerokuServices {
 				try {
 					rv.set(r.run());
 				}
-				catch (HerokuServiceException e) {
+				catch (Throwable e) {
 					rv.set(e);
 				}
 			}
@@ -1030,6 +1030,8 @@ public class RestHerokuServices implements HerokuServices {
 		}
 		if (rv.get() instanceof HerokuServiceException) {
 			throw (HerokuServiceException) rv.get();
+		} else if( rv.get() instanceof Throwable ) {
+			throw new HerokuServiceException((Throwable) rv.get());
 		}
 
 		return (V) rv.get();
