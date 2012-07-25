@@ -18,6 +18,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.ProgressMonitorDialog;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -442,7 +443,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		final String password = ((Text) widgetRegistry.get(PreferenceConstants.P_PASSWORD)).getText();
 
 		try {
-			PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+			runProgress(new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask(Messages.getString("HerokuPreferencePage_Progress_Login"), 2); //$NON-NLS-1$
@@ -485,7 +486,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	private boolean setAPIKey(final String apiKey) {
 		boolean rv = false;
 		try {
-			PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+			runProgress(new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask(Messages.getString("HerokuPreferencePage_Progress_ValidateApiKey"), 2); //$NON-NLS-1$
@@ -532,7 +533,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	private boolean setAPIAndSSHKey(final String apiKey, final String sshKey) {
 		boolean rv = false;
 		try {
-			PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+			runProgress(new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask(Messages.getString("HerokuPreferencePage_Progress_ValidateApiKey"), 3); //$NON-NLS-1$
@@ -592,7 +593,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	private boolean setSSHKey(final String sshKey) {
 		boolean rv = false;
 		try {
-			PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+			runProgress(new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask(Messages.getString("HerokuPreferencePage_Progress_StoringSSHKey"), 2); //$NON-NLS-1$
@@ -643,7 +644,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 	private boolean removeSSHKey(final String sshKey) {
 		boolean rv = false;
 		try {
-			PlatformUI.getWorkbench().getProgressService().run(false, true, new IRunnableWithProgress() {
+			runProgress(new IRunnableWithProgress() {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					monitor.beginTask(Messages.getString("HerokuPreferencePage_Progress_RemovingSSHKey"), 2); //$NON-NLS-1$
@@ -901,4 +902,12 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 		}
 	}
 
+	/*
+	 * Use a progress monitor directly instead of the IProgressService
+	 * which hangs on Linux because of the secure store question
+	 */
+	private void runProgress(IRunnableWithProgress p) throws InvocationTargetException, InterruptedException {
+		ProgressMonitorDialog d = new ProgressMonitorDialog(getShell());
+		d.run(true, true, p);
+	}
 }
