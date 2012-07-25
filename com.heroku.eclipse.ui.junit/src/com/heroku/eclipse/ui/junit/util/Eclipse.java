@@ -31,62 +31,59 @@ public class Eclipse {
 
 	private void closeAllShells() {
 		SWTBotShell[] shells = bot.shells();
-		for (SWTBotShell shell : shells) {
-			if (!isEclipseShell(shell)) {
+		for ( SWTBotShell shell : shells ) {
+			if ( !isEclipseShell( shell ) ) {
 				shell.close();
 			}
 		}
 	}
 
-	@SuppressWarnings("boxing")
-	public static boolean isEclipseShell(final SWTBotShell shell) {
-		return UIThreadRunnable.syncExec(new BoolResult() {
+	@SuppressWarnings( "boxing" )
+	public static boolean isEclipseShell( final SWTBotShell shell ) {
+		return UIThreadRunnable.syncExec( new BoolResult() {
 
 			public Boolean run() {
-				return new WorkbenchContentsFinder().activeWorkbenchWindow()
-						.getShell() == shell.widget;
+				return new WorkbenchContentsFinder().activeWorkbenchWindow().getShell() == shell.widget;
 			}
-		});
+		} );
 	}
 
 	public void closeAllEditors() {
 		List<? extends SWTBotEditor> editors = bot.editors();
-		for (SWTBotEditor editor : editors) {
+		for ( SWTBotEditor editor : editors ) {
 			editor.close();
 		}
 	}
 
 	public void saveAll() {
 		List<? extends SWTBotEditor> editors = bot.editors();
-		for (SWTBotEditor editor : editors) {
+		for ( SWTBotEditor editor : editors ) {
 			editor.save();
 		}
 	}
-	
+
 	/**
 	 * Opens the Eclipse Preferences and activates the dialog
 	 * 
 	 * @param preferencePage
-	 *            previous instance of preference page, maybe null, if passed it
-	 *            will be reopened
+	 *            previous instance of preference page, maybe null, if passed it will be reopened
 	 * @return the preferencePage
 	 */
-	public SWTBotShell openPreferencePage(SWTBotShell preferencePage) {
-		if (preferencePage != null)
+	public SWTBotShell openPreferencePage( SWTBotShell preferencePage ) {
+		if ( preferencePage != null )
 			preferencePage.close();
-		bot.perspectiveById("org.eclipse.ui.resourcePerspective").activate();
+		bot.perspectiveById( "org.eclipse.ui.resourcePerspective" ).activate();
 		// This does not work on Mac
 		// bot.menu("Window").menu("Preferences").click();
 		// Launch preferences programmatically instead
-		PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+		PlatformUI.getWorkbench().getDisplay().asyncExec( new Runnable() {
 			public void run() {
-				IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench()
-						.getActiveWorkbenchWindow();
-				ActionFactory.PREFERENCES.create(workbenchWindow).run();
+				IWorkbenchWindow workbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+				ActionFactory.PREFERENCES.create( workbenchWindow ).run();
 
 			}
-		});
-		return bot.shell("Preferences").activate();
+		} );
+		return bot.shell( "Preferences" ).activate();
 	}
 
 }

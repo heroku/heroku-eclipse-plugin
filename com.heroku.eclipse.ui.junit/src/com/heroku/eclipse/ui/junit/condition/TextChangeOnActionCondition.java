@@ -8,17 +8,17 @@ public abstract class TextChangeOnActionCondition implements ICondition {
 	private SWTBotText target;
 	private String initText;
 
-	public TextChangeOnActionCondition(SWTBotText target) {
+	public TextChangeOnActionCondition( SWTBotText target ) {
 		this.target = target;
 	}
 
 	@Override
 	public boolean test() throws Exception {
-		return !initText.equals(target.getText());
+		return !initText.equals( target.getText() );
 	}
 
 	@Override
-	public void init(SWTBot bot) {
+	public void init( SWTBot bot ) {
 		initText = target.getText();
 		doAction();
 	}

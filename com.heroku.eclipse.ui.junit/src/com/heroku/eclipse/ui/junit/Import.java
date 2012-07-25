@@ -16,7 +16,7 @@ import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.junit.common.Credentials;
 import com.heroku.eclipse.ui.messages.Messages;
 
-@RunWith(SWTBotJunit4ClassRunner.class)
+@RunWith( SWTBotJunit4ClassRunner.class )
 public class Import extends TestCase {
 	private static final SWTWorkbenchBot bot = new SWTWorkbenchBot();
 
@@ -31,29 +31,35 @@ public class Import extends TestCase {
 
 	@Test
 	public void testImportExistingProject() throws Exception {
-		bot.menu("File").menu("Import...").click();
-		bot.tree().getTreeItem(Messages.getString("HerokuUI.heroku")).expand().getNode(Messages.getString("HerokuUI.ImportWizardName")).select();
-		bot.button("Next >").click();
+		bot.menu( "File" ).menu( "Import..." ).click();
+		bot.tree().getTreeItem( Messages.getString( "HerokuUI.heroku" ) ).expand().getNode( Messages.getString( "HerokuUI.ImportWizardName" ) ).select();
+		bot.button( "Next >" ).click();
 		// if not properly configured, an additional step is necessary
-		SWTBotShell shellDlg = bot.shell(Messages.getString("Heroku_Common_Error_HerokuPrefsMissing_Title"));
-		if (shellDlg != null) {
-			shellDlg.bot().button("Yes").click();
-			shellDlg.bot().sleep(2000);
-			SWTBotShell shellPref = bot.shell("Preferences");
-			shellPref.bot().textWithId(PreferenceConstants.P_EMAIL).setText(Credentials.VALID_JUNIT_USER1);
-			shellPref.bot().textWithId(PreferenceConstants.P_PASSWORD).setText(Credentials.VALID_JUNIT_PWD1);
-			shellPref.bot().buttonWithId(PreferenceConstants.B_FETCH_API_KEY).click();
-			shellPref.bot().button("OK").click();
-			//t.sleep(5000);
+		SWTBotShell shellDlg = null;
+		try {
+			shellDlg = bot.shell( Messages.getString( "Heroku_Common_Error_HerokuPrefsMissing_Title" ) );
+		}
+		catch ( Exception e ) {
+			// nothing here
+		}
+		if ( shellDlg != null ) {
+			shellDlg.bot().button( "Yes" ).click();
+			shellDlg.bot().sleep( 2000 );
+			SWTBotShell shellPref = bot.shell( "Preferences" );
+			shellPref.bot().textWithId( PreferenceConstants.P_EMAIL ).setText( Credentials.VALID_JUNIT_USER1 );
+			shellPref.bot().textWithId( PreferenceConstants.P_PASSWORD ).setText( Credentials.VALID_JUNIT_PWD1 );
+			shellPref.bot().buttonWithId( PreferenceConstants.B_FETCH_API_KEY ).click();
+			shellPref.bot().button( "OK" ).click();
+			// t.sleep(5000);
 		}
 		SWTBotShell shellSelectProject = bot.activeShell();
-		shellSelectProject.bot().tableWithId(AppImportConstants.V_APPS_LIST).select(0);
-		shellSelectProject.bot().button("Next >").click();
+		shellSelectProject.bot().tableWithId( AppImportConstants.V_APPS_LIST ).select( 0 );
+		shellSelectProject.bot().button( "Next >" ).click();
 
 		SWTBotShell shellSelectWizard = bot.activeShell();
-		assertTrue(shellSelectWizard.bot().radioWithId(AppImportConstants.B_AUTODETECT).isSelected());
-		shellSelectWizard.bot().button("Finish").click();
-		
-		//assertTrue(false);
+		assertTrue( shellSelectWizard.bot().radioWithId( AppImportConstants.B_AUTODETECT ).isSelected() );
+		shellSelectWizard.bot().button( "Finish" ).click();
+
+		// assertTrue(false);
 	}
 }
