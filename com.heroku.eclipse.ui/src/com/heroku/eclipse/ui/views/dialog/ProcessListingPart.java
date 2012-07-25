@@ -351,6 +351,7 @@ public class ProcessListingPart {
 				}
 			}
 		};
+		d.setHelpAvailable(false);
 		d.open();
 	}
 
