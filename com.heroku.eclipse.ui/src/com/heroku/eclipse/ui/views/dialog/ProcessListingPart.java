@@ -12,6 +12,7 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.IElementComparer;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -79,7 +80,9 @@ public class ProcessListingPart {
 			viewer = new TableViewer(container, SWT.MULTI | SWT.H_SCROLL | SWT.V_SCROLL | SWT.BORDER | SWT.FULL_SELECTION);
 			viewer.getTable().setHeaderVisible(true);
 			viewer.getTable().setLinesVisible(true);
+			viewer.setComparer(new ElementComparerImpl());
 			viewer.setContentProvider(new ArrayContentProvider());
+			
 
 			GridData gd = new GridData(GridData.FILL_BOTH);
 			gd.heightHint = 300;
@@ -551,6 +554,31 @@ public class ProcessListingPart {
 		}
 
 		return dynoProcs;
+	}
+	
+	static class ElementComparerImpl implements IElementComparer {
+
+		@Override
+		public boolean equals(Object a, Object b) {
+			if (a instanceof HerokuProc && b instanceof HerokuProc) {
+				return hashCode(a) == hashCode(b);
+			}
+			else if (a instanceof App && b instanceof App) {
+				return hashCode(a) == hashCode(b);
+			}
+			return a.equals(b);
+		}
+
+		@Override
+		public int hashCode(Object element) {
+			if (element instanceof App) {
+				return ((App) element).getId().hashCode();
+			}
+			else if (element instanceof HerokuProc) {
+				return ((HerokuProc) element).getUniqueId().hashCode();
+			}
+			return element.hashCode();
+		}
 	}
 
 	/**
