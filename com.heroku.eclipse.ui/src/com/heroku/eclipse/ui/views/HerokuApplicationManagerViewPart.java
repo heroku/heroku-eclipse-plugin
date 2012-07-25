@@ -1,8 +1,8 @@
 package com.heroku.eclipse.ui.views;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.lang.reflect.InvocationTargetException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -81,6 +81,7 @@ import com.heroku.eclipse.ui.utils.AppComparator;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.IconKeys;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
+import com.heroku.eclipse.ui.utils.SafeRunnableAction;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
 import com.heroku.eclipse.ui.views.dialog.WebsiteOpener;
 import com.heroku.eclipse.ui.wizards.HerokuSingleAppImport;
@@ -279,17 +280,17 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	}
 
 	private MenuManager createContextMenu() {
-		Action refresh = new Action(Messages.getString("HerokuAppManagerViewPart_Refresh")) { //$NON-NLS-1$
+		SafeRunnableAction refresh = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_Refresh")) { //$NON-NLS-1$
 			@Override
-			public void run() {
+			public void safeRun() {
 				refreshApplications(new NullProgressMonitor(), true);
 			}
 		};
 
-		final Action appInfo = new Action(
+		final SafeRunnableAction appInfo = new SafeRunnableAction(
 				Messages.getString("HerokuAppManagerViewPart_AppInfoShort"), IconKeys.getImageDescriptor(IconKeys.ICON_APPINFO_EDITOR_ICON)) { //$NON-NLS-1$
 			@Override
-			public void run() {
+			public void safeRun() {
 				try {
 					App app = getSelectedAppOrProcApp();
 					if (app != null) {
@@ -303,9 +304,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			}
 		};
-		final Action importApp = new Action(Messages.getString("HerokuAppManagerViewPart_Import")) { //$NON-NLS-1$
+		final SafeRunnableAction importApp = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_Import")) { //$NON-NLS-1$
 			@Override
-			public void run() {
+			public void safeRun() {
 				App app = getSelectedApp();
 				if (app != null) {
 					if (MessageDialog
@@ -324,9 +325,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
-		final Action open = new Action(Messages.getString("HerokuAppManagerViewPart_Open")) { //$NON-NLS-1$
+		final SafeRunnableAction open = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_Open")) { //$NON-NLS-1$
 			@Override
-			public void run() {
+			public void safeRun() {
 				App app = getSelectedApp();
 				if (app != null) {
 					openInternal(app);
@@ -334,9 +335,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
-		final Action restart = new Action(Messages.getString("HerokuAppManagerViewPart_Restart")) { //$NON-NLS-1$
+		final SafeRunnableAction restart = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_Restart")) { //$NON-NLS-1$
 			@Override
-			public void run() {
+			public void safeRun() {
 				final App app = getSelectedApp();
 				if (MessageDialog
 						.openQuestion(
@@ -378,16 +379,16 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
-		final Action viewLogs = new Action(Messages.getString("HerokuAppManagerViewPart_ViewLogs")) { //$NON-NLS-1$
+		final SafeRunnableAction viewLogs = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_ViewLogs")) { //$NON-NLS-1$
 			@Override
-			public void run() {
+			public void safeRun() {
 				openLog(getSelectedApp());
 			}
 		};
 
-		final Action scale = new Action(Messages.getString("HerokuAppManagerViewPart_Scale")) { //$NON-NLS-1$
+		final SafeRunnableAction scale = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_Scale")) { //$NON-NLS-1$
 			@Override
-			public void run() {
+			public void safeRun() {
 				TrayDialog d = new TrayDialog(getShell()) {
 
 					private Text processField;
@@ -547,9 +548,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
-		final Action destroy = new Action(Messages.getString("HerokuAppManagerViewPart_Destroy")) { //$NON-NLS-1$
+		final SafeRunnableAction destroy = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_Destroy")) { //$NON-NLS-1$
 			@Override
-			public void run() {
+			public void safeRun() {
 				App app = getSelectedApp();
 				if (app != null) {
 					if (MessageDialog

@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferenceDialog;
+import org.eclipse.jface.util.SafeRunnable;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
@@ -51,6 +52,16 @@ public class HerokuUtils {
 		public void run(ErrorData e) {
 			ErrorDialog.openError(e.shell, e.title, e.message, e.status);
 		}
+	}
+	
+	public static void runWithUIReport(final Runnable runnable) {
+		SafeRunnable.run(new SafeRunnable() {
+			
+			@Override
+			public void run() throws Exception {
+				runnable.run();
+			}
+		});
 	}
 
 	/**
