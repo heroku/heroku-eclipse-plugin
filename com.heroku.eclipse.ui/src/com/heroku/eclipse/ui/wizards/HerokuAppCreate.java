@@ -82,7 +82,6 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 					System.getProperty("file.separator")+HerokuProperties.getString("defaultRepo"); //$NON-NLS-1$ //$NON-NLS-2$
 			final int timeout = org.eclipse.egit.ui.Activator.getDefault().getPreferenceStore().getInt(UIPreferences.REMOTE_CONNECTION_TIMEOUT);
 			final HerokuCredentialsProvider cred = new HerokuCredentialsProvider(HerokuProperties.getString("heroku.eclipse.git.defaultUser"), ""); //$NON-NLS-1$ //$NON-NLS-2$
-
 			try {
 				getContainer().run(true, true, new IRunnableWithProgress() {
 					@Override
@@ -101,9 +100,11 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 							App app = service.createAppFromTemplate(monitor, appName, template.getTemplateName());
 						
 							if (app != null) {
+								String transportErrorMessage = Messages.getFormattedString("Heroku_Common_Error_JGitTransportException", app.getName()); //$NON-NLS-1$
+
 								monitor.subTask(Messages.getString("HerokuAppCreate_FetchingApp")); //$NON-NLS-1$
 								service.materializeGitApp(monitor, app, IMPORT_TYPES.AUTODETECT, null, destinationDir, timeout,
-										Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred); //$NON-NLS-1$
+										Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, transportErrorMessage); //$NON-NLS-1$
 								monitor.worked(1);
 								monitor.done();
 							}

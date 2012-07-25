@@ -44,6 +44,7 @@ import org.eclipse.equinox.security.storage.ISecurePreferences;
 import org.eclipse.equinox.security.storage.SecurePreferencesFactory;
 import org.eclipse.equinox.security.storage.StorageException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.errors.TransportException;
 import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.URIish;
 import org.eclipse.m2e.core.MavenPlugin;
@@ -76,9 +77,8 @@ import com.heroku.eclipse.core.services.model.KeyValue;
  * methods of the com.heroku.api.HerokuAPI class
  * 
  * @author udo.rader@bestsolution.at
- * @param <O>
  */
-public class RestHerokuServices<O> implements HerokuServices {
+public class RestHerokuServices implements HerokuServices {
 	private RestHerokuSession herokuSession;
 	private IEclipsePreferences preferences;
 	private ISecurePreferences securePreferences;
@@ -458,7 +458,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 
 	@Override
 	public boolean materializeGitApp(IProgressMonitor pm, App app, IMPORT_TYPES importType, IProject existingProject, String gitLocation, int timeout,
-			String dialogTitle, CredentialsProvider cred) throws HerokuServiceException {
+			String dialogTitle, CredentialsProvider cred, String transportErrorMessage) throws HerokuServiceException {
 		boolean rv = false;
 
 		Activator.getDefault().getLogger().log(LogService.LOG_INFO, "materializing Heroku App '" + app.getName() + "' in workspace, import type " + importType); //$NON-NLS-1$ //$NON-NLS-2$
@@ -491,7 +491,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 
 			cloneOp.setCredentialsProvider(cred);
 			cloneOp.setCloneSubmodules(true);
-			runCloneJob(uri, cloneOp, app, importType, existingProject, dialogTitle);
+			runCloneJob(uri, cloneOp, app, importType, existingProject, dialogTitle, transportErrorMessage);
 
 			rv = true;
 		}
@@ -506,7 +506,7 @@ public class RestHerokuServices<O> implements HerokuServices {
 	}
 
 	private void runCloneJob(final URIish uri, final CloneOperation op, final App app, final IMPORT_TYPES importType, final IProject existingProject,
-			String dialogTitle) {
+			String dialogTitle, final String transportErrorMessage) {
 		final Job job = new Job(dialogTitle) {
 			@Override
 			protected IStatus run(final IProgressMonitor monitor) {
@@ -532,7 +532,13 @@ public class RestHerokuServices<O> implements HerokuServices {
 					Throwable thr = e.getCause();
 
 					if (thr.getCause() != null) {
-						return new Status(IStatus.ERROR, Activator.getPluginId(), 0, thr.getCause().getMessage(), e);
+						if (thr.getCause() instanceof TransportException) {
+							return new Status(IStatus.ERROR, Activator.getPluginId(), 0, transportErrorMessage, thr.getCause());
+						}
+						else {
+							return new Status(IStatus.ERROR, Activator.getPluginId(), 0, thr.getCause().getMessage(), thr.getCause());
+
+						}
 					}
 					else {
 						return new Status(IStatus.ERROR, Activator.getPluginId(), 0, thr.getMessage(), e);
@@ -1056,7 +1062,8 @@ public class RestHerokuServices<O> implements HerokuServices {
 	 * @param streamName
 	 * @param streamCreator
 	 */
-	private void startLogThread(final IProgressMonitor pm, String streamName, final LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler, final String appName, final String procName) {
+	private void startLogThread(final IProgressMonitor pm, String streamName, final LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler,
+			final String appName, final String procName) {
 		// only start new log thread for the given stream if we have not created
 		// one before
 		if (!logThreads.containsKey(streamName)) {

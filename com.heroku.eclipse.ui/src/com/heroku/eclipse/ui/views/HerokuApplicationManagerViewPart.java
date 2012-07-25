@@ -663,7 +663,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				HerokuServiceException e1 = HerokuUtils.extractHerokuException(getShell(), e, "unexpected error displaying log for app " + app.getName()); //$NON-NLS-1$
 
 				if (e1 != null) {
-
+					HerokuUtils.herokuError(getShell(), e1);
 				}
 			}
 		};

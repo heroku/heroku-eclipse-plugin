@@ -296,12 +296,14 @@ public interface HerokuServices {
 	 * @param cred
 	 *            the CredentialsProvider containing everything we need to
 	 *            authenticate
+	 * @param transportErrorMessage 
+	 * 				error message to populate an IStatus with if a transport error has occurred
 	 * @return true, if the materialization was successful, otherwise false the
 	 *         App instance to materialize
 	 * @throws HerokuServiceException
 	 */
 	public boolean materializeGitApp(IProgressMonitor pm, App app, IMPORT_TYPES importType, IProject existingProject, String workingDir, int timeout, String progressTitle,
-			CredentialsProvider cred) throws HerokuServiceException;
+			CredentialsProvider cred, String transportErrorMessage) throws HerokuServiceException;
 
 	/**
 	 * Restart an application

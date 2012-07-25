@@ -84,9 +84,11 @@ public class AbstractHerokuAppImportWizard extends Wizard implements IImportWiza
 									throw new HerokuServiceException(HerokuServiceException.INSUFFICIENT_DATA, "new project wizard has been aborted"); //$NON-NLS-1$
 								}
 							}
+							
+							String transportErrorMessage = Messages.getFormattedString("Heroku_Common_Error_JGitTransportException", app.getName()); //$NON-NLS-1$
 
 							service.materializeGitApp(monitor, app, importType, existingProject, destinationDir, timeout,
-									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred); //$NON-NLS-1$
+									Messages.getFormattedString("HerokuAppCreate_CreatingApp", app.getName()), cred, transportErrorMessage); //$NON-NLS-1$
 						}
 						catch (HerokuServiceException e) {
 							// clean up previously created "new project"

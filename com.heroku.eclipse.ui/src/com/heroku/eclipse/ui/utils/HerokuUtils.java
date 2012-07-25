@@ -317,6 +317,9 @@ public class HerokuUtils {
 		else if (e instanceof InvocationTargetException) {
 			rv = (Exception) e.getCause();
 		}
+		else if (e instanceof RuntimeException) {
+			rv = (Exception) e.getCause();
+		}
 
 		if (rv instanceof HerokuServiceException) {
 			// "Operation cancelled" means that the user pressed "cancel", so we
