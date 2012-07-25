@@ -38,13 +38,20 @@ import com.heroku.eclipse.ui.views.dialog.EnvironmentVariablesPart;
 import com.heroku.eclipse.ui.views.dialog.ProcessListingPart;
 import com.heroku.eclipse.ui.views.dialog.WebsiteOpener;
 
+/**
+ * Editor container for an entire Heroku App
+ * @author tom.schindl@bestsolution.at
+ */
 public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, IWorkbenchPartExtension {
-	public static final String ID = "com.heroku.eclipse.ui.appinfoeditor";
+	/**
+	 * editor's public ID
+	 */
+	public static final String ID = "com.heroku.eclipse.ui.appinfoeditor"; //$NON-NLS-1$
 	private ApplicationInfoPart infopart;
 	private CollaboratorsPart collabpart;
 	private EnvironmentVariablesPart envpart;
 	private ProcessListingPart processPart;
-	
+
 	private TabFolder folder;
 	private List<ServiceRegistration<EventHandler>> handlerRegistrations;
 
@@ -78,7 +85,7 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 			item.setControl(envpart.createUI(folder));
 			envpart.setDomainObject(getApp());
 		}
-		
+
 		{
 			TabItem item = new TabItem(folder, SWT.NONE);
 			item.setData(HerokuServices.ROOT_WIDGET_ID, HerokuEditorConstants.P_PROCESSES);
@@ -94,104 +101,107 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 	}
 
 	private App getApp() {
-		return ((ApplicationEditorInput)getEditorInput()).getApp();
+		return ((ApplicationEditorInput) getEditorInput()).getApp();
 	}
-	
+
 	private void updateApp(App app) {
 		infopart.setDomainObject(app);
 		collabpart.setDomainObject(app);
 		envpart.setDomainObject(app);
-		((ApplicationEditorInput)getEditorInput()).setApp(app);
+		((ApplicationEditorInput) getEditorInput()).setApp(app);
 	}
-	
+
 	@Override
 	public void setPartName(String partName) {
 		super.setPartName(partName);
 	}
-	
+
 	private void subscribeToEvents() {
 		EventHandler renameApplicationHandler = new EventHandler() {
 
 			@Override
 			public void handleEvent(Event event) {
-				if( getApp().getId().equals(event.getProperty(HerokuServices.KEY_APPLICATION_ID))) {
+				if (getApp().getId().equals(event.getProperty(HerokuServices.KEY_APPLICATION_ID))) {
 					try {
-						App app = Activator.getDefault().getService().getApp(new NullProgressMonitor(), (String)event.getProperty(HerokuServices.KEY_APPLICATION_NAME));
+						App app = Activator.getDefault().getService()
+								.getApp(new NullProgressMonitor(), (String) event.getProperty(HerokuServices.KEY_APPLICATION_NAME));
 						updateApp(app);
-					} catch (HerokuServiceException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
 					}
-					
+					catch (HerokuServiceException e) {
+						HerokuUtils.herokuError(getShell(), e);
+					}
+
 					HerokuUtils.runOnDisplay(true, folder, getApp().getName(), WorkbenchOperations.setPartName(ApplicationInfoEditor.this));
 				}
 			}
 		};
-		
+
 		EventHandler transferApplicationHandler = new EventHandler() {
 
 			@Override
 			public void handleEvent(Event event) {
-				if( getApp().getId().equals(event.getProperty(HerokuServices.KEY_APPLICATION_ID))) {
+				if (getApp().getId().equals(event.getProperty(HerokuServices.KEY_APPLICATION_ID))) {
 					try {
 						App app = Activator.getDefault().getService().getApp(new NullProgressMonitor(), getApp().getName());
 						updateApp(app);
-					} catch (HerokuServiceException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+					}
+					catch (HerokuServiceException e) {
+						HerokuUtils.herokuError(getShell(), e);
 					}
 				}
 			}
 		};
-		
+
 		EventHandler destroyedApplicationHandler = new EventHandler() {
 
 			@Override
 			public void handleEvent(Event event) {
-				if( getApp().getId().equals(event.getProperty(HerokuServices.KEY_APPLICATION_ID))) {
-					HerokuUtils.runOnDisplay(true,folder, ApplicationInfoEditor.this, WorkbenchOperations.close(getSite().getWorkbenchWindow().getActivePage()));
+				if (getApp().getId().equals(event.getProperty(HerokuServices.KEY_APPLICATION_ID))) {
+					HerokuUtils.runOnDisplay(true, folder, ApplicationInfoEditor.this,
+							WorkbenchOperations.close(getSite().getWorkbenchWindow().getActivePage()));
 				}
 			}
 		};
 
-		
 		handlerRegistrations = new ArrayList<ServiceRegistration<EventHandler>>();
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(renameApplicationHandler, HerokuServices.TOPIC_APPLICATION_RENAMED));
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(transferApplicationHandler, HerokuServices.TOPIC_APPLICATION_TRANSFERED));
 		handlerRegistrations.add(Activator.getDefault().registerEvenHandler(destroyedApplicationHandler, HerokuServices.TOPIC_APPLICATION_DESTROYED));
 	}
-	
+
 	public void dispose() {
 		super.dispose();
-		
+
 		if (handlerRegistrations != null) {
 			for (ServiceRegistration<EventHandler> r : handlerRegistrations) {
 				r.unregister();
 			}
 		}
 	}
-	
+
 	@Override
 	public void setFocus() {
-		if( folder.getSelectionIndex() == 0 ) {
+		if (folder.getSelectionIndex() == 0) {
 			infopart.setFocus();
-		} else if( folder.getSelectionIndex() == 1 ) {
+		}
+		else if (folder.getSelectionIndex() == 1) {
 			collabpart.setFocus();
-		} else if( folder.getSelectionIndex() == 2 ) {
+		}
+		else if (folder.getSelectionIndex() == 2) {
 			envpart.setFocus();
-		} else {
+		}
+		else {
 			folder.setFocus();
 		}
 	}
 
 	@Override
-	public void init(IEditorSite site, IEditorInput input)
-			throws PartInitException {
+	public void init(IEditorSite site, IEditorInput input) throws PartInitException {
 		setSite(site);
 		setInput(input);
 		setPartName(getApp().getName());
 	}
-	
+
 	@Override
 	public void openInternal(App application) {
 		try {
@@ -208,19 +218,19 @@ public class ApplicationInfoEditor extends EditorPart implements WebsiteOpener, 
 			HerokuUtils.internalError(getShell(), e);
 		}
 	}
-	
+
 	Shell getShell() {
 		return getSite().getWorkbenchWindow().getShell();
 	}
-	
+
 	@Override
 	public void doSave(IProgressMonitor monitor) {
-		
+
 	}
 
 	@Override
 	public void doSaveAs() {
-		
+
 	}
 
 	@Override

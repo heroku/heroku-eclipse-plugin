@@ -2,7 +2,6 @@ package com.heroku.eclipse.ui.views.dialog;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -94,6 +93,7 @@ public class EnvironmentVariablesPart {
 
 				@Override
 				public void selectionChanged(SelectionChangedEvent event) {
+					@SuppressWarnings("unchecked")
 					List<KeyValue> envVars = (((IStructuredSelection) viewer.getSelection()).toList());
 					editButton.setEnabled(false);
 					removeButton.setEnabled(false);
@@ -473,26 +473,27 @@ public class EnvironmentVariablesPart {
 			});
 		}
 		catch (InvocationTargetException e) {
-			if (e.getCause() instanceof HerokuServiceException) {
-				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
-				HerokuUtils.herokuError(parent.getShell(), e);
+			HerokuServiceException e1 = HerokuUtils.extractHerokuException(parent.getShell(), e, "unknown error when trying to refresh environment variables list"); //$NON-NLS-1$
+			if ( e1 != null ) {
+				HerokuUtils.herokuError(parent.getShell(), e1);
 			}
-			else {
-				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
-				HerokuUtils.internalError(parent.getShell(), e);
 
-			}
 		}
 		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// nothing to do when interrupted
 		}
 	}
 
+	/**
+	 * 
+	 */
 	public void dispose() {
 
 	}
 
+	/**
+	 * 
+	 */
 	public void setFocus() {
 		viewer.getControl().setFocus();
 	}

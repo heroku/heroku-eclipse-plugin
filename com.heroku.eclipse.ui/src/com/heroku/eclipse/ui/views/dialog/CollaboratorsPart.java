@@ -20,6 +20,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -38,6 +39,7 @@ import com.heroku.eclipse.ui.utils.ViewerOperations;
 
 /**
  * Displays all collaborators of an Heroku App
+ * 
  * @author tom.schindl@bestsolution.at
  */
 public class CollaboratorsPart {
@@ -115,9 +117,10 @@ public class CollaboratorsPart {
 					public void widgetSelected(SelectionEvent e) {
 						@SuppressWarnings("unchecked")
 						List<Collaborator> collabs = ((IStructuredSelection) viewer.getSelection()).toList();
-						if (collabs.size() > 0 ) {
+						if (collabs.size() > 0) {
 							if (collabs.contains(currentOwner)) {
-								Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "collaborators list to remove contains application owner, rejecting!"); //$NON-NLS-1$
+								Activator.getDefault().getLogger()
+										.log(LogService.LOG_DEBUG, "collaborators list to remove contains application owner, rejecting!"); //$NON-NLS-1$
 								HerokuUtils.userError(
 										removeButton.getShell(),
 										Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner_Title"), Messages.getString("HerokuAppInformationCollaborators_Error_UnableToRemoveAppOwner")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -264,9 +267,9 @@ public class CollaboratorsPart {
 				}
 				else {
 					HerokuUtils
-					.userError(
-							shell,
-							Messages.getString("HerokuAppInformationCollaborators_Error_MissingInput_Title"), Messages.getString("HerokuAppInformationCollaborators_Error_MissingInput")); //$NON-NLS-1$ //$NON-NLS-2$
+							.userError(
+									shell,
+									Messages.getString("HerokuAppInformationCollaborators_Error_MissingInput_Title"), Messages.getString("HerokuAppInformationCollaborators_Error_MissingInput")); //$NON-NLS-1$ //$NON-NLS-2$
 					emailField.setFocus();
 				}
 			}
@@ -284,50 +287,46 @@ public class CollaboratorsPart {
 	}
 
 	private void refreshCollaboratorList() {
-			try {
-				PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
-					
-					@Override
-					public void run(IProgressMonitor monitor) throws InvocationTargetException,
-							InterruptedException {
-						try {
-							collaboratorsList = Activator.getDefault().getService().getCollaborators(monitor, domainObject);
+		try {
+			PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 
-							if (domainObject.getOwnerEmail() != null) {
-								for (Collaborator c : collaboratorsList) {
-									if (domainObject.getOwnerEmail().equals(c.getEmail())) {
-										currentOwner = c;
-										break;
-									}
+				@Override
+				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+					try {
+						collaboratorsList = Activator.getDefault().getService().getCollaborators(monitor, domainObject);
+
+						if (domainObject.getOwnerEmail() != null) {
+							for (Collaborator c : collaboratorsList) {
+								if (domainObject.getOwnerEmail().equals(c.getEmail())) {
+									currentOwner = c;
+									break;
 								}
 							}
-							else {
-								currentOwner = null;
-							}
+						}
+						else {
+							currentOwner = null;
+						}
 
-							HerokuUtils.runOnDisplay(true, viewer, collaboratorsList, ViewerOperations.input(viewer));
-						}
-						catch (HerokuServiceException e) {
-							Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to refresh collaborators list", e); //$NON-NLS-1$
-							HerokuUtils.internalError(parent.getShell(), e);
-						}
+						HerokuUtils.runOnDisplay(true, viewer, collaboratorsList, ViewerOperations.input(viewer));
 					}
-				});
-			} catch (InvocationTargetException e) { 
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+					catch (HerokuServiceException e) {
+						throw new InvocationTargetException(e);
+					}
+				}
+			});
+		}
+		catch (InvocationTargetException e) {
+			HerokuServiceException e1 = HerokuUtils.extractHerokuException(getShell(), e, "unknown error when trying to refresh collaborators list"); //$NON-NLS-1$
+			if ( e1 != null ) {
+				HerokuUtils.herokuError(getShell(), e1);
 			}
+		}
+		catch (InterruptedException e) {
+			// nothing to do if interrupted
+		}
 	}
-
-	public void dispose() {
-
-	}
-
-	public void setFocus() {
-		// TODO Auto-generated method stub
-
+	
+	Shell getShell() {
+		return parent.getShell();
 	}
 }

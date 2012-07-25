@@ -538,8 +538,7 @@ public class ProcessListingPart {
 			}
 		}
 		catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// nothing to do if interrupted
 		}
 	}
 

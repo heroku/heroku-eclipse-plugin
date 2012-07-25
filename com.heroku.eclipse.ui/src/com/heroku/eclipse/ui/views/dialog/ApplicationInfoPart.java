@@ -22,6 +22,7 @@ import com.heroku.eclipse.ui.utils.RunnableWithParameter;
 
 /**
  * Displays basic information about an Heroku App
+ * 
  * @author tom.schindl@bestsolution.at
  */
 public class ApplicationInfoPart {
@@ -35,13 +36,16 @@ public class ApplicationInfoPart {
 
 	private WebsiteOpener websiteOpener;
 
+	/**
+	 * @param websiteOpener
+	 */
 	public ApplicationInfoPart(WebsiteOpener websiteOpener) {
 		this.websiteOpener = websiteOpener;
 	}
 
 	/**
 	 * @param parent
-	 * @return
+	 * @return the created UI composite
 	 */
 	public Composite createUI(Composite parent) {
 		this.parent = parent;
@@ -85,18 +89,19 @@ public class ApplicationInfoPart {
 
 		{
 			Link l = new Link(container, SWT.NONE);
-			l.setText("<a>"+ Messages.getString("HerokuAppInformationPart_URL")+"</a>"); //$NON-NLS-1$
+			l.setText("<a>" + Messages.getString("HerokuAppInformationPart_URL") + "</a>"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			l.addSelectionListener(new SelectionAdapter() {
 				@Override
 				public void widgetSelected(SelectionEvent e) {
 					websiteOpener.openInternal(domainObject);
 				}
 			});
-			
-//			Composite layoutComp = new Composite(container, SWT.NONE);
-//			layoutComp.setLayoutData(new GridData(GridData.FILL, SWT.CENTER, true, false, 2, 1));
-//			layoutComp.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).create());
-			
+
+			// Composite layoutComp = new Composite(container, SWT.NONE);
+			// layoutComp.setLayoutData(new GridData(GridData.FILL, SWT.CENTER,
+			// true, false, 2, 1));
+			// layoutComp.setLayout(GridLayoutFactory.fillDefaults().numColumns(2).create());
+
 			appUrl = new Text(container, SWT.READ_ONLY);
 			appUrl.setLayoutData(new GridData(GridData.BEGINNING, SWT.CENTER, true, false, 2, 1));
 			appUrl.addSelectionListener(new SelectionAdapter() {
@@ -106,9 +111,9 @@ public class ApplicationInfoPart {
 				}
 			});
 			appUrl.setBackground(parent.getBackground());
-			
-//			Button b = new Button(layoutComp, SWT.PUSH);
-//			b.setText("Hello World");
+
+			// Button b = new Button(layoutComp, SWT.PUSH);
+			// b.setText("Hello World");
 		}
 
 		{
@@ -131,6 +136,11 @@ public class ApplicationInfoPart {
 		return container;
 	}
 
+	/**
+	 * Sets this view part's domain object
+	 * 
+	 * @param domainObject
+	 */
 	public void setDomainObject(App domainObject) {
 		this.domainObject = domainObject;
 		HerokuUtils.runOnDisplay(true, appUrl, domainObject, new RunnableWithParameter<App>() {
@@ -138,21 +148,12 @@ public class ApplicationInfoPart {
 			@Override
 			public void run(App argument) {
 				appName.setText(HerokuUtils.ensureNotNull(argument.getName()));
-				appUrl.setText(HerokuUtils.ensureNotNull(argument.getWebUrl())); //$NON-NLS-1$ //$NON-NLS-2$
+				appUrl.setText(HerokuUtils.ensureNotNull(argument.getWebUrl()));
 				appGitUrl.setText(HerokuUtils.ensureNotNull(argument.getGitUrl()));
 				appDomainName.setText(argument.getDomain() == null ? "" : HerokuUtils.ensureNotNull(argument.getDomain().getDomain())); //$NON-NLS-1$
 				parent.layout(true, true);
 			}
 		});
-
-	}
-
-	public void dispose() {
-
-	}
-
-	public void setFocus() {
-		// TODO Auto-generated method stub
 
 	}
 }
