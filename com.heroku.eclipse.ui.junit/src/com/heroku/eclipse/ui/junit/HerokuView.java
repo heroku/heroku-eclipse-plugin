@@ -28,7 +28,7 @@ import com.heroku.eclipse.core.constants.HerokuViewConstants;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.ui.messages.Messages;
 
-@RunWith(SWTBotJunit4ClassRunner.class)
+@RunWith( SWTBotJunit4ClassRunner.class )
 public class HerokuView extends TestCase {
 	private SWTBotView herokuView;
 
@@ -51,36 +51,31 @@ public class HerokuView extends TestCase {
 	public void testOpenHerokuView() throws Exception {
 		final SWTBotTree tree = openViewAndGetTree();
 
-		Assert.assertTrue("no heroku apps found", tree.getAllItems().length > 0);
+		Assert.assertTrue( "no heroku apps found", tree.getAllItems().length > 0 );
 
-		tree.select(0)
-				.contextMenu(
-						Messages.getString("HerokuAppManagerViewPart_Refresh"))
-				.click();
+		tree.select( 0 ).contextMenu( Messages.getString( "HerokuAppManagerViewPart_Refresh" ) ).click();
 	}
 
 	private SWTBotTree openViewAndGetTree() {
-		bot.menu("Window").menu("Show View").menu("Other...").click();
-		bot.tree().getTreeItem(Messages.getString("HerokuUI.heroku")).expand()
-				.getNode(Messages.getString("HerokuUI.viewName")).select();
-		bot.button("OK").click();
+		bot.menu( "Window" ).menu( "Show View" ).menu( "Other..." ).click();
+		bot.tree().getTreeItem( Messages.getString( "HerokuUI.heroku" ) ).expand().getNode( Messages.getString( "HerokuUI.viewName" ) ).select();
+		bot.button( "OK" ).click();
 
-		herokuView = bot.viewByTitle(Messages.getString("HerokuUI.viewName"));
+		herokuView = bot.viewByTitle( Messages.getString( "HerokuUI.viewName" ) );
 
 		// refresh
 		// herokuView.bot().toolbarButton().click();
 
-		final SWTBotTree tree = herokuView.bot().treeWithId(
-				HerokuViewConstants.V_APPS_LIST);
+		final SWTBotTree tree = herokuView.bot().treeWithId( HerokuViewConstants.V_APPS_LIST );
 
-		herokuView.bot().waitUntil(new ICondition() {
+		herokuView.bot().waitUntil( new ICondition() {
 			@Override
 			public boolean test() throws Exception {
 				return tree.getAllItems().length > 0;
 			}
 
 			@Override
-			public void init(SWTBot bot) {
+			public void init( SWTBot bot ) {
 				// nothing here
 			}
 
@@ -88,7 +83,7 @@ public class HerokuView extends TestCase {
 			public String getFailureMessage() {
 				return "no heroku apps found";
 			}
-		}, 30000);
+		}, 30000 );
 
 		return tree;
 	}
@@ -96,33 +91,27 @@ public class HerokuView extends TestCase {
 	@Test
 	public void testOpenAppInfo() throws Exception {
 		final SWTBotTree tree = openViewAndGetTree();
-		tree.select(0)
-				.contextMenu(
-						Messages.getString("HerokuAppManagerViewPart_AppInfoShort"))
-				.click();
+		tree.select( 0 ).contextMenu( Messages.getString( "HerokuAppManagerViewPart_AppInfoShort" ) ).click();
 		EditorOpenCondition c = new EditorOpenCondition();
-		herokuView.bot().waitUntil(c, 20 * 1000);
+		herokuView.bot().waitUntil( c, 20 * 1000 );
 
-		SWTBotEditor editor = bot.editorByTitle(c.getProjectName());
-		assertEquals(c.getProjectName(), editor.bot().text().getText());
+		SWTBotEditor editor = bot.editorByTitle( c.getProjectName() );
+		assertEquals( c.getProjectName(), editor.bot().text().getText() );
 
-		editor.bot().tabItemWithId(HerokuEditorConstants.P_COLLABORATION)
-				.activate();
-		assertTrue(editor.bot().table().rowCount() > 0);
+		editor.bot().tabItemWithId( HerokuEditorConstants.P_COLLABORATION ).activate();
+		assertTrue( editor.bot().table().rowCount() > 0 );
 
-		editor.bot().tabItemWithId(HerokuEditorConstants.P_ENVIRONMENT)
-				.activate();
-		assertTrue(editor.bot().table().rowCount() > 0);
+		editor.bot().tabItemWithId( HerokuEditorConstants.P_ENVIRONMENT ).activate();
+		assertTrue( editor.bot().table().rowCount() > 0 );
 	}
 
 	@Test
 	public void testImportNo() throws Exception {
 		final SWTBotTree tree = openViewAndGetTree();
-		SWTBotMenu menuItem = tree.select(0).contextMenu(
-				Messages.getString("HerokuAppManagerViewPart_Import"));
-		if (menuItem.isEnabled()) {
+		SWTBotMenu menuItem = tree.select( 0 ).contextMenu( Messages.getString( "HerokuAppManagerViewPart_Import" ) );
+		if ( menuItem.isEnabled() ) {
 			menuItem.click();
-			herokuView.bot().activeShell().bot().button("No").click();
+			herokuView.bot().activeShell().bot().button( "No" ).click();
 		}
 	}
 
@@ -130,11 +119,10 @@ public class HerokuView extends TestCase {
 	public void testRestart() throws Exception {
 		final SWTBotTree tree = openViewAndGetTree();
 
-		SWTBotMenu menuItem = tree.select(0).contextMenu(
-				Messages.getString("HerokuAppManagerViewPart_Restart"));
-		if (menuItem.isEnabled()) {
+		SWTBotMenu menuItem = tree.select( 0 ).contextMenu( Messages.getString( "HerokuAppManagerViewPart_Restart" ) );
+		if ( menuItem.isEnabled() ) {
 			menuItem.click();
-			herokuView.bot().activeShell().bot().button("Yes").click();
+			herokuView.bot().activeShell().bot().button( "Yes" ).click();
 		}
 	}
 
@@ -142,20 +130,19 @@ public class HerokuView extends TestCase {
 	public void testViewLogs() throws Exception {
 		final SWTBotTree tree = openViewAndGetTree();
 
-		SWTBotMenu menuItem = tree.select(0).contextMenu(
-				Messages.getString("HerokuAppManagerViewPart_ViewLogs"));
-		if (menuItem.isEnabled()) {
+		SWTBotMenu menuItem = tree.select( 0 ).contextMenu( Messages.getString( "HerokuAppManagerViewPart_ViewLogs" ) );
+		if ( menuItem.isEnabled() ) {
 			menuItem.click();
-			SWTBotView consoleView = bot.viewByTitle("Console");
+			SWTBotView consoleView = bot.viewByTitle( "Console" );
 			final SWTBotStyledText consoleText = consoleView.bot().styledText();
-			consoleView.bot().waitUntil(new ICondition() {
+			consoleView.bot().waitUntil( new ICondition() {
 				@Override
 				public boolean test() throws Exception {
 					return consoleText.getText().length() > 0;
 				}
 
 				@Override
-				public void init(SWTBot bot) {
+				public void init( SWTBot bot ) {
 				}
 
 				@Override
@@ -163,46 +150,45 @@ public class HerokuView extends TestCase {
 					return "no text was shown in console";
 				}
 
-			}, 10 * 1000);
+			}, 10 * 1000 );
 		}
 	}
 
-	@Test
+	// @Test
 	public void testScale() throws Exception {
 		final SWTBotTree tree = openViewAndGetTree();
 
-		SWTBotMenu menuItem = tree.select(0).contextMenu(
-				Messages.getString("HerokuAppManagerViewPart_Scale"));
-		if (menuItem.isEnabled()) {
-			System.out.println("###################################################################################");
-			System.out.println("enabled - click it");
+		SWTBotMenu menuItem = tree.select( 0 ).contextMenu( Messages.getString( "HerokuAppManagerViewPart_Scale" ) );
+		if ( menuItem.isEnabled() ) {
+			System.out.println( "###################################################################################" );
+			System.out.println( "enabled - click it" );
 			menuItem.click();
 
-//			bot.waitUntil(new ICondition() {
-//
-//				@Override
-//				public boolean test() throws Exception {
-//					return bot
-//							.activeShell()
-//							.getText()
-//							.equals(Messages
-//									.getString("HerokuAppManagerViewPart_Scale_Title"));
-//				}
-//
-//				@Override
-//				public void init(SWTBot bot) {
-//				}
-//
-//				@Override
-//				public String getFailureMessage() {
-//					return "scale dialog did not open";
-//				}
-//
-//			}, 10 * 1000);
-			
-			//bot.sh
-			
-			bot.activeShell().bot().button("OK").click();
+			// bot.waitUntil(new ICondition() {
+			//
+			// @Override
+			// public boolean test() throws Exception {
+			// return bot
+			// .activeShell()
+			// .getText()
+			// .equals(Messages
+			// .getString("HerokuAppManagerViewPart_Scale_Title"));
+			// }
+			//
+			// @Override
+			// public void init(SWTBot bot) {
+			// }
+			//
+			// @Override
+			// public String getFailureMessage() {
+			// return "scale dialog did not open";
+			// }
+			//
+			// }, 10 * 1000);
+
+			// bot.sh
+
+			bot.activeShell().bot().button( "OK" ).click();
 		}
 	}
 
@@ -210,11 +196,10 @@ public class HerokuView extends TestCase {
 	public void testDestroy() throws Exception {
 		final SWTBotTree tree = openViewAndGetTree();
 
-		SWTBotMenu menuItem = tree.select(0).contextMenu(
-				Messages.getString("HerokuAppManagerViewPart_Destroy"));
-		if (menuItem.isEnabled()) {
+		SWTBotMenu menuItem = tree.select( 0 ).contextMenu( Messages.getString( "HerokuAppManagerViewPart_Destroy" ) );
+		if ( menuItem.isEnabled() ) {
 			menuItem.click();
-			herokuView.bot().activeShell().bot().button("No").click();
+			herokuView.bot().activeShell().bot().button( "No" ).click();
 		}
 	}
 
@@ -222,9 +207,8 @@ public class HerokuView extends TestCase {
 	public void testOpen() throws Exception {
 		final SWTBotTree tree = openViewAndGetTree();
 
-		SWTBotMenu menuItem = tree.select(0).contextMenu(
-				Messages.getString("HerokuAppManagerViewPart_Open"));
-		if (menuItem.isEnabled()) {
+		SWTBotMenu menuItem = tree.select( 0 ).contextMenu( Messages.getString( "HerokuAppManagerViewPart_Open" ) );
+		if ( menuItem.isEnabled() ) {
 			// propably we don't have a browser in test environment
 			// menuItem.click();
 		}
@@ -236,11 +220,11 @@ public class HerokuView extends TestCase {
 		@Override
 		public boolean test() throws Exception {
 			List<SWTBotEditor> editors;
-			synchronized (bot.editors()) {
-				editors = Collections.unmodifiableList(bot.editors());
+			synchronized ( bot.editors() ) {
+				editors = Collections.unmodifiableList( bot.editors() );
 			}
-			for (SWTBotEditor editor : editors) {
-				if (editor.getTitle().startsWith(TESTPROJECT_NAME_PREFIX)) {
+			for ( SWTBotEditor editor : editors ) {
+				if ( editor.getTitle().startsWith( TESTPROJECT_NAME_PREFIX ) ) {
 					projectName = editor.getTitle();
 					return true;
 				}
@@ -249,7 +233,7 @@ public class HerokuView extends TestCase {
 		}
 
 		@Override
-		public void init(SWTBot bot) {
+		public void init( SWTBot bot ) {
 			// nothing here
 		}
 

@@ -16,7 +16,7 @@ import org.junit.runner.RunWith;
 
 import com.heroku.eclipse.core.services.HerokuServices;
 
-@RunWith(SWTBotJunit4ClassRunner.class)
+@RunWith( SWTBotJunit4ClassRunner.class )
 public class Delete extends TestCase {
 	private static final SWTWorkbenchBot bot = new SWTWorkbenchBot();
 
@@ -31,41 +31,61 @@ public class Delete extends TestCase {
 
 	@Test
 	public void testDeleteProjectLocal() throws Exception {
-		final SWTBot packExplorer = bot.viewByTitle("Project Explorer").bot();
+		final SWTBot packExplorer = bot.viewByTitle( "Project Explorer" ).bot();
 		SWTBotTree tree = packExplorer.tree();
-		if (tree.getAllItems().length == 0) {
-			fail("no projects found");
-		} else {
+		if ( tree.getAllItems().length == 0 ) {
+			fail( "no projects found" );
+		}
+		else {
 			final int projectCount = tree.getAllItems().length;
-			tree.getAllItems()[0].contextMenu("Delete").click();
-			SWTBotShell delShell = bot.shell("Delete Resources");
+			tree.getAllItems()[0].contextMenu( "Delete" ).click();
+			SWTBotShell delShell = bot.shell( "Delete Resources" );
 			delShell.bot().checkBox().select();
-			final SWTBotButton bFinish = delShell.bot().button("OK");
+			SWTBotButton bFinish = delShell.bot().button( "OK" );
+			try {
+				bot.waitUntil( new EmptyPackageExplorerCondition( bFinish, packExplorer, projectCount ), 5 * 1000 );
+			}
+			catch ( Exception e ) {
+				// try again
+				tree.getAllItems()[0].contextMenu( "Delete" ).click();
+				delShell = bot.shell( "Delete Resources" );
+				delShell.bot().checkBox().select();
+				bFinish = delShell.bot().button( "OK" );
+				bot.waitUntil( new EmptyPackageExplorerCondition( bFinish, packExplorer, projectCount ), 5 * 1000 );
+			}
 
-			bot.waitUntil(new ICondition() {
+		}
+	}
 
-				@Override
-				public boolean test() throws Exception {
-					if (packExplorer.tree().getAllItems().length == (projectCount - 1)) {
-						return true;
-					} else {
-						return false;
-					}
-				}
+	private final class EmptyPackageExplorerCondition implements ICondition {
+		private final SWTBotButton bFinish;
+		private final SWTBot packExplorer;
+		private final int projectCount;
 
-				@Override
-				public void init(SWTBot bot) {
-					// TODO Auto-generated method stub
-					bFinish.click();
-				}
+		private EmptyPackageExplorerCondition( SWTBotButton bFinish, SWTBot packExplorer, int projectCount ) {
+			this.bFinish = bFinish;
+			this.packExplorer = packExplorer;
+			this.projectCount = projectCount;
+		}
 
-				@Override
-				public String getFailureMessage() {
-					return "Project was not deleted from project explorer";
-				}
+		@Override
+		public boolean test() throws Exception {
+			if ( packExplorer.tree().getAllItems().length == ( projectCount - 1 ) ) {
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
 
-			}, 20 * 1000);
+		@Override
+		public void init( SWTBot bot ) {
+			bFinish.click();
+		}
 
+		@Override
+		public String getFailureMessage() {
+			return "Project was not deleted from project explorer";
 		}
 	}
 }
