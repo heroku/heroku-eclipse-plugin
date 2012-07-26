@@ -19,6 +19,7 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.core.services.model.HerokuProc;
 import com.heroku.eclipse.core.services.model.KeyValue;
+import com.heroku.eclipse.core.services.model.ProcGroup;
 
 /**
  * Interface defining how Heroclipse talks with the com.heroku.api.HerokuAPI API
@@ -381,6 +382,15 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public List<HerokuProc> listProcesses(IProgressMonitor pm, App app) throws HerokuServiceException;
+	
+	/**
+	 * Get all process groups of an app
+	 * @param pm 
+	 * @param app
+	 * @return all process groups
+	 * @throws HerokuServiceException
+	 */
+	public List<ProcGroup> listProcessGroups(IProgressMonitor pm, App app) throws HerokuServiceException;
 
 	/**
 	 * Get application with given name

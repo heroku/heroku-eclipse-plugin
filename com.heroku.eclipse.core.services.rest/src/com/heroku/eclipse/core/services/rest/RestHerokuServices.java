@@ -71,6 +71,7 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.core.services.model.HerokuProc;
 import com.heroku.eclipse.core.services.model.KeyValue;
+import com.heroku.eclipse.core.services.model.ProcGroup;
 
 /**
  * Services class for the Heroclipse plugin, providing access to essential
@@ -833,6 +834,26 @@ public class RestHerokuServices implements HerokuServices {
 		});
 	}
 
+	@Override
+	public List<ProcGroup> listProcessGroups(IProgressMonitor pm, App app)
+			throws HerokuServiceException {
+		Map<String, ProcGroup> map = new HashMap<String, ProcGroup>();
+		List<ProcGroup> list = new ArrayList<ProcGroup>();
+		List<HerokuProc> processes = listProcesses(pm, app);
+		
+		for( HerokuProc p : processes ) {
+			ProcGroup g = map.get(p.getDynoName());
+			if( g == null ) {
+				g = new ProcGroup(p.getDynoName());
+				list.add(g);
+			}
+			
+			g.add(p);
+		}
+		
+		return list;
+	}
+	
 	@Override
 	public App getApp(final IProgressMonitor pm, final String appName) throws HerokuServiceException {
 		return runCancellableOperation(pm, new RunnableWithReturn<App>() {
