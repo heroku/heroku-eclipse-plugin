@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?pde version="3.6"?><target name="heroku" sequenceNumber="114">
+<?pde version="3.6"?><target name="heroku" sequenceNumber="121">
 <locations>
 <location path="${heroku_target}/platform-37" type="Directory"/>
 <location includeAllPlatforms="false" includeMode="slicer" includeSource="true" type="InstallableUnit">
@@ -46,9 +46,4 @@
 <repository location="http://download.eclipse.org/tools/orbit/downloads/drops/R20120526062928/repository/"/>
 </location>
 </locations>
-<environment>
-<os>linux</os>
-<ws>gtk</ws>
-<arch>x86_64</arch>
-</environment>
 </target>
