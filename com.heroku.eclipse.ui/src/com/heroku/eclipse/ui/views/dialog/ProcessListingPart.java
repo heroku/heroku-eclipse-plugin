@@ -55,7 +55,7 @@ import com.heroku.eclipse.ui.utils.ViewerOperations;
 public class ProcessListingPart {
 
 	private App domainObject;
-	private List<HerokuDyno> processList;
+	private List<HerokuDyno> dynoList;
 	private Composite parent;
 	private TableViewer viewer;
 	private Button refreshButton;
@@ -110,7 +110,7 @@ public class ProcessListingPart {
 				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 				column.getColumn().setText(Messages.getString("HerokuAppInformationProcesses_Command")); //$NON-NLS-1$
 				column.getColumn().setWidth(200);
-				column.setLabelProvider(LabelProviderFactory.createProcessGroup_Command());
+				column.setLabelProvider(LabelProviderFactory.createDyno_Command());
 			}
 
 			viewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -510,8 +510,8 @@ public class ProcessListingPart {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						processList = Activator.getDefault().getService().listProcessGroups(monitor, domainObject);
-						HerokuUtils.runOnDisplay(true, viewer, processList, ViewerOperations.input(viewer));
+						dynoList = Activator.getDefault().getService().listDynos(monitor, domainObject);
+						HerokuUtils.runOnDisplay(true, viewer, dynoList, ViewerOperations.input(viewer));
 					}
 					catch (HerokuServiceException e) {
 						throw new InvocationTargetException(e);

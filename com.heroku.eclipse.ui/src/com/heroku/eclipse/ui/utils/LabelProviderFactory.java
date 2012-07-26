@@ -257,7 +257,7 @@ public class LabelProviderFactory {
 	/**
 	 * @return the verbose process type as a LabelProvider
 	 */
-	public static ColumnLabelProvider createProcessGroup_Command() {
+	public static ColumnLabelProvider createDyno_Command() {
 		return new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {

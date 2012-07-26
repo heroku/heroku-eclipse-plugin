@@ -55,8 +55,7 @@ public class HerokuDyno {
 	}
 
 	public String getCommand() {
-		// TODO Auto-generated method stub
-		return null;
+		return command;
 	}
 
 }

@@ -835,7 +835,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public List<HerokuDyno> listProcessGroups(IProgressMonitor pm, App app)
+	public List<HerokuDyno> listDynos(IProgressMonitor pm, App app)
 			throws HerokuServiceException {
 		Map<String, HerokuDyno> map = new HashMap<String, HerokuDyno>();
 		List<HerokuDyno> list = new ArrayList<HerokuDyno>();
@@ -846,6 +846,7 @@ public class RestHerokuServices implements HerokuServices {
 			if( g == null ) {
 				g = new HerokuDyno(p.getDynoName(),app.getName(),p.getHerokuProc().getCommand());
 				list.add(g);
+				map.put(g.getName(), g);
 			}
 			
 			g.add(p);

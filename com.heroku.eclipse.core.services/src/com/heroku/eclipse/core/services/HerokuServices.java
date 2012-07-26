@@ -390,7 +390,7 @@ public interface HerokuServices {
 	 * @return all process groups
 	 * @throws HerokuServiceException
 	 */
-	public List<HerokuDyno> listProcessGroups(IProgressMonitor pm, App app) throws HerokuServiceException;
+	public List<HerokuDyno> listDynos(IProgressMonitor pm, App app) throws HerokuServiceException;
 
 	/**
 	 * Get application with given name
