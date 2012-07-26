@@ -3,7 +3,6 @@ package com.heroku.eclipse.ui.views.dialog;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -41,12 +40,11 @@ import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices.LogStream;
 import com.heroku.eclipse.core.services.HerokuServices.LogStreamCreator;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
-import com.heroku.eclipse.core.services.model.HerokuProc;
+import com.heroku.eclipse.core.services.model.HerokuDyno;
 import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.messages.Messages;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 import com.heroku.eclipse.ui.utils.LabelProviderFactory;
-import com.heroku.eclipse.ui.utils.RunnableWithReturn;
 import com.heroku.eclipse.ui.utils.ViewerOperations;
 
 /**
@@ -57,7 +55,7 @@ import com.heroku.eclipse.ui.utils.ViewerOperations;
 public class ProcessListingPart {
 
 	private App domainObject;
-	private List<HerokuProc> processList;
+	private List<HerokuDyno> processList;
 	private Composite parent;
 	private TableViewer viewer;
 	private Button refreshButton;
@@ -91,33 +89,28 @@ public class ProcessListingPart {
 				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 				column.getColumn().setText(Messages.getString("HerokuAppInformationProcesses_Status")); //$NON-NLS-1$
 				column.getColumn().setWidth(60);
-				column.setLabelProvider(LabelProviderFactory.createProcess_state());
+				column.setLabelProvider(LabelProviderFactory.createDyno_state());
 			}
 
 			{
 				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 				column.getColumn().setText(Messages.getString("HerokuAppInformationProcesses_ProcessType")); //$NON-NLS-1$
 				column.getColumn().setWidth(100);
-				column.setLabelProvider(LabelProviderFactory.createProcess_type());
+				column.setLabelProvider(LabelProviderFactory.createDyno_type());
 			}
 
 			{
 				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 				column.getColumn().setText(Messages.getString("HerokuAppInformationProcesses_Dynos")); //$NON-NLS-1$
 				column.getColumn().setWidth(50);
-				column.setLabelProvider(LabelProviderFactory.createProcess_dynoCount(new RunnableWithReturn<List<HerokuProc>, HerokuProc>() {
-					@Override
-					public List<HerokuProc> run(HerokuProc argument) {
-						return findDynoProcs(argument);
-					}
-				}));
+				column.setLabelProvider(LabelProviderFactory.createDyno_procCount());
 			}
 
 			{
 				TableViewerColumn column = new TableViewerColumn(viewer, SWT.NONE);
 				column.getColumn().setText(Messages.getString("HerokuAppInformationProcesses_Command")); //$NON-NLS-1$
 				column.getColumn().setWidth(200);
-				column.setLabelProvider(LabelProviderFactory.createProcess_Command());
+				column.setLabelProvider(LabelProviderFactory.createProcessGroup_Command());
 			}
 
 			viewer.getControl().setLayoutData(new GridData(GridData.FILL_BOTH));
@@ -148,7 +141,7 @@ public class ProcessListingPart {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						@SuppressWarnings("unchecked")
-						List<HerokuProc> procs = ((IStructuredSelection) viewer.getSelection()).toList();
+						List<HerokuDyno> procs = ((IStructuredSelection) viewer.getSelection()).toList();
 						// only one proc selected -> prepopulate popup
 						if (procs.size() == 1) {
 							handleScale(scaleButton.getShell(), procs.get(0));
@@ -169,7 +162,7 @@ public class ProcessListingPart {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						@SuppressWarnings("unchecked")
-						List<HerokuProc> procs = ((IStructuredSelection) viewer.getSelection()).toList();
+						List<HerokuDyno> procs = ((IStructuredSelection) viewer.getSelection()).toList();
 						// only one proc selected -> show logs only for this
 						// proc
 						if (procs.size() == 1) {
@@ -191,7 +184,7 @@ public class ProcessListingPart {
 					@Override
 					public void widgetSelected(SelectionEvent e) {
 						@SuppressWarnings("unchecked")
-						List<HerokuProc> procs = ((IStructuredSelection) viewer.getSelection()).toList();
+						List<HerokuDyno> procs = ((IStructuredSelection) viewer.getSelection()).toList();
 						// only one proc selected -> restart only this process
 						if (procs.size() == 1) {
 							handleRestart(logsButton.getShell(), procs.get(0));
@@ -220,7 +213,7 @@ public class ProcessListingPart {
 		return container;
 	}
 
-	void handleScale(final Shell shell, final HerokuProc proc) {
+	void handleScale(final Shell shell, final HerokuDyno proc) {
 		TrayDialog d = new TrayDialog(shell) {
 
 			private Text processField;
@@ -232,8 +225,8 @@ public class ProcessListingPart {
 				String dynoName = ""; //$NON-NLS-1$
 
 				if (proc != null) {
-					dynoName = proc.getDynoName();
-					quantity = findDynoProcs(proc).size();
+					dynoName = proc.getName();
+					quantity = proc.getProcesses().size();
 				}
 
 				Composite container = (Composite) super.createDialogArea(parent);
@@ -355,14 +348,14 @@ public class ProcessListingPart {
 		d.open();
 	}
 
-	void handleLogs(final Shell shell, HerokuProc proc) {
+	void handleLogs(final Shell shell, HerokuDyno proc) {
 		String consoleName = ""; //$NON-NLS-1$
 
 		if (proc == null) {
 			consoleName = Messages.getFormattedString("HerokuAppManagerViewPart_AppConsole_Title", domainObject.getName()); //$NON-NLS-1$
 		}
 		else {
-			consoleName += Messages.getFormattedString("HerokuAppManagerViewPart_ProcConsole_Title", domainObject.getName(), proc.getDynoName()); //$NON-NLS-1$
+			consoleName += Messages.getFormattedString("HerokuAppManagerViewPart_ProcConsole_Title", domainObject.getName(), proc.getName()); //$NON-NLS-1$
 		}
 
 		// add and activate the fitting console
@@ -411,7 +404,7 @@ public class ProcessListingPart {
 			}, exceptionHandler);
 		}
 		else {
-			Activator.getDefault().getService().startProcessLogThread(new NullProgressMonitor(), proc, new LogStreamCreator() {
+			Activator.getDefault().getService().startDynoLogThread(new NullProgressMonitor(), proc, new LogStreamCreator() {
 				@Override
 				public LogStream create() {
 					return out;
@@ -420,7 +413,7 @@ public class ProcessListingPart {
 		}
 	}
 
-	void handleRestart(Shell shell, final HerokuProc proc) {
+	void handleRestart(Shell shell, final HerokuDyno proc) {
 		if (proc == null) {
 			if (MessageDialog
 					.openQuestion(
@@ -463,12 +456,12 @@ public class ProcessListingPart {
 			if (MessageDialog
 					.openQuestion(
 							shell,
-							Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", proc.getDynoName()))) { //$NON-NLS-1$ //$NON-NLS-2$
+							Messages.getString("HerokuAppManagerViewPart_Restart"), Messages.getFormattedString("HerokuAppManagerViewPart_Question_RestartProc", proc.getName()))) { //$NON-NLS-1$ //$NON-NLS-2$
 				try {
 					PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
 						@Override
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-							monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingProc", proc.getDynoName()),2); //$NON-NLS-1$
+							monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_RestartingProc", proc.getName()),2); //$NON-NLS-1$
 							monitor.worked(1);
 							try {
 								Activator.getDefault().getService().restartDyno(monitor, proc);
@@ -485,16 +478,16 @@ public class ProcessListingPart {
 				}
 				catch (InvocationTargetException e) {
 					HerokuServiceException se = HerokuUtils.extractHerokuException(shell, e,
-							"unknown error when trying to restart all '" + proc.getDynoName() + "' processes"); //$NON-NLS-1$ //$NON-NLS-2$
+							"unknown error when trying to restart all '" + proc.getName() + "' processes"); //$NON-NLS-1$ //$NON-NLS-2$
 					if (se != null) {
 						Activator.getDefault().getLogger()
-								.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getDynoName() + "' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
+								.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getName() + "' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
 						HerokuUtils.herokuError(shell, e);
 					}
 				}
 				catch (InterruptedException e) {
 					Activator.getDefault().getLogger()
-							.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getDynoName() + "' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
+							.log(LogService.LOG_ERROR, "unknown error when trying to restart all '" + proc.getName() + "' processes", e); //$NON-NLS-1$ //$NON-NLS-2$
 					e.printStackTrace();
 					HerokuUtils.internalError(shell, e);
 				}
@@ -517,7 +510,7 @@ public class ProcessListingPart {
 				@Override
 				public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 					try {
-						processList = Activator.getDefault().getService().listProcesses(monitor, domainObject);
+						processList = Activator.getDefault().getService().listProcessGroups(monitor, domainObject);
 						HerokuUtils.runOnDisplay(true, viewer, processList, ViewerOperations.input(viewer));
 					}
 					catch (HerokuServiceException e) {
@@ -542,28 +535,11 @@ public class ProcessListingPart {
 		}
 	}
 
-	private List<HerokuProc> findDynoProcs(HerokuProc proc) {
-		// create process list for the given dyno
-		final String dynoName = proc.getDynoName();
-
-		final List<HerokuProc> dynoProcs = new ArrayList<HerokuProc>();
-		for (HerokuProc herokuProc : processList) {
-			if (herokuProc.getDynoName().equals(dynoName)) {
-				dynoProcs.add(herokuProc);
-			}
-		}
-
-		return dynoProcs;
-	}
-	
 	static class ElementComparerImpl implements IElementComparer {
 
 		@Override
 		public boolean equals(Object a, Object b) {
-			if (a instanceof HerokuProc && b instanceof HerokuProc) {
-				return hashCode(a) == hashCode(b);
-			}
-			else if (a instanceof App && b instanceof App) {
+			if (a instanceof HerokuDyno && b instanceof HerokuDyno) {
 				return hashCode(a) == hashCode(b);
 			}
 			return a.equals(b);
@@ -571,11 +547,8 @@ public class ProcessListingPart {
 
 		@Override
 		public int hashCode(Object element) {
-			if (element instanceof App) {
-				return ((App) element).getId().hashCode();
-			}
-			else if (element instanceof HerokuProc) {
-				return ((HerokuProc) element).getUniqueId().hashCode();
+			if (element instanceof HerokuDyno) {
+				return ((HerokuDyno) element).getName().hashCode();
 			}
 			return element.hashCode();
 		}

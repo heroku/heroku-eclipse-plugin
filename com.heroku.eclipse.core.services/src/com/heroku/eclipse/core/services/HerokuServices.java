@@ -19,7 +19,7 @@ import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.core.services.model.HerokuProc;
 import com.heroku.eclipse.core.services.model.KeyValue;
-import com.heroku.eclipse.core.services.model.ProcGroup;
+import com.heroku.eclipse.core.services.model.HerokuDyno;
 
 /**
  * Interface defining how Heroclipse talks with the com.heroku.api.HerokuAPI API
@@ -390,7 +390,7 @@ public interface HerokuServices {
 	 * @return all process groups
 	 * @throws HerokuServiceException
 	 */
-	public List<ProcGroup> listProcessGroups(IProgressMonitor pm, App app) throws HerokuServiceException;
+	public List<HerokuDyno> listProcessGroups(IProgressMonitor pm, App app) throws HerokuServiceException;
 
 	/**
 	 * Get application with given name
@@ -544,7 +544,7 @@ public interface HerokuServices {
 	 *            the proc providing the dyno name
 	 * @throws HerokuServiceException
 	 */
-	public void restartDyno(IProgressMonitor pm, HerokuProc proc) throws HerokuServiceException;
+	public void restartDyno(IProgressMonitor pm, HerokuDyno proc) throws HerokuServiceException;
 
 	/**
 	 * Scales the given dyno type to the given quantity
@@ -574,7 +574,7 @@ public interface HerokuServices {
 	 * @param streamCreator 
 	 * @param exceptionHandler 
 	 */
-	public void startProcessLogThread(IProgressMonitor pm, HerokuProc proc, LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler);
+	public void startDynoLogThread(IProgressMonitor pm, HerokuDyno dyno, LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler);
 	
 	/**
 	 * Delegate interface to wrap the UI MessageConsoleStream into something serviceable.  

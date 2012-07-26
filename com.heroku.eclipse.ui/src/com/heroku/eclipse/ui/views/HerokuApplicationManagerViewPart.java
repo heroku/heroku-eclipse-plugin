@@ -173,15 +173,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			@Override
 			public void open(OpenEvent event) {
-				try {
-					App app = getSelectedAppOrProcApp();
-					if (app != null) {
-						openEditor(app);
-					}
-				}
-				catch (HerokuServiceException e1) {
-					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display app info", e1); //$NON-NLS-1$
-					HerokuUtils.herokuError(getShell(), e1);
+				App app = getSelectedApp();
+				if (app != null) {
+					openEditor(app);
 				}
 			}
 
@@ -256,25 +250,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		return !s.isEmpty() && s.getFirstElement() instanceof App ? (App) s.getFirstElement() : null;
 	}
 
-	HerokuProc getSelectedProc() {
-		IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
-
-		return !s.isEmpty() && s.getFirstElement() instanceof HerokuProc ? (HerokuProc) s.getFirstElement() : null;
-	}
-
-	App getSelectedAppOrProcApp() throws HerokuServiceException {
-		App app = getSelectedApp();
-
-		if (app == null) {
-			HerokuProc proc = getSelectedProc();
-			if (proc != null) {
-				app = herokuService.getApp(new NullProgressMonitor(), proc.getHerokuProc().getAppName());
-			}
-		}
-
-		return app;
-	}
-
 	Shell getShell() {
 		return getSite().getWorkbenchWindow().getShell();
 	}
@@ -291,17 +266,12 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				Messages.getString("HerokuAppManagerViewPart_AppInfoShort"), IconKeys.getImageDescriptor(IconKeys.ICON_APPINFO_EDITOR_ICON)) { //$NON-NLS-1$
 			@Override
 			public void safeRun() {
-				try {
-					App app = getSelectedAppOrProcApp();
+				
+					App app = getSelectedApp();
 					if (app != null) {
 						openEditor(app);
 					}
-				}
-				catch (HerokuServiceException e) {
-					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to display app info", e); //$NON-NLS-1$
-					HerokuUtils.internalError(getShell(), e);
-				}
-
+				
 			}
 		};
 		final SafeRunnableAction importApp = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_Import")) { //$NON-NLS-1$
@@ -591,7 +561,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 			@Override
 			public void menuAboutToShow(IMenuManager manager) {
-				NullProgressMonitor pm = new NullProgressMonitor();
 				IStructuredSelection s = (IStructuredSelection) viewer.getSelection();
 
 				boolean enabled = !s.isEmpty();
@@ -602,29 +571,6 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				viewLogs.setEnabled(enabled);
 				scale.setEnabled(enabled);
 				destroy.setEnabled(enabled);
-
-				if (enabled) {
-					if (s.getFirstElement() instanceof HerokuProc) {
-						HerokuProc proc = (HerokuProc) s.getFirstElement();
-						importApp.setEnabled(false);
-						open.setEnabled(false);
-						try {
-							App app = herokuService.getApp(pm, proc.getHerokuProc().getAppName());
-							if (herokuService.isOwnApp(pm, app)) {
-								scale.setEnabled(true);
-							}
-						}
-						catch (HerokuServiceException e) {
-							Activator
-									.getDefault()
-									.getLogger()
-									.log(LogService.LOG_ERROR,
-											"unknown error when trying to determine if app " + proc.getHerokuProc().getAppName() + " is owned by myself", e); //$NON-NLS-1$ //$NON-NLS-2$
-							HerokuUtils.herokuError(getShell(), e);
-						}
-
-					}
-				}
 			}
 		});
 

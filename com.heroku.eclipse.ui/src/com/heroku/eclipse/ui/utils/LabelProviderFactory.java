@@ -9,6 +9,8 @@ import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.eclipse.core.services.model.HerokuProc;
 import com.heroku.eclipse.core.services.model.KeyValue;
+import com.heroku.eclipse.core.services.model.HerokuDyno;
+import com.heroku.eclipse.core.services.model.DynoStateState;
 
 /**
  * Factory reponsible for creating various labels for App and Proc instances
@@ -203,7 +205,7 @@ public class LabelProviderFactory {
 	/**
 	 * @return the state of a process as a LabelProvider
 	 */
-	public static ColumnLabelProvider createProcess_state() {
+	public static ColumnLabelProvider createDyno_state() {
 		return new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
@@ -212,12 +214,12 @@ public class LabelProviderFactory {
 			
 			@Override
 			public Image getImage(Object element) {
-				HerokuProc p = (HerokuProc) element;
-				return getStateIcon(ProcessState.parseRest(p.getHerokuProc().getState()));
+				HerokuDyno p = (HerokuDyno) element;
+				return getStateIcon(p.getState());
 			}
 
-			private Image getStateIcon(ProcessState state) {
-				if (state == ProcessState.UP || state == ProcessState.IDLE ) {
+			private Image getStateIcon(DynoStateState state) {
+				if (state == DynoStateState.OK ) {
 					return IconKeys.getImage(IconKeys.ICON_PROCESS_UP);
 				}
 				else {
@@ -230,30 +232,11 @@ public class LabelProviderFactory {
 	/**
 	 * @return the verbose process type as a LabelProvider
 	 */
-	public static ColumnLabelProvider createProcess_type() {
+	public static ColumnLabelProvider createDyno_type() {
 		return new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				return ((HerokuProc)element).getDynoName();
-			}
-		};
-	}
-	
-	/**
-	 * @param procListCallback 
-	 * @return the verbose process type as a LabelProvider
-	 */
-	public static ColumnLabelProvider createProcess_dynoCount(final RunnableWithReturn<List<HerokuProc>, HerokuProc> procListCallback) {
-		return new ColumnLabelProvider() {
-			@Override
-			public String getText(Object element) {
-				int quantity = 0;
-				List<HerokuProc> procs = procListCallback.run((HerokuProc) element);
-				
-				if (procs != null) {
-					quantity = procs.size();
-				}
-				return Integer.toString(quantity);
+				return ((HerokuDyno)element).getName();
 			}
 		};
 	}
@@ -261,11 +244,24 @@ public class LabelProviderFactory {
 	/**
 	 * @return the verbose process type as a LabelProvider
 	 */
-	public static ColumnLabelProvider createProcess_Command() {
+	public static ColumnLabelProvider createDyno_procCount() {
 		return new ColumnLabelProvider() {
 			@Override
 			public String getText(Object element) {
-				return ((HerokuProc)element).getHerokuProc().getCommand();
+				HerokuDyno g = (HerokuDyno) element;
+				return Integer.toString(g.getProcesses().size());
+			}
+		};
+	}
+	
+	/**
+	 * @return the verbose process type as a LabelProvider
+	 */
+	public static ColumnLabelProvider createProcessGroup_Command() {
+		return new ColumnLabelProvider() {
+			@Override
+			public String getText(Object element) {
+				return ((HerokuDyno)element).getCommand();
 			}
 		};
 	}

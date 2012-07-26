@@ -69,9 +69,9 @@ import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
+import com.heroku.eclipse.core.services.model.HerokuDyno;
 import com.heroku.eclipse.core.services.model.HerokuProc;
 import com.heroku.eclipse.core.services.model.KeyValue;
-import com.heroku.eclipse.core.services.model.ProcGroup;
 
 /**
  * Services class for the Heroclipse plugin, providing access to essential
@@ -835,16 +835,16 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public List<ProcGroup> listProcessGroups(IProgressMonitor pm, App app)
+	public List<HerokuDyno> listProcessGroups(IProgressMonitor pm, App app)
 			throws HerokuServiceException {
-		Map<String, ProcGroup> map = new HashMap<String, ProcGroup>();
-		List<ProcGroup> list = new ArrayList<ProcGroup>();
+		Map<String, HerokuDyno> map = new HashMap<String, HerokuDyno>();
+		List<HerokuDyno> list = new ArrayList<HerokuDyno>();
 		List<HerokuProc> processes = listProcesses(pm, app);
 		
 		for( HerokuProc p : processes ) {
-			ProcGroup g = map.get(p.getDynoName());
+			HerokuDyno g = map.get(p.getDynoName());
 			if( g == null ) {
-				g = new ProcGroup(p.getDynoName());
+				g = new HerokuDyno(p.getDynoName(),app.getName(),p.getHerokuProc().getCommand());
 				list.add(g);
 			}
 			
@@ -936,7 +936,7 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void restartDyno(final IProgressMonitor pm, final HerokuProc dyno) throws HerokuServiceException {
+	public void restartDyno(final IProgressMonitor pm, final HerokuDyno dyno) throws HerokuServiceException {
 		runCancellableOperation(pm, new RunnableWithReturn<Object>() {
 			@Override
 			public Object run() throws HerokuServiceException {
@@ -1074,8 +1074,8 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void startProcessLogThread(IProgressMonitor pm, HerokuProc proc, final LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler) {
-		startLogThread(pm, "logstream-proc-" + proc.getUniqueId(), streamCreator, exceptionHandler, proc.getHerokuProc().getAppName(), proc.getDynoName()); //$NON-NLS-1$
+	public void startDynoLogThread(IProgressMonitor pm, HerokuDyno proc, final LogStreamCreator streamCreator, UncaughtExceptionHandler exceptionHandler) {
+		startLogThread(pm, "logstream-proc-" + proc.getName(), streamCreator, exceptionHandler, proc.getAppName(), proc.getName()); //$NON-NLS-1$
 	}
 
 	/**

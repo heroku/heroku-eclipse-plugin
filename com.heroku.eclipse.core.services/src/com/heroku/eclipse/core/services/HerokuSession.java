@@ -10,6 +10,7 @@ import com.heroku.api.Key;
 import com.heroku.api.Proc;
 import com.heroku.api.User;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.core.services.model.HerokuDyno;
 import com.heroku.eclipse.core.services.model.HerokuProc;
 
 /**
@@ -245,7 +246,7 @@ public interface HerokuSession {
 	 * @param proc
 	 * @throws HerokuServiceException
 	 */
-	public void restartDyno(HerokuProc proc) throws HerokuServiceException;
+	public void restartDyno(HerokuDyno proc) throws HerokuServiceException;
 
 	/**
 	 * Checks if an App with the given name already exists.
