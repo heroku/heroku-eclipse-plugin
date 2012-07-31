@@ -1,16 +1,18 @@
+Heroku Eclipse Plugin 0.1.0 Development Setup
+=============================================
+
 ***BestSolution.at EDV Systemhaus GmbH***
 
-**heroku Eclipse plugin 0.1.0**
+**Project: Heroku Eclipse plugin***
 
-***Development Setup***
+**Author: Tom Schindl**
 
-**Project:*heroku Eclipse plugin***
-**Author:*Tom Schindl*
-**Version:*2012-07-27***
-
+**Version: 2012-07-27***
 
 ***Copyright (c) by BestSolution.at EDV Systemhaus GmbH***
+
 ***All Rights Reserved.***
+
 ***BestSolution.at MAKES NO REPRESENTATIONS OR WARRANTIES ABOUT THE
 SUITABILITY OF THIS SPECIFICATION, EITHER EXPRESS OR IMPLIED, INCLUDING
 BUT NOT LIMITED TO THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS
@@ -34,9 +36,9 @@ be provided in association with this document.***
 transmitted or based upon in any other than the designated way without
 express written consent of BestSolution.at.***
 
-**Abstract**
-
-heroku Eclipse plugin is an extension to the well known Eclipse Java
+Abstract
+========
+Heroku Eclipse plugin is an extension to the well known Eclipse Java
 IDE, allowing developers to work with their existing heroku applications
 or create new ones using predefined templates. It also allows users to
 manage their existing applications in terms of performance, monitoring,
@@ -57,7 +59,7 @@ Downloading essential pieces
 3.  Install the SWTBot plugin from
     [http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site](http://download.eclipse.org/technology/swtbot/helios/dev-build/update-site)
 
-Preparing the "target platform“
+Preparing the "target platform"
 ===============================
 
 The "target platform" is a collection of software "pieces" required to
@@ -70,16 +72,14 @@ Create a local folder structure on your filesystem
 
 Proposed base location:
 
--   win32: C:\\dev\\heroku\_plugin\\target
+-   win32: C:\\dev\\heroku_plugin\\target
 
--   mac: /Users/\$USER/dev/heroku\_plugin/target\
-    replace \$USER with your real user name
+-   mac: /Users/$USER/dev/heroku_plugin/target
+    replace $USER with your real user name
 
--   linux: /opt/heroku\_plugin/target
+-   linux: /opt/heroku_plugin/target
 
 Create three folders inside the "target" folder from above:
-
--   target
 
 -   delta-pack-37
 
@@ -93,11 +93,11 @@ Download Eclipse SDK 3.7.0 for your Platform
 Download from
 [http://archive.eclipse.org/eclipse/downloads/drops/R-3.7-201106131736/](http://archive.eclipse.org/eclipse/downloads/drops/R-3.7-201106131736/)
 
--   Platform SDK – Platform Source Repo
+-   Platform SDK - Platform Source Repo
 
 -   DeltaPack - All
 
--   JDT SDK – JDT Source Repo
+-   JDT SDK - JDT Source Repo
 
 
 Unzip the downloaded zip-Files and move the content to the respective
@@ -128,66 +128,31 @@ Configure workspace to compile for a specific target
 ====================================================
 
 1.  Open the Eclipse Preferences and navigate to "Run/Debug \> String
-    Substitution“
+    Substitution"
 
-2.  
+2.  Create a new substitution using the "New ..." button on the right
 
-    ![](heroku-e-plugin_devinfos_html_ma9629be.png)\
-    *Illustration 1: set up the “heroku\_target” Eclipse variable*
+    **Name:** heroku_target
 
-    Create a new substitution using the "New ..." Button on the right\
-    **Name:** heroku\_target\
     **Value:** Location of your target folder e.g.
-    "/Users/\$USER/dev/heroku\_plugin/target“\
+    "/Users/$USER/dev/heroku_plugin"
+
+    ![](heroku-e-plugin_devinfos_html_ma9629be.png)
+    *Illustration 1: set up the "heroku_target" Eclipse variable*
 
 3.  Clone the heroku-git repo from github.com and import the following
     plugins:
 
-Plugin name
-
-Description
-
-com.heroku.api
-
-OSGi wrapper for the heroku-api.jar
-
-com.heroku.eclipse.core.serivces
-
-Service interface definitions
-
-com.heroku.eclipse.core.services.junit
-
-Service unit tests
-
-com.heroku.eclipse.core.services.rest
-
-REST service implementation
-
-com.heroku.eclipse.feature
-
-Eclipse feature definition for the plugin
-
-com.heroku.eclipse.ui
-
-UI code
-
-com.heroku.eclipse.ui.junit
-
-UI unit tests
-
-com.heroku.eclipse.updatesite
-
-Bundle defining how the plugin’s update site is created
-
-heroku-eclipse-useragent
-
-UserAgentValueProvider implementation identifying the Eclipse plugin
-
-releng
-
-Release engeneering stuff, defining ie. the target platform used for
-automated building
-
+ - `com.heroku.api`: OSGi wrapper for the heroku-api.jar
+ - `com.heroku.eclipse.core.serivces`: Service interface definitions
+ - `com.heroku.eclipse.core.services.junit`: Service unit tests
+ - `com.heroku.eclipse.core.services.rest`: REST service implementation
+ - `com.heroku.eclipse.feature`: Eclipse feature definition for the plugin
+ - `com.heroku.eclipse.ui`: UI code
+ - `com.heroku.eclipse.ui.junit`: UI unit tests
+ - `com.heroku.eclipse.updatesite`: Bundle defining how the plugin’s update site is created
+ - `heroku-eclipse-useragent`: UserAgentValueProvider implementation identifying the Eclipse plugin
+ - `releng`: Release engeneering stuff, defining ie. the target platform used for automated building
 
 4.  Open the Eclipse Preferences and navigate to "Plug-in Development \>
     Target Platform" and set the checkbox on the "heroku" entry in the
@@ -195,7 +160,7 @@ automated building
     completed:
 
     ![](heroku-e-plugin_devinfos_html_m3a07769b.png)\
-    *Illustration 2: activate the “heroku” target platform*
+    *Illustration 2: activate the "heroku” target platform*
 
 
 Launching the plugin from within the IDE
@@ -203,7 +168,7 @@ Launching the plugin from within the IDE
 
 To launch an internal Eclipse session of the plugin, open the context
 menu on the "Package Explorer" and select "Run As \> Eclipse
-Application“.
+Application".
 
 An additonal Eclipse instance should come up now, integrating the plugin
 from the development instance.
@@ -233,21 +198,21 @@ Substitution" and create the following new substitutions using the "New
 *Illustration 3: adding variables required for testing*
 
 
-1.  **Name:** HEROKU\_TEST\_USERNAME\_1, **Value:** \$USER1
+1.  **Name:** HEROKU_TEST_USERNAME_1, **Value:** $USER1
 
-2.  **Name:** HEROKU\_TEST\_PWD\_1, **Value:** \$PWD1
+2.  **Name:** HEROKU_TEST_PWD_1, **Value:** $PWD1
 
-3.  **Name:** HEROKU\_TEST\_APIKEY\_1, **Value:** \$API\_KEY1
+3.  **Name:** HEROKU_TEST_APIKEY_1, **Value:** $API_KEY1
 
-4.  **Name:** HEROKU\_TEST\_USERNAME\_2, **Value:** \$USER2
+4.  **Name:** HEROKU_TEST_USERNAME_2, **Value:** $USER2
 
-5.  **Name:** HEROKU\_TEST\_PWD\_2, **Value:** \$PWD2
+5.  **Name:** HEROKU_TEST_PWD_2, **Value:** $PWD2
 
-6.  **Name:** HEROKU\_TEST\_APIKEY\_1, **Value:** \$API\_KEY2
+6.  **Name:** HEROKU_TEST_APIKEY_1, **Value:** $API_KEY2
 
-\$USER1, \$PWD1 and \$API\_KEY1 have to be replaced by valid heroku user
-account data used for testing. The same goes for \$USER2, \$PWD2 and
-\$API\_KEY2.
+$USER1, $PWD1 and $API_KEY1 have to be replaced by valid heroku user
+account data used for testing. The same goes for $USER2, $PWD2 and
+$API_KEY2.
 
 In order to run the tests, the local user must have setup valid and
 *passwordless* SSH keys in the development Eclipse.
@@ -255,8 +220,8 @@ In order to run the tests, the local user must have setup valid and
 ![](heroku-e-plugin_devinfos_html_5b27a63d.png)\
 *Illustration 4: run all core tests*
 
-Finally open the context menu on "...core.services.junit/All Tests.launch“
-and select "Run As \> All Tests“:
+Finally open the context menu on "...core.services.junit/All Tests.launch"
+and select "Run As \> All Tests":
 
 Launch UI JUnit-Tests
 ---------------------
@@ -273,7 +238,7 @@ valid and *passwordless* SSH keys password in the development Eclipse.
 
 Once the plugin has been installed, run the UI tests by right clicking
 the launcher config found in
-"...core.services.ui.junit/launchConfigurations/SWTBot AllTests.launch“.
+"...core.services.ui.junit/launchConfigurations/SWTBot AllTests.launch".
 
 Development Requirements
 ========================
