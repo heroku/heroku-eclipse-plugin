@@ -50,7 +50,7 @@ plugin itself.
 Downloading essential pieces
 ============================
 
-1.  Download Eclipse \>= 3.7.2 from
+1.  Download Eclipse JEE >= 3.7.2 from
     [http://www.eclipse.org](http://www.eclipse.org/)
 
 2.  Install the eGit plugin from
@@ -179,7 +179,7 @@ Launch core JUnit-Tests
 -----------------------
 
 The "core" JUnit tests cover the entire "service" side of the plugin and
-do not use any GUI code, residing in the *com.heroku.eclipse.ui*bundle.
+do not use any GUI code, residing in the *com.heroku.eclipse.ui* bundle.
 The UI is tested seperately, see Launch UI JUnit-Tests on page 9.
 
 First unzip the seperatly available "keyring.zip" file into your
