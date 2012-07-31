@@ -135,13 +135,12 @@ Configure workspace to compile for a specific target
     **Name:** heroku_target
 
     **Value:** Location of your target folder e.g.
-    "/Users/$USER/dev/heroku_plugin"
+    "/Users/$USER/dev/heroku_plugin/target"
 
     ![](heroku-e-plugin_devinfos_html_ma9629be.png)
     *Illustration 1: set up the "heroku_target" Eclipse variable*
 
-3.  Clone the heroku-git repo from github.com and import the following
-    plugins:
+3.  Clone the [heroku-eclipse-plugin repo](https://github.com/heroku/heroku-eclipse-plugin) from github.com and import the following plugins:
 
  - `com.heroku.api`: OSGi wrapper for the heroku-api.jar
  - `com.heroku.eclipse.core.serivces`: Service interface definitions
@@ -159,8 +158,8 @@ Configure workspace to compile for a specific target
     list, that will appear once the git cloning from step 3 has been
     completed:
 
-    ![](heroku-e-plugin_devinfos_html_m3a07769b.png)\
-    *Illustration 2: activate the "heroku” target platform*
+    ![](heroku-e-plugin_devinfos_html_m3a07769b.png)
+    *Illustration 2: activate the "heroku" target platform*
 
 
 Launching the plugin from within the IDE
