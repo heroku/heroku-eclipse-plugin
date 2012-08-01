@@ -95,7 +95,7 @@ public class RestHerokuServices implements HerokuServices {
 	/**
 	 * Pattern defining a valid environment variable name
 	 */
-	private static Pattern VALID_ENVVAR_NAME = Pattern.compile("^[a-zA-Z][a-zA-Z0-9_]+$"); //$NON-NLS-1$
+	private static Pattern VALID_ENVVAR_NAME = Pattern.compile("^[^=]+$"); //$NON-NLS-1$
 
 	/**
 	 * @param eventAdmin
