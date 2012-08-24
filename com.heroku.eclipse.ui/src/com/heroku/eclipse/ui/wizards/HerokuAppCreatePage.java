@@ -6,8 +6,12 @@ package com.heroku.eclipse.ui.wizards;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.operation.IRunnableWithProgress;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -34,6 +38,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
+import org.osgi.framework.Bundle;
 import org.osgi.service.log.LogService;
 
 import com.heroku.eclipse.core.constants.AppCreateConstants;
@@ -69,6 +74,12 @@ public class HerokuAppCreatePage extends WizardPage {
 		super("HerokuAppCreatePage"); //$NON-NLS-1$
 		setTitle(Messages.getString("HerokuAppCreateTemplatePage_Title")); //$NON-NLS-1$
 		setDescription(Messages.getString("HerokuAppCreateTemplatePage_Description")); //$NON-NLS-1$
+		Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
+		
+		setImageDescriptor(ImageDescriptor.createFromURL(FileLocator.find(bundle,new Path("icons/55_45/heroku_logo_55_45.png"),
+				                                   						  null)
+				                          )
+				           );
 		service = Activator.getDefault().getService();
 	}
 	

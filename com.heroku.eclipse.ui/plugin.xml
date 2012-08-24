@@ -18,7 +18,7 @@
       </category>
       <view
             name="%HerokuUI.viewName"
-            icon="icons/sample.gif"
+            icon="icons/16_16/heroku_logo.png"
             category="com.heroku.eclipse.ui"
             class="com.heroku.eclipse.ui.views.HerokuApplicationManagerViewPart"
             id="com.heroku.eclipse.ui.views.HerokuApplicationManager">

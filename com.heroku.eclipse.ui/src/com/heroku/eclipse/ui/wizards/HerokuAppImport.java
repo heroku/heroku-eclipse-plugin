@@ -1,12 +1,18 @@
 package com.heroku.eclipse.ui.wizards;
 
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IImportWizard;
+import org.osgi.framework.Bundle;
 
 import com.heroku.api.App;
 import com.heroku.eclipse.core.services.HerokuServices.IMPORT_TYPES;
+import com.heroku.eclipse.ui.Activator;
 import com.heroku.eclipse.ui.utils.HerokuUtils;
 
 /**
@@ -23,7 +29,12 @@ public class HerokuAppImport extends AbstractHerokuAppImportWizard implements II
 	 * 
 	 */
 	public HerokuAppImport() {
+
 		super();
+		Bundle bundle = Platform.getBundle(Activator.PLUGIN_ID);
+		
+		setDefaultPageImageDescriptor(ImageDescriptor.createFromURL(FileLocator.find(
+				bundle, new Path("icons/55_45/heroku_logo_55_45.png"), null)));
 	}
 
 	@Override
