@@ -262,8 +262,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
-		final SafeRunnableAction appInfo = new SafeRunnableAction(
-				Messages.getString("HerokuAppManagerViewPart_AppInfoShort"), IconKeys.getImageDescriptor(IconKeys.ICON_APPINFO_EDITOR_ICON)) { //$NON-NLS-1$
+		final SafeRunnableAction appInfo = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_AppInfoShort")) { //$NON-NLS-1$
 			@Override
 			public void safeRun() {
 				
