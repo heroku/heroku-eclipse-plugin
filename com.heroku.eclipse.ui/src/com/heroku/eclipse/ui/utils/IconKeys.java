@@ -17,7 +17,7 @@ public class IconKeys {
 	public static final String ICON_PROCESS_UP = "/icons/16_16/ProcessUp.png";
 	public static final String ICON_PROCESS_UNKNOWN = "/icons/16_16/ProcessUnknown.png";
 	public static final String ICON_APPINFO_EDITOR_ICON = "/icons/16_16/ApplicationInfoEditor.png";
-	public static final String ICON_APPSLIST_REFRESH = "/icons/16_16/TangoRefresh.png";
+	public static final String ICON_APPSLIST_REFRESH = "/icons/16_16/TangoRefresh.gif";
 	
 	static {
 		JFaceResources.getImageRegistry().put(ICON_APPLICATION_OWNER, Activator.imageDescriptorFromPlugin(Activator.PLUGIN_ID, ICON_APPLICATION_OWNER));
