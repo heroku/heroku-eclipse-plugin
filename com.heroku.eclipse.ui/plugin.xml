@@ -47,7 +47,7 @@
       <wizard
             category="com.heroku.eclipse.ui.heroku"
             class="com.heroku.eclipse.ui.wizards.HerokuAppCreate"
-            icon="icons/16_16/CloneTemplate.png"
+            icon="icons/16_16/heroku_logo.png"
             id="com.heroku.eclipse.ui.herokunewappwizard"
             name="%HerokuUI.CreateWizardName"
             project="true">
