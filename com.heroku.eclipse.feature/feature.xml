@@ -3,15 +3,18 @@
       id="com.heroku.eclipse.feature"
       label="Heroku Eclipse Plugin"
       version="0.1.0.qualifier"
-      provider-name="HEROKU"
+      provider-name="Heroku"
       plugin="com.heroku.eclipse.ui">
 
-   <description url="http://www.example.com/description">
-      [Enter Feature Description here.]
+   <description url="http://www.heroku.com">
+      Heroku plugin for Eclipse allows you to build/deploy &amp; manage
+Cloud applications on Heroku, all from within the IDE. Heroku
+is the leading polyglot platform-as-a-service(PaaS) supporting
+Java, Scale, Clojure, Ruby, Python and Node.js based applications.
    </description>
 
-   <copyright url="http://www.example.com/copyright">
-      [Enter Copyright Description here.]
+   <copyright>
+      Copyright (c) Heroku 2008-2012
    </copyright>
 
    <license url="">
@@ -38,6 +41,11 @@ CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    </license>
+
+   <url>
+      <discovery label="What is Heroku" url="http://www.heroku.com"/>
+      <discovery label="Heroku DevCenter" url="https://devcenter.heroku.com/"/>
+   </url>
 
    <requires>
       <import feature="org.eclipse.m2e.feature" version="1.0.100" match="greaterOrEqual"/>
