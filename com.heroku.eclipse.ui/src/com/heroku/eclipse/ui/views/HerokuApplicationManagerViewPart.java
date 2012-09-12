@@ -1,5 +1,6 @@
 package com.heroku.eclipse.ui.views;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -44,6 +45,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
@@ -546,6 +548,24 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
+		final SafeRunnableAction deployWar = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_DeployWar")) { //$NON-NLS-1$
+			@Override
+			public void safeRun() {
+				App app = getSelectedApp();
+				if (app == null) {
+					return;
+				}
+				
+				try {
+					herokuService.deployWar(new NullProgressMonitor(), app.getName(), new File(new FileDialog(getShell(), SWT.SAVE).open()));
+				} catch (HerokuServiceException e) {
+					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to deploy WAR to app " + app.getName(), e); //$NON-NLS-1$
+					HerokuUtils.herokuError(getShell(), e);
+				}
+			}
+			
+		};
+		
 		MenuManager mgr = new MenuManager();
 		mgr.add(refresh);
 		mgr.add(new Separator());
@@ -556,6 +576,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		mgr.add(viewLogs);
 		mgr.add(scale);
 		mgr.add(destroy);
+		mgr.add(deployWar);
 		mgr.addMenuListener(new IMenuListener() {
 
 			@Override

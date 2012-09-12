@@ -67,6 +67,7 @@ import com.heroku.eclipse.core.constants.PreferenceConstants;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
+import com.heroku.eclipse.core.services.WarDeploymentService;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.core.services.model.HerokuDyno;
@@ -1010,6 +1011,20 @@ public class RestHerokuServices implements HerokuServices {
 		});
 	}
 
+	@Override
+	public void deployWar(final IProgressMonitor pm, final String appName, final File war) throws HerokuServiceException {
+		runCancellableOperation(pm, new RunnableWithReturn<Object>() {
+			@Override
+			public Object run() throws HerokuServiceException {
+				HerokuSession session = getOrCreateHerokuSession(pm);
+				WarDeploymentService deployer = new DirectToWarDeployment();
+				deployer.deploy(session.getAPIKey(), appName, war);
+				return new VoidReturn();
+			}
+		});
+	}
+
+	
 	/**
 	 * Starts a thread running the given operation that can be interrupted using
 	 * the given progress monitor. So users may cancel the given operation using
