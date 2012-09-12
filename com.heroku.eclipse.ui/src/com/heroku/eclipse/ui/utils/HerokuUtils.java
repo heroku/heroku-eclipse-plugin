@@ -325,11 +325,8 @@ public class HerokuUtils {
 		if ( e instanceof HerokuServiceException ) {
 			return (HerokuServiceException) e;
 		}
-		else if (e instanceof InvocationTargetException) {
-			rv = (Exception) e.getCause();
-		}
-		else if (e instanceof RuntimeException) {
-			rv = (Exception) e.getCause();
+		else if (e instanceof InvocationTargetException || e instanceof RuntimeException) {
+			rv = e.getCause();
 		}
 
 		if (rv instanceof HerokuServiceException) {
