@@ -1,6 +1,7 @@
 package com.heroku.eclipse.ui.views;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -551,13 +552,18 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		final SafeRunnableAction deployWar = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_DeployWar")) { //$NON-NLS-1$
 			@Override
 			public void safeRun() {
-				App app = getSelectedApp();
+				final App app = getSelectedApp();
 				if (app == null) {
 					return;
 				}
 				
+				final String warFileStr = new FileDialog(getShell(), SWT.SAVE).open();
+				if (warFileStr == null) {
+					return;
+				}
+				
 				try {
-					herokuService.deployWar(new NullProgressMonitor(), app.getName(), new File(new FileDialog(getShell(), SWT.SAVE).open()));
+					herokuService.deployWar(new NullProgressMonitor(), app.getName(), new File(warFileStr));
 				} catch (HerokuServiceException e) {
 					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to deploy WAR to app " + app.getName(), e); //$NON-NLS-1$
 					HerokuUtils.herokuError(getShell(), e);
