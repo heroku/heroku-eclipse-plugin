@@ -1018,7 +1018,7 @@ public class RestHerokuServices implements HerokuServices {
 			public Object run() throws HerokuServiceException {
 				HerokuSession session = getOrCreateHerokuSession(pm);
 				WarDeploymentService deployer = new DirectToWarDeployment();
-				deployer.deploy(session.getAPIKey(), appName, war);
+				deployer.deploy(pm, session.getAPIKey(), appName, war);
 				return new VoidReturn();
 			}
 		});

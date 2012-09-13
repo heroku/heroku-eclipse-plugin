@@ -549,6 +549,28 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
+		/*
+		 * 
+		 * PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
+									@Override
+									public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+										monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_Scaling", process), 3); //$NON-NLS-1$
+										monitor.worked(1);
+										try {
+											herokuService.scaleProcess(monitor, appName, process, Integer.parseInt(quantity));
+											monitor.worked(1);
+											refreshApplications(monitor, true);
+											monitor.done();
+										}
+										catch (HerokuServiceException e) {
+											// rethrow to outer space
+											throw new InvocationTargetException(e);
+										}
+									}
+								});
+		 */
+		
+		
 		final SafeRunnableAction deployWar = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_DeployWar")) { //$NON-NLS-1$
 			@Override
 			public void safeRun() {
@@ -557,17 +579,31 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					return;
 				}
 				
-				final String warFileStr = new FileDialog(getShell(), SWT.SAVE).open();
+				final String warFileStr = new FileDialog(getShell(), SWT.OPEN).open();
 				if (warFileStr == null) {
 					return;
 				}
 				
 				try {
-					herokuService.deployWar(new NullProgressMonitor(), app.getName(), new File(warFileStr));
-				} catch (HerokuServiceException e) {
-					Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to deploy WAR to app " + app.getName(), e); //$NON-NLS-1$
-					HerokuUtils.herokuError(getShell(), e);
+					PlatformUI.getWorkbench().getProgressService().run(true, false, new IRunnableWithProgress() {
+						@Override
+						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+							try {
+								herokuService.deployWar(monitor, app.getName(), new File(warFileStr));
+							} catch (HerokuServiceException e) {
+								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to deploy WAR to app " + app.getName(), e); //$NON-NLS-1$
+								HerokuUtils.herokuError(getShell(), e);
+							}
+						}
+					});
+				} catch (InvocationTargetException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
+				
 			}
 			
 		};
