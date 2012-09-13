@@ -565,7 +565,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				
 				final File warFile = new File(warFileStr);
 				
-				if (confirmDeploy(app, warFile)) {
+				if (!confirmDeploy(app, warFile)) {
 					return;
 				}
 				
@@ -609,9 +609,9 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 			
 			private boolean confirmDeploy(final App app, final File warFile) {
-				return !MessageDialog.openQuestion(getShell(),
-						Messages.getString("HerokuAppManagerViewPart_Deploy"), 
-						Messages.getFormattedString("HerokuAppManagerViewPart_Deploy_Confirm", warFile.getAbsolutePath(), app.getName()));
+				return MessageDialog.openQuestion(getShell(),
+					   Messages.getString("HerokuAppManagerViewPart_Deploy"), 
+					   Messages.getFormattedString("HerokuAppManagerViewPart_Deploy_Confirm", warFile.getAbsolutePath(), app.getName()));
 			}
 			
 			private void handleUnknownDeployError(App app, File warFile, Exception e) {
