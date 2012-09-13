@@ -6,9 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.osgi.service.log.LogService;
 
 import com.heroku.eclipse.core.services.WarDeploymentService;
+import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.herokuapp.directto.client.DeployRequest;
+import com.herokuapp.directto.client.DeploymentException;
 import com.herokuapp.directto.client.DirectToHerokuClient;
 import com.herokuapp.directto.client.EventSubscription;
 import com.herokuapp.directto.client.EventSubscription.Event;
@@ -18,7 +21,7 @@ import com.herokuapp.directto.client.VerificationException;
 public class DirectToWarDeployment implements WarDeploymentService {
 
 	@Override
-	public void deploy(final IProgressMonitor pm, String apiKey, String appName, File war) {
+	public void deploy(final IProgressMonitor pm, final String apiKey, final String appName, final File war) throws HerokuServiceException {
 		final DirectToHerokuClient client= new DirectToHerokuClient.Builder()
 			.setApiKey(apiKey)
 			.setConsumersUserAgent("heroku-eclipse-plugin/TODO")
@@ -42,15 +45,16 @@ public class DirectToWarDeployment implements WarDeploymentService {
 				
 				@Override
 				public void handle(Event event) {
-					System.out.println(event.name());
+					Activator.getDefault().getLogger().log(LogService.LOG_DEBUG, "event=" + event.name() + " appName=" + appName + " war=" + war);
 					
 					switch(event) {
-						case DEPLOY_PRE_VERIFICATION_START: pm.beginTask("Verifying...", MAX_PROGRESS);  break;
-						case UPLOAD_START:                  pm.subTask("Uploading...");                  break;
-						case POLL_START:                    pm.subTask("Deploying...");                  break;
-						case POLLING:                                                                    break;
-						case DEPLOY_END:                    pm.done();                                   return;
-						default:                                                                         return;
+						case DEPLOY_START:                  pm.beginTask("Deploying WAR file to " + appName, MAX_PROGRESS);  break;
+						case DEPLOY_PRE_VERIFICATION_START: pm.subTask("Verifying...");                                      break;
+						case UPLOAD_START:                  pm.subTask("Uploading...");                                      break;
+						case POLL_START:                    pm.subTask("Deploying...");                                      break;
+						case POLLING:                                                                                        break;
+						case DEPLOY_END:                    pm.done();                                                       return;
+						default:                                                                                             return;
 					}
 					
 					incrementProgress();
@@ -61,9 +65,20 @@ public class DirectToWarDeployment implements WarDeploymentService {
 		try {
 			client.verify(req);
 		} catch (VerificationException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e); // TODO show proper error message
+			final StringBuilder msgs = new StringBuilder();
+			for (String msg : e.getMessages()) {
+				msgs.append(msg + "; ");
+			}
+			
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "WAR deployment failed to app " + appName + "\n" + msgs, e);
+			throw new HerokuServiceException(msgs.toString(), e);
 		}
-		client.deploy(req);
+		
+		try {
+			client.deploy(req);
+		} catch (DeploymentException e) {
+			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "WAR deployment failed to app " + appName + "\n" + e.getDetails(), e);
+			throw new HerokuServiceException(e.getDetails(), e);
+		}
 	}
 }

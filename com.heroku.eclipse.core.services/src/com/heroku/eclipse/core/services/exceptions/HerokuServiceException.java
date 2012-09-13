@@ -90,7 +90,7 @@ public class HerokuServiceException extends Exception {
 	 * indicates that the user has cancelled an operation
 	 */
 	public static final int OPERATION_CANCELLED = 15;
-
+	
 	private final int errorCode;
 
 	public HerokuServiceException(Throwable t) {

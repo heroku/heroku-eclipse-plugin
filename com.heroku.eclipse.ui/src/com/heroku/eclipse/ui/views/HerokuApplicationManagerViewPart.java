@@ -549,29 +549,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
-		/*
-		 * 
-		 * PlatformUI.getWorkbench().getProgressService().run(true, true, new IRunnableWithProgress() {
-									@Override
-									public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
-										monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Progress_Scaling", process), 3); //$NON-NLS-1$
-										monitor.worked(1);
-										try {
-											herokuService.scaleProcess(monitor, appName, process, Integer.parseInt(quantity));
-											monitor.worked(1);
-											refreshApplications(monitor, true);
-											monitor.done();
-										}
-										catch (HerokuServiceException e) {
-											// rethrow to outer space
-											throw new InvocationTargetException(e);
-										}
-									}
-								});
-		 */
-		
-		
-		final SafeRunnableAction deployWar = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_DeployWar")) { //$NON-NLS-1$
+		final SafeRunnableAction deployWar = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_Deploy") + "...") { //$NON-NLS-1$
+			
 			@Override
 			public void safeRun() {
 				final App app = getSelectedApp();
@@ -579,8 +558,14 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					return;
 				}
 				
-				final String warFileStr = new FileDialog(getShell(), SWT.OPEN).open();
+				final String warFileStr = askWarFile();
 				if (warFileStr == null) {
+					return;
+				}
+				
+				final File warFile = new File(warFileStr);
+				
+				if (confirmDeploy(app, warFile)) {
 					return;
 				}
 				
@@ -589,23 +574,50 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						@Override
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
-								herokuService.deployWar(monitor, app.getName(), new File(warFileStr));
+								herokuService.deployWar(monitor, app.getName(), warFile);
 							} catch (HerokuServiceException e) {
-								Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to deploy WAR to app " + app.getName(), e); //$NON-NLS-1$
-								HerokuUtils.herokuError(getShell(), e);
+								handleUnknownDeployError(app, warFile, e);
 							}
 						}
 					});
-				} catch (InvocationTargetException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				} catch (InvocationTargetException e) {
+					handleUnknownDeployError(app, warFile, e);
+				} catch (InterruptedException e) {
+					handleUnknownDeployError(app, warFile, e);
+				}
+			}
+
+			private String askWarFile() {
+				final FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
+				fileDialog.setText(Messages.getString("HerokuAppManagerViewPart_Deploy_ChooseWar"));
+				fileDialog.setFilterExtensions(new String[]{"*.war"});
+				
+				final String warFileStr = fileDialog.open();
+				
+				if (warFileStr == null) {
+					return null;
 				}
 				
+				if (!warFileStr.endsWith(".war")) {
+					HerokuUtils.userError(getShell(), 
+							Messages.getString("HerokuAppManagerViewPart_Deploy"),  
+							Messages.getString("HerokuAppManagerViewPart_Deploy_Error_WarOnly"));
+					return null;
+				}
+				
+				return warFileStr;
 			}
 			
+			private boolean confirmDeploy(final App app, final File warFile) {
+				return !MessageDialog.openQuestion(getShell(),
+						Messages.getString("HerokuAppManagerViewPart_Deploy"), 
+						Messages.getFormattedString("HerokuAppManagerViewPart_Deploy_Confirm", warFile.getAbsolutePath(), app.getName()));
+			}
+			
+			private void handleUnknownDeployError(App app, File warFile, Exception e) {
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to deploy WAR " + warFile + " to app " + app.getName(), e);
+				HerokuUtils.herokuError(getShell(), e);
+			}
 		};
 		
 		MenuManager mgr = new MenuManager();
@@ -613,12 +625,12 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 		mgr.add(new Separator());
 		mgr.add(appInfo);
 		mgr.add(importApp);
+		mgr.add(deployWar);
 		mgr.add(open);
 		mgr.add(restart);
 		mgr.add(viewLogs);
 		mgr.add(scale);
 		mgr.add(destroy);
-		mgr.add(deployWar);
 		mgr.addMenuListener(new IMenuListener() {
 
 			@Override
