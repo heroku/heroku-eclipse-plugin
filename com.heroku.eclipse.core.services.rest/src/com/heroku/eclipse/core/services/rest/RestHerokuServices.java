@@ -182,13 +182,10 @@ public class RestHerokuServices implements HerokuServices {
 					if (sshKey == null || sshKey.trim().isEmpty()) {
 						p.remove(PreferenceConstants.P_SSH_KEY);
 					}
-					else if (!sshKey.equals(getSSHKey()) || ("true".equals(System.getProperty("heroku.devel")))) { //$NON-NLS-1$ //$NON-NLS-2$
+					else {
 						validateSSHKey(sshKey);
 						getOrCreateHerokuSession(pm).addSSHKey(sshKey);
 						p.put(PreferenceConstants.P_SSH_KEY, sshKey);
-					}
-					else {
-						throw new HerokuServiceException(HerokuServiceException.SSH_KEY_ALREADY_EXISTS, "SSH key already registered with this account!"); //$NON-NLS-1$
 					}
 					p.flush();
 				}

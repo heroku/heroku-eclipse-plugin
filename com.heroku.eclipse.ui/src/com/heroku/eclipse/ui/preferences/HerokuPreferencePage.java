@@ -563,7 +563,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				if (e2.getErrorCode() == HerokuServiceException.INVALID_API_KEY) {
 					setErrorMessage(Messages.getString("HerokuPreferencePage_Error_KeyValidationFailed")); //$NON-NLS-1$
 				}
-				else if (e2.getErrorCode() == HerokuServiceException.INVALID_SSH_KEY || e2.getErrorCode() == HerokuServiceException.SSH_KEY_ALREADY_EXISTS) {
+				else if (e2.getErrorCode() == HerokuServiceException.INVALID_SSH_KEY) {
 					// don't disable buttons at this stage
 					rv = true;
 				}
@@ -618,7 +618,7 @@ public class HerokuPreferencePage extends PreferencePage implements IWorkbenchPr
 				if (e2.getErrorCode() == HerokuServiceException.INVALID_API_KEY) {
 					setErrorMessage(Messages.getString("HerokuPreferencePage_Error_KeyValidationFailed")); //$NON-NLS-1$
 				}
-				else if (e2.getErrorCode() == HerokuServiceException.INVALID_SSH_KEY || e2.getErrorCode() == HerokuServiceException.SSH_KEY_ALREADY_EXISTS) {
+				else if (e2.getErrorCode() == HerokuServiceException.INVALID_SSH_KEY) {
 					setErrorMessage(Messages.getString("HerokuPreferencePage_Error_SSHKeyInvalid")); //$NON-NLS-1$
 				}
 				else {

@@ -43,11 +43,6 @@ public class HerokuServiceException extends Exception {
 	public static final int INVALID_SSH_KEY = 6;
 
 	/**
-	 * error code indicating that this SSH key already exists
-	 */
-	public static final int SSH_KEY_ALREADY_EXISTS = 7;
-
-	/**
 	 * error code indicating that a network request failed
 	 */
 	public static final int REQUEST_FAILED = 8;
