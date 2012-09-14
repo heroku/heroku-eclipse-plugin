@@ -1012,11 +1012,11 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
-	public void deployWar(final IProgressMonitor pm, final String appName, final File war) throws HerokuServiceException {
-		runCancellableOperation(pm, new RunnableWithReturn<Object>() {
+	public void deployWar(final WarDeploymentService.ProgressMonitor pm, final String appName, final File war) throws HerokuServiceException {
+		runCancellableOperation(pm.getIProgressMonitor(), new RunnableWithReturn<Object>() {
 			@Override
 			public Object run() throws HerokuServiceException {
-				HerokuSession session = getOrCreateHerokuSession(pm);
+				HerokuSession session = getOrCreateHerokuSession(pm.getIProgressMonitor());
 				WarDeploymentService deployer = new DirectToWarDeployment();
 				deployer.deploy(pm, session.getAPIKey(), appName, war);
 				return new VoidReturn();

@@ -565,7 +565,7 @@ public interface HerokuServices {
 	 * @param war
 	 * @throws HerokuServiceException
 	 */
-	public void deployWar(final IProgressMonitor pm, final String appName, final File war) throws HerokuServiceException;
+	public void deployWar(WarDeploymentService.ProgressMonitor pm, String appName, File war) throws HerokuServiceException;
 	
 	/**
 	 * Delivers the thread responsible for displaying the log for the given App. The thread is either

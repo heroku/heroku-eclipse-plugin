@@ -73,6 +73,7 @@ import com.heroku.api.App;
 import com.heroku.eclipse.core.constants.HerokuViewConstants;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
+import com.heroku.eclipse.core.services.WarDeploymentService;
 import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
 import com.heroku.eclipse.core.services.HerokuServices.LogStream;
 import com.heroku.eclipse.core.services.HerokuServices.LogStreamCreator;
@@ -574,7 +575,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						@Override
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
-								herokuService.deployWar(monitor, app.getName(), warFile);
+								herokuService.deployWar(wrapProcessMonitor(monitor), app.getName(), warFile);
 							} catch (HerokuServiceException e) {
 								handleUnknownDeployError(app, warFile, e);
 							}
@@ -585,6 +586,43 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				} catch (InterruptedException e) {
 					handleUnknownDeployError(app, warFile, e);
 				}
+			}
+
+			private WarDeploymentService.ProgressMonitor wrapProcessMonitor(final IProgressMonitor monitor) {
+				return new WarDeploymentService.ProgressMonitor() {
+					
+					final String ellipsis = "...";
+					
+					@Override
+					public IProgressMonitor getIProgressMonitor() {
+						return monitor;
+					}
+					
+					@Override
+					public void start() {
+						monitor.beginTask(Messages.getString("HerokuAppManagerViewPart_Deploy_Progress_Deploying"), IProgressMonitor.UNKNOWN);
+					}
+
+					@Override
+					public void preparing() {
+						monitor.subTask(Messages.getString("HerokuAppManagerViewPart_Deploy_Progress_Preparing") + ellipsis);
+					}
+					
+					@Override
+					public void uploading() {
+						monitor.subTask(Messages.getString("HerokuAppManagerViewPart_Deploy_Progress_Uploading") + ellipsis);
+					}
+
+					@Override
+					public void deploying() {
+						monitor.subTask(Messages.getString("HerokuAppManagerViewPart_Deploy_Progress_Deploying") + ellipsis);
+					}
+
+					@Override
+					public void done() {
+						monitor.done();
+					}
+				};
 			}
 
 			private String askWarFile() {
