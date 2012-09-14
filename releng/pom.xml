@@ -24,7 +24,6 @@
 	<modules>
 		<module>../com.heroku.api</module>
 		<module>../com.heroku.eclipse.core.services</module>
-        <module>../com.herokuapp.directto</module>
 		<!-- module>../com.heroku.eclipse.core.services.mockup</module -->
 		<module>../com.heroku.eclipse.core.services.rest</module>
 		<module>../com.heroku.eclipse.ui</module>
