@@ -1,13 +1,18 @@
 package com.heroku.eclipse.core.services.junit;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Semaphore;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 import com.heroku.api.App;
 import com.heroku.api.Collaborator;
 import com.heroku.api.User;
 import com.heroku.eclipse.core.services.HerokuServices;
+import com.heroku.eclipse.core.services.WarDeploymentService;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.junit.common.Credentials;
 import com.heroku.eclipse.core.services.junit.common.HerokuTestConstants;
@@ -390,5 +395,60 @@ public class HerokuServiceOwnAppTest extends HerokuServicesTest {
 			e.printStackTrace();
 			fail("expecting removal of env variables to succeed");
 		}
+	}
+	
+	public void testDeployWar() throws Exception {
+		// checkpoints for listener to be set during deployment. assert all true after deployment
+		// using final singleton arrays to be accessible inside listener
+		
+		final boolean[] start     = new boolean[1];
+		final boolean[] uploading = new boolean[1];
+		final boolean[] preparing = new boolean[1];
+		final boolean[] done      = new boolean[1];
+		final boolean[] deploying = new boolean[1];
+		
+		
+		final WarDeploymentService.ProgressMonitor pm = new WarDeploymentService.ProgressMonitor() {
+
+			@Override
+			public void start() {
+				start[0] = true;
+			}
+
+			@Override
+			public void preparing() {
+				preparing[0] = true;
+			}
+			
+			@Override
+			public void uploading() {
+				uploading[0] = true;
+			}
+			
+			@Override
+			public void deploying() {
+				deploying[0] = true;
+			}
+			
+			@Override
+			public void done() {
+				done[0] = true;
+			}
+			
+			@Override
+			public IProgressMonitor getIProgressMonitor() {
+				return getProgressMonitor();
+			}
+			
+		};
+		
+		getService().deployWar(pm, getValidDummyApp().getName(), File.createTempFile("test", ".war"));
+		
+		assertTrue(start[0]);
+		assertTrue(preparing[0]);
+		assertTrue(uploading[0]);
+		assertTrue(deploying[0]);
+		assertTrue(done[0]);
+		
 	}
 }

@@ -1,5 +1,6 @@
 package com.heroku.eclipse.core.services;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -555,6 +556,16 @@ public interface HerokuServices {
 	 * @throws HerokuServiceException
 	 */
 	public void scaleProcess(IProgressMonitor pm, String appName, String dynoName, int quantity) throws HerokuServiceException;
+	
+	/**
+	 * Deploys a WAR file to an app
+	 * 
+	 * @param pm
+	 * @param appName
+	 * @param war
+	 * @throws HerokuServiceException
+	 */
+	public void deployWar(WarDeploymentService.ProgressMonitor pm, String appName, File war) throws HerokuServiceException;
 	
 	/**
 	 * Delivers the thread responsible for displaying the log for the given App. The thread is either

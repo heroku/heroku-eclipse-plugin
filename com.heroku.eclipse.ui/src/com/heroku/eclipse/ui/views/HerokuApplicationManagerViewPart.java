@@ -1,5 +1,7 @@
 package com.heroku.eclipse.ui.views;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -44,6 +46,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
@@ -70,6 +73,7 @@ import com.heroku.api.App;
 import com.heroku.eclipse.core.constants.HerokuViewConstants;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
+import com.heroku.eclipse.core.services.WarDeploymentService;
 import com.heroku.eclipse.core.services.HerokuServices.APP_FIELDS;
 import com.heroku.eclipse.core.services.HerokuServices.LogStream;
 import com.heroku.eclipse.core.services.HerokuServices.LogStreamCreator;
@@ -546,11 +550,120 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 			}
 		};
 
+		final SafeRunnableAction deployWar = new SafeRunnableAction(Messages.getString("HerokuAppManagerViewPart_Deploy") + "...") { //$NON-NLS-1$
+			
+			@Override
+			public void safeRun() {
+				final App app = getSelectedApp();
+				if (app == null) {
+					return;
+				}
+				
+				final String warFileStr = askWarFile();
+				if (warFileStr == null) {
+					return;
+				}
+				
+				final File warFile = new File(warFileStr);
+				
+				if (!confirmDeploy(app, warFile)) {
+					return;
+				}
+				
+				try {
+					PlatformUI.getWorkbench().getProgressService().run(true, false, new IRunnableWithProgress() {
+						@Override
+						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
+							try {
+								herokuService.deployWar(wrapProcessMonitor(monitor), app.getName(), warFile);
+							} catch (HerokuServiceException e) {
+								handleUnknownDeployError(app, warFile, e);
+							}
+						}
+					});
+				} catch (InvocationTargetException e) {
+					handleUnknownDeployError(app, warFile, e);
+				} catch (InterruptedException e) {
+					handleUnknownDeployError(app, warFile, e);
+				}
+			}
+
+			private WarDeploymentService.ProgressMonitor wrapProcessMonitor(final IProgressMonitor monitor) {
+				return new WarDeploymentService.ProgressMonitor() {
+					
+					final String ellipsis = "...";
+					
+					@Override
+					public IProgressMonitor getIProgressMonitor() {
+						return monitor;
+					}
+					
+					@Override
+					public void start() {
+						monitor.beginTask(Messages.getString("HerokuAppManagerViewPart_Deploy_Progress_Deploying"), IProgressMonitor.UNKNOWN);
+					}
+
+					@Override
+					public void preparing() {
+						monitor.subTask(Messages.getString("HerokuAppManagerViewPart_Deploy_Progress_Preparing") + ellipsis);
+					}
+					
+					@Override
+					public void uploading() {
+						monitor.subTask(Messages.getString("HerokuAppManagerViewPart_Deploy_Progress_Uploading") + ellipsis);
+					}
+
+					@Override
+					public void deploying() {
+						monitor.subTask(Messages.getString("HerokuAppManagerViewPart_Deploy_Progress_Deploying") + ellipsis);
+					}
+
+					@Override
+					public void done() {
+						monitor.done();
+					}
+				};
+			}
+
+			private String askWarFile() {
+				final FileDialog fileDialog = new FileDialog(getShell(), SWT.OPEN);
+				fileDialog.setText(Messages.getString("HerokuAppManagerViewPart_Deploy_ChooseWar"));
+				fileDialog.setFilterExtensions(new String[]{"*.war"});
+				
+				final String warFileStr = fileDialog.open();
+				
+				if (warFileStr == null) {
+					return null;
+				}
+				
+				if (!warFileStr.endsWith(".war")) {
+					HerokuUtils.userError(getShell(), 
+							Messages.getString("HerokuAppManagerViewPart_Deploy"),  
+							Messages.getString("HerokuAppManagerViewPart_Deploy_Error_WarOnly"));
+					return null;
+				}
+				
+				return warFileStr;
+			}
+			
+			private boolean confirmDeploy(final App app, final File warFile) {
+				return MessageDialog.openQuestion(getShell(),
+					   Messages.getString("HerokuAppManagerViewPart_Deploy"), 
+					   Messages.getFormattedString("HerokuAppManagerViewPart_Deploy_Confirm", warFile.getAbsolutePath(), app.getName()));
+			}
+			
+			private void handleUnknownDeployError(App app, File warFile, Exception e) {
+				Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "unknown error when trying to deploy WAR " + warFile + " to app " + app.getName(), e);
+				HerokuUtils.herokuError(getShell(), e);
+			}
+		};
+		
 		MenuManager mgr = new MenuManager();
 		mgr.add(refresh);
 		mgr.add(new Separator());
 		mgr.add(appInfo);
 		mgr.add(importApp);
+		mgr.add(deployWar);
 		mgr.add(open);
 		mgr.add(restart);
 		mgr.add(viewLogs);
