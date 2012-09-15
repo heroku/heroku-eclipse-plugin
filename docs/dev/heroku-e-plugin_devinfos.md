@@ -1,4 +1,4 @@
-Heroku Eclipse Plugin 0.1.0 Development Setup
+Heroku Eclipse Plugin 1.0.0 Development Setup
 =============================================
 
 ***BestSolution.at EDV Systemhaus GmbH***

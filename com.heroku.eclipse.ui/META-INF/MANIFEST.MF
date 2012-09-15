@@ -2,13 +2,13 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Ui
 Bundle-SymbolicName: com.heroku.eclipse.ui; singleton:=true
-Bundle-Version: 0.1.0.qualifier
+Bundle-Version: 1.0.0
 Bundle-Activator: com.heroku.eclipse.ui.Activator
 Bundle-Vendor: HEROKU
 Require-Bundle: org.eclipse.ui;bundle-version="3.7.0",
  org.eclipse.core.runtime;bundle-version="3.7.0",
  org.eclipse.core.resources;bundle-version="3.7.0",
- com.heroku.eclipse.core.services;bundle-version="0.1.0",
+ com.heroku.eclipse.core.services;bundle-version="1.0.0",
  com.heroku.api;bundle-version="0.13.0",
  org.eclipse.jsch.core;bundle-version="1.1.300",
  org.eclipse.ui.forms;bundle-version="3.5.100",

@@ -2,13 +2,13 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>heroku-eclipse-useragent</groupId>
   <artifactId>heroku-eclipse-useragent</artifactId>
-  <version>0.0.1</version>
+  <version>1.0.0</version>
   
      <dependencies>
           <dependency>
             <groupId>com.heroku.api</groupId>
             <artifactId>heroku-api</artifactId>
-            <version>0.12</version>
+            <version>0.13</version>
         </dependency>
      </dependencies>
   

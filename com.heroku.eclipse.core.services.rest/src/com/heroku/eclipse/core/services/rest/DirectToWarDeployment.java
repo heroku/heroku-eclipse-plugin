@@ -23,7 +23,7 @@ public class DirectToWarDeployment implements WarDeploymentService {
 	public void deploy(final ProgressMonitor pm, final String apiKey, final String appName, final File war) throws HerokuServiceException {
 		final DirectToHerokuClient client= new DirectToHerokuClient.Builder()
 			.setApiKey(apiKey)
-			.setConsumersUserAgent("heroku-eclipse-plugin/TODO")
+			.setConsumersUserAgent("heroku-eclipse-plugin/1.0.0") //TODO: inject version number
 			.build();
 		
 		final Map<String,File> files = new HashMap<String,File>();
