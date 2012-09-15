@@ -575,7 +575,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 						@Override
 						public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 							try {
-								herokuService.deployWar(wrapProcessMonitor(monitor), app.getName(), warFile);
+								herokuService.deployWar(createProcessMonitor(monitor, app), app.getName(), warFile);
 							} catch (HerokuServiceException e) {
 								handleUnknownDeployError(app, warFile, e);
 							}
@@ -588,7 +588,7 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 				}
 			}
 
-			private WarDeploymentService.ProgressMonitor wrapProcessMonitor(final IProgressMonitor monitor) {
+			private WarDeploymentService.ProgressMonitor createProcessMonitor(final IProgressMonitor monitor, final App app) {
 				return new WarDeploymentService.ProgressMonitor() {
 					
 					final String ellipsis = "...";
@@ -600,7 +600,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 					
 					@Override
 					public void start() {
-						monitor.beginTask(Messages.getString("HerokuAppManagerViewPart_Deploy_Progress_Deploying"), IProgressMonitor.UNKNOWN);
+						monitor.beginTask(Messages.getFormattedString("HerokuAppManagerViewPart_Deploy_Progress", app.getName()) + ellipsis, 
+								IProgressMonitor.UNKNOWN);
 					}
 
 					@Override
