@@ -23,7 +23,7 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry exported="true" kind="lib" path="commons-codec-1.4.jar"/>
 	<classpathentry exported="true" kind="lib" path="commons-logging-1.1.1.jar"/>
-	<classpathentry exported="true" kind="lib" path="heroku-eclipse-useragent-0.0.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="heroku-eclipse-useragent-1.0.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="heroku-api-0.13.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
