@@ -61,7 +61,7 @@ public class DirectToWarDeployment implements WarDeploymentService {
 			client.deploy(req);
 		} catch (DeploymentException e) {
 			Activator.getDefault().getLogger().log(LogService.LOG_ERROR, "WAR deployment failed to app " + appName + "\n" + e.getDetails(), e);
-			throw new HerokuServiceException(e.getDetails(), e);
+			throw new HerokuServiceException(e.getMessage(), e);
 		}
 	}
 }
