@@ -42,7 +42,7 @@
 <setEntry value="org.eclipse.swtbot.forms:default"/>
 <setEntry value="org.eclipse.swtbot:default"/>
 </setAttribute>
-<stringAttribute key="selected_workspace_plugins" value="Log4JProperties@default:false,com.heroku.api@default:default,com.heroku.eclipse.core.services.junit@default:default,com.heroku.eclipse.core.services.rest@default:default,com.heroku.eclipse.core.services@default:default,com.heroku.eclipse.ui.junit@default:default,com.heroku.eclipse.ui@default:default,lala.test@default:default,lala@default:default"/>
+<stringAttribute key="selected_workspace_plugins" value="Log4JProperties@default:false,com.heroku.eclipse.core.services.libs@default:default,com.heroku.eclipse.core.services.junit@default:default,com.heroku.eclipse.core.services.rest@default:default,com.heroku.eclipse.core.services@default:default,com.heroku.eclipse.ui.junit@default:default,com.heroku.eclipse.ui@default:default,lala.test@default:default,lala@default:default"/>
 <booleanAttribute key="show_selected_only" value="false"/>
 <booleanAttribute key="tracing" value="false"/>
 <booleanAttribute key="useCustomFeatures" value="true"/>

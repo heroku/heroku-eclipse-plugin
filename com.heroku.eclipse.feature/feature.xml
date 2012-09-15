@@ -53,10 +53,10 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    </requires>
 
    <plugin
-         id="com.heroku.api"
+         id="com.heroku.eclipse.core.services.libs"
          download-size="0"
          install-size="0"
-         version="0.13.0"/>
+         version="1.0.0"/>
 
    <plugin
          id="com.heroku.eclipse.core.services"

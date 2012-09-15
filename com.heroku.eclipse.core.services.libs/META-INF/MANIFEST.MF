@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Api
-Bundle-SymbolicName: com.heroku.api
-Bundle-Version: 0.13.0
+Bundle-Name: Libs
+Bundle-SymbolicName: com.heroku.eclipse.core.services.libs
+Bundle-Version: 1.0.0
 Bundle-ClassPath: .,
  commons-codec-1.4.jar,
  commons-logging-1.1.1.jar,
