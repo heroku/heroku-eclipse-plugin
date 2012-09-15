@@ -19,7 +19,7 @@ import com.heroku.eclipse.core.services.model.AppTemplate;
  * Base test class for the HerokuServices methods
  * @author udo.rader@bestsolution.at
  */
-public class HerokuServicesTest extends TestCase {
+public abstract class HerokuServicesTest extends TestCase {
 	IProgressMonitor pm = null;
 	List<AppTemplate> templatesList = null;
 

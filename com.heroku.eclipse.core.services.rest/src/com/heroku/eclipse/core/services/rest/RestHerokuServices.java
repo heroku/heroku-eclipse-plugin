@@ -67,6 +67,7 @@ import com.heroku.eclipse.core.constants.PreferenceConstants;
 import com.heroku.eclipse.core.services.HerokuProperties;
 import com.heroku.eclipse.core.services.HerokuServices;
 import com.heroku.eclipse.core.services.HerokuSession;
+import com.heroku.eclipse.core.services.WarDeploymentService;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
 import com.heroku.eclipse.core.services.model.AppTemplate;
 import com.heroku.eclipse.core.services.model.HerokuDyno;
@@ -181,13 +182,10 @@ public class RestHerokuServices implements HerokuServices {
 					if (sshKey == null || sshKey.trim().isEmpty()) {
 						p.remove(PreferenceConstants.P_SSH_KEY);
 					}
-					else if (!sshKey.equals(getSSHKey()) || ("true".equals(System.getProperty("heroku.devel")))) { //$NON-NLS-1$ //$NON-NLS-2$
+					else {
 						validateSSHKey(sshKey);
 						getOrCreateHerokuSession(pm).addSSHKey(sshKey);
 						p.put(PreferenceConstants.P_SSH_KEY, sshKey);
-					}
-					else {
-						throw new HerokuServiceException(HerokuServiceException.SSH_KEY_ALREADY_EXISTS, "SSH key already registered with this account!"); //$NON-NLS-1$
 					}
 					p.flush();
 				}
@@ -1010,6 +1008,20 @@ public class RestHerokuServices implements HerokuServices {
 		});
 	}
 
+	@Override
+	public void deployWar(final WarDeploymentService.ProgressMonitor pm, final String appName, final File war) throws HerokuServiceException {
+		runCancellableOperation(pm.getIProgressMonitor(), new RunnableWithReturn<Object>() {
+			@Override
+			public Object run() throws HerokuServiceException {
+				HerokuSession session = getOrCreateHerokuSession(pm.getIProgressMonitor());
+				WarDeploymentService deployer = new DirectToWarDeployment();
+				deployer.deploy(pm, session.getAPIKey(), appName, war);
+				return new VoidReturn();
+			}
+		});
+	}
+
+	
 	/**
 	 * Starts a thread running the given operation that can be interrupted using
 	 * the given progress monitor. So users may cancel the given operation using
