@@ -13,7 +13,7 @@ public class EclipseUseragent extends UserAgentValueProvider.DEFAULT {
 	 * 
 	 */
 	public EclipseUseragent() {
-		this.localUserAgent = "heroku-eclipse-plugin/1.0.0"; //$NON-NLS-1$
+		this.localUserAgent = "heroku-eclipse-plugin/1.0.1"; //$NON-NLS-1$
 	}
 	
 	/**

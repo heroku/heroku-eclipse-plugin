@@ -5,13 +5,12 @@
 	<groupId>com.heroku.eclipse.core.services.libs</groupId>
 	<artifactId>com.heroku.eclipse.core.services.libs</artifactId>
 	<packaging>eclipse-plugin</packaging>
-	<version>1.0.0</version>
 
 	<parent>
 		<groupId>com.heroku</groupId>
 		<artifactId>eclipse</artifactId>
 		<relativePath>../releng/pom.xml</relativePath>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 
 </project>

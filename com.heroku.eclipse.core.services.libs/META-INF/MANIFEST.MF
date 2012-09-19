@@ -2,11 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Libs
 Bundle-SymbolicName: com.heroku.eclipse.core.services.libs
-Bundle-Version: 1.0.0
+Bundle-Version: 1.0.1.qualifer
 Bundle-ClassPath: .,
  commons-codec-1.4.jar,
  commons-logging-1.1.1.jar,
- heroku-eclipse-useragent-1.0.0.jar,
+ heroku-eclipse-useragent-1.0.1.jar,
  heroku-api-0.13.jar,
  activation-1.1.jar,
  direct-to-heroku-client-0.5-BETA.jar,

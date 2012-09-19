@@ -10,7 +10,7 @@
 		<groupId>com.heroku</groupId>
 		<artifactId>eclipse</artifactId>
 		<relativePath>../releng/pom.xml</relativePath>
-		<version>1.0.0</version>
+		<version>1.0.1-SNAPSHOT</version>
 	</parent>
 
 	<build>
@@ -52,7 +52,7 @@
 						<dependency>
 							<type>p2-installable-unit</type>
 							<artifactId>com.heroku.eclipse.feature.feature.group</artifactId>
-							<version>1.0.0</version>
+							<version>1.0.1-SNAPSHOT</version>
 						</dependency>
 						<dependency>
 							<type>p2-installable-unit</type>
