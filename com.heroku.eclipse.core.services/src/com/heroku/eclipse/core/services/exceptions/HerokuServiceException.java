@@ -86,6 +86,11 @@ public class HerokuServiceException extends Exception {
 	 */
 	public static final int OPERATION_CANCELLED = 15;
 	
+	/**
+	 * indicates the account is unverified
+	 */
+	public static final int UNVERIFIED = 16;
+	
 	private final int errorCode;
 
 	public HerokuServiceException(Throwable t) {
