@@ -364,4 +364,13 @@ public class HerokuAppCreatePage extends WizardPage {
 		setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_NameAlreadyExists")); //$NON-NLS-1$
 		tAppName.setFocus();
 	}
+	
+	/**
+	 * Displays a warning about an unverified account
+	 */
+	public void displayUnverifiedAccountWarning() {
+		setVisible(true);
+		setErrorMessage(Messages.getString("HerokuAppCreateNamePage_Error_UnverifiedAccount")); //$NON-NLS-1$
+		tAppName.setFocus();
+	}
 }

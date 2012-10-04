@@ -124,6 +124,10 @@ public class HerokuAppCreate extends Wizard implements IImportWizard {
 						Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "Application '" + appName + "' already exists, denying creation", e); //$NON-NLS-1$ //$NON-NLS-2$
 						createPage.displayInvalidNameWarning();
 					}
+					else if (e1.getErrorCode() == HerokuServiceException.UNVERIFIED) {
+						Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "Account is unverified and cannot create " + template.getTemplateName(), e); //$NON-NLS-1$ //$NON-NLS-2$
+						createPage.displayUnverifiedAccountWarning();
+					}
 					else if (e1.getErrorCode() == HerokuServiceException.INVALID_LOCAL_GIT_LOCATION) {
 						HerokuUtils
 								.userError(
