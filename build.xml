@@ -1,0 +1,14 @@
+<project name="Heroku Eclipse Plugin RelEng Tasks">
+    <target name="set-version">
+        <fail unless="newVersion" message="newVersion property must be set"/>
+
+        <echo>Setting verion to ${newVersion}</echo>
+        
+        <copy file="com.heroku.eclipse.updatesite/site.xml.template" tofile="com.heroku.eclipse.updatesite/site.xml" overwrite="true">
+            <filterset>
+                <filter token="com.heroku.eclipse.version" value="${newVersion}"/>
+            </filterset>
+        </copy>
+
+    </target>
+</project>
