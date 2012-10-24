@@ -1,4 +1,4 @@
-<project name="Heroku Eclipse Plugin RelEng Tasks">
+<project name="Heroku Eclipse Plugin RelEng Tasks" basedir="..">
     <target name="set-version">
         <fail unless="newVersion" message="newVersion property must be set"/>
 
