@@ -110,7 +110,7 @@ public class NewFromTemplate extends TestCase {
 				return "Project did not appear in project explorer";
 			}
 
-		}, 60 * 1000 );
+		}, 120 * 1000 );
 
 		assertTrue( true );
 	}
