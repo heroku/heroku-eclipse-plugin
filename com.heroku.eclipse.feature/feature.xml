@@ -2,7 +2,7 @@
 <feature
       id="com.heroku.eclipse.feature"
       label="Heroku Eclipse Plugin"
-      version="1.0.1.qualifier"
+      version="1.0.2.qualifier"
       provider-name="Heroku"
       plugin="com.heroku.eclipse.ui">
 
@@ -56,27 +56,27 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
          id="com.heroku.eclipse.core.services.libs"
          download-size="0"
          install-size="0"
-         version="1.0.1.qualifier"/>
+         version="1.0.2.qualifier"/>
 
    <plugin
          id="com.heroku.eclipse.core.services"
          download-size="0"
          install-size="0"
-         version="1.0.1.qualifier"
+         version="1.0.2.qualifier"
          unpack="false"/>
 
    <plugin
          id="com.heroku.eclipse.ui"
          download-size="0"
          install-size="0"
-         version="1.0.1.qualifier"
+         version="1.0.2.qualifier"
          unpack="false"/>
 
    <plugin
          id="com.heroku.eclipse.core.services.rest"
          download-size="0"
          install-size="0"
-         version="1.0.1.qualifier"
+         version="1.0.2.qualifier"
          unpack="false"/>
 
 </feature>

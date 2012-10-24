@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Libs
 Bundle-SymbolicName: com.heroku.eclipse.core.services.libs
-Bundle-Version: 1.0.1.qualifier
+Bundle-Version: 1.0.2.qualifier
 Bundle-ClassPath: .,
  commons-codec-1.4.jar,
  commons-logging-1.1.1.jar,
