@@ -2,8 +2,12 @@
     <target name="set-version">
         <fail unless="newVersion" message="newVersion property must be set"/>
 
-        <echo>Setting verion to ${newVersion}</echo>
-        
+        <echo>Setting version to ${newVersion}</echo>
+                
+        <exec executable="mvn">
+            <arg line="tycho-versions:set-version -f releng/pom.xml -DnewVersion=${newVersion}-SNAPSHOT"/>
+        </exec>
+
         <copy file="com.heroku.eclipse.updatesite/site.xml.template" tofile="com.heroku.eclipse.updatesite/site.xml" overwrite="true">
             <filterset>
                 <filter token="com.heroku.eclipse.version" value="${newVersion}"/>
