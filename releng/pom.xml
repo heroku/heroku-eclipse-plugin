@@ -22,14 +22,13 @@
     </properties>
 
     <modules>
+        <module>../heroku-eclipse-useragent</module>
         <module>../com.heroku.eclipse.core.services.libs</module>
         <module>../com.heroku.eclipse.core.services</module>
         <module>../com.heroku.eclipse.core.services.rest</module>
         <module>../com.heroku.eclipse.ui</module>
-
         <module>../com.heroku.eclipse.feature</module>
         <module>../com.heroku.eclipse.updatesite</module>
-
         <module>../com.heroku.eclipse.core.services.junit</module>
         <module>../com.heroku.eclipse.ui.junit</module>
     </modules>
@@ -155,6 +154,11 @@
 
     <dependencyManagement>
         <dependencies>
+             <dependency>
+               <groupId>com.heroku.api</groupId>
+               <artifactId>heroku-api</artifactId>
+               <version>0.13</version>
+           </dependency>
             <dependency>
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>

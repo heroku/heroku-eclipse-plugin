@@ -6,7 +6,7 @@ Bundle-Version: 1.0.2.qualifier
 Bundle-ClassPath: .,
  commons-codec-1.4.jar,
  commons-logging-1.1.1.jar,
- heroku-eclipse-useragent-1.0.1.jar,
+ heroku-eclipse-useragent-1.0.2.jar,
  heroku-api-0.13.jar,
  activation-1.1.jar,
  direct-to-heroku-client-0.5-BETA.jar,

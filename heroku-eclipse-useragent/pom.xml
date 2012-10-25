@@ -1,15 +1,33 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>heroku-eclipse-useragent</groupId>
-  <artifactId>heroku-eclipse-useragent</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
-  
-     <dependencies>
-          <dependency>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>heroku-eclipse-useragent</groupId>
+    <artifactId>heroku-eclipse-useragent</artifactId>
+
+    <parent>
+        <groupId>com.heroku</groupId>
+        <artifactId>eclipse</artifactId>
+        <relativePath>../releng/pom.xml</relativePath>
+        <version>1.0.2-SNAPSHOT</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
             <groupId>com.heroku.api</groupId>
             <artifactId>heroku-api</artifactId>
-            <version>0.13</version>
         </dependency>
-     </dependencies>
-  
+    </dependencies>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*</include>
+                </includes>
+            </resource>
+        </resources>
+    </build>
+
 </project>
