@@ -9,6 +9,7 @@ import org.osgi.service.log.LogService;
 
 import com.heroku.eclipse.core.services.WarDeploymentService;
 import com.heroku.eclipse.core.services.exceptions.HerokuServiceException;
+import com.heroku.eclipse.useragent.EclipseUseragent;
 import com.herokuapp.directto.client.DeployRequest;
 import com.herokuapp.directto.client.DeploymentException;
 import com.herokuapp.directto.client.DirectToHerokuClient;
@@ -23,7 +24,7 @@ public class DirectToWarDeployment implements WarDeploymentService {
 	public void deploy(final ProgressMonitor pm, final String apiKey, final String appName, final File war) throws HerokuServiceException {
 		final DirectToHerokuClient client= new DirectToHerokuClient.Builder()
 			.setApiKey(apiKey)
-			.setConsumersUserAgent("heroku-eclipse-plugin/1.0.2") //TODO: inject version number
+			.setConsumersUserAgent(new EclipseUseragent().getLocalUserAgent())
 			.build();
 		
 		final Map<String,File> files = new HashMap<String,File>();
@@ -64,4 +65,5 @@ public class DirectToWarDeployment implements WarDeploymentService {
 			throw new HerokuServiceException(e.getMessage(), e);
 		}
 	}
+	
 }
