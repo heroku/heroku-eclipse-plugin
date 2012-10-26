@@ -1,16 +1,86 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<name>Heroku API Repackage Bundle</name>
-	<groupId>com.heroku.eclipse.core.services.libs</groupId>
-	<artifactId>com.heroku.eclipse.core.services.libs</artifactId>
-	<packaging>eclipse-plugin</packaging>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>Heroku API Repackage Bundle</name>
+    <groupId>com.heroku.eclipse.core.services.libs</groupId>
+    <artifactId>com.heroku.eclipse.core.services.libs</artifactId>
+    <version>1.0.2-SNAPSHOT</version>
+    <!-- <packaging>eclipse-plugin</packaging> -->
 
-	<parent>
-		<groupId>com.heroku</groupId>
-		<artifactId>eclipse</artifactId>
-		<relativePath>../releng/pom.xml</relativePath>
-		<version>1.0.2-SNAPSHOT</version>
-	</parent>
+    <packaging>bundle</packaging>
+
+    <!-- <parent> <groupId>com.heroku</groupId> <artifactId>eclipse</artifactId> 
+        <relativePath>../releng/pom.xml</relativePath> <version>1.0.2-SNAPSHOT</version> 
+        </parent> -->
+
+    <properties>
+        <com.heroku.api.version>0.13</com.heroku.api.version>
+    </properties>
+
+    <dependencies>
+        <!-- <dependency> <groupId>heroku-eclipse-useragent</groupId> <artifactId>heroku-eclipse-useragent</artifactId> 
+            <version>1.0.2-SNAPSHOT</version> </dependency> -->
+        <dependency>
+            <groupId>com.heroku.api</groupId>
+            <artifactId>heroku-api</artifactId>
+            <version>${com.heroku.api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.heroku.api</groupId>
+            <artifactId>heroku-http-jersey-client</artifactId>
+            <version>${com.heroku.api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.heroku.api</groupId>
+            <artifactId>heroku-json-jersey-client</artifactId>
+            <version>${com.heroku.api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.herokuapp.directto</groupId>
+            <artifactId>direct-to-heroku-client</artifactId>
+            <version>0.6-BETA</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <version>2.3.7</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Bundle-SymbolicName>com.heroku.eclipse.core.services.libs</Bundle-SymbolicName>
+                        <Bundle-Name>Libs</Bundle-Name>
+                        <Bundle-Version>1.0.2.qualifer</Bundle-Version>
+                        <Export-Package>com.heroku.api.connection,
+ com.heroku.api.exception,
+ com.heroku.api.http,
+ com.heroku.api.parser,
+ com.heroku.api.request,
+ com.heroku.api.request.addon,
+ com.heroku.api.request.app,
+ com.heroku.api.request.config,
+ com.heroku.api.request.key,
+ com.heroku.api.request.log,
+ com.heroku.api.request.login,
+ com.heroku.api.request.ps,
+ com.heroku.api.request.releases,
+ com.heroku.api.request.run,
+ com.heroku.api.request.sharing,
+ com.heroku.api.request.stack,
+ com.heroku.api.request.user,
+ com.heroku.api.response,
+ com.herokuapp.directto.client,
+ com.herokuapp.directto.client.models,
+ org.codehaus.jackson,
+ org.codehaus.jackson.map,
+ org.codehaus.jackson.type</Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

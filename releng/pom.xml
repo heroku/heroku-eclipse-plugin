@@ -180,6 +180,12 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>com.heroku.eclipse.core.services.libs</groupId>
+            <artifactId>com.heroku.eclipse.core.services.libs</artifactId>
+            <version>1.0.2-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
 </project>
