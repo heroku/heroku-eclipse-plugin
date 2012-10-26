@@ -17,9 +17,11 @@ The 2 important goals are:
 * package => results in an Eclipse Updatesite
 * integration-tests => runs the junit-tests
 
-### Version Incrementing
+### Version Incrementing (WIP)
 To set the version of this project, run:
 
     ant set-version -f releng/build.xml -DnewVersion=[version number without -SNAPSHOT]
 
 This task calls `tycho-versions:set-version` and also updates the version in the update site. Note, the versions in the project itself are appended with `-SNAPSHOT`/`.qualifier`, but the update site uses raw versions. This is so that multiple builds of the same version still force an update. The version should be incremented immediately after releasing  the previous version.
+
+**Note, this does not yet update versions dependencies. This still must be done manually.**
