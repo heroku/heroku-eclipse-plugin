@@ -2,7 +2,7 @@
 
 ### !Deprecated!
 
-This tool is deprecated. Please follow [this guide to deploying application to Heroku from Eclipse](https://devcenter.heroku.com/articles/deploying-java-applications-to-heroku-from-eclipse-or-intellij-idea).
+This tool is deprecated. Please follow [this guide to deploying applications to Heroku from Eclipse](https://devcenter.heroku.com/articles/deploying-java-applications-to-heroku-from-eclipse-or-intellij-idea).
 
 ###  Building
 To get the tycho build running locally you need maven 3.x. The parent
