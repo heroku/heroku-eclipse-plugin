@@ -456,6 +456,38 @@ public class RestHerokuServices implements HerokuServices {
 	}
 
 	@Override
+	public App createApp(final IProgressMonitor pm) throws HerokuServiceException {
+		return runCancellableOperation(pm, new RunnableWithReturn<App>() {
+			@Override
+			public App run() throws HerokuServiceException {
+				App app = null;
+
+				try {
+					Activator.getDefault().getLogger().log(LogService.LOG_INFO, "creating new blank Heroku App");
+					app = getOrCreateHerokuSession(pm).createApp(new App());
+					Map<String, Object> map = new HashMap<String, Object>();
+					map.put(KEY_APPLICATION_ID, app.getId());
+
+					Event event = new Event(TOPIC_APPLICATION_NEW, map);
+					eventAdmin.postEvent(event);
+				}
+				catch (HerokuServiceException e) {
+					if (e.getErrorCode() == HerokuServiceException.NOT_ACCEPTABLE) {
+						destroyApplication(pm, app);
+						throw e;
+					}
+					else {
+						Activator.getDefault().getLogger().log(LogService.LOG_WARNING, "unknown error when creating app, dying ...");
+						throw e;
+					}
+				}
+
+				return app;
+			}
+		});
+	}
+
+	@Override
 	public boolean materializeGitApp(IProgressMonitor pm, App app, IMPORT_TYPES importType, IProject existingProject, String gitLocation, int timeout,
 			String dialogTitle, CredentialsProvider cred, String transportErrorMessage) throws HerokuServiceException {
 		boolean rv = false;

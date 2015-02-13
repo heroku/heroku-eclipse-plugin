@@ -277,6 +277,17 @@ public interface HerokuServices {
 	public App createAppFromTemplate(IProgressMonitor pm, String appName, String templateName) throws HerokuServiceException;
 
 	/**
+	 * Creates a new blank app
+	 *
+	 * @param pm
+	 *            the progress monitor
+	 * @return the newly created App
+	 * @throws HerokuServiceException
+	 *             if there are network problems
+	 */
+	public App createApp(IProgressMonitor pm) throws HerokuServiceException;
+
+	/**
 	 * Materializes the given app in the user's local git repository and in the
 	 * workspace. If an existing Eclipse project is given, the materialized git
 	 * checkout will be connected to this Eclipse project.

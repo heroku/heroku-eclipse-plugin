@@ -43,6 +43,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -104,6 +105,8 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 	private TreeViewer viewer;
 
+	private Button footerButton;
+
 	private static HerokuServices herokuService;
 
 	private List<ServiceRegistration<EventHandler>> handlerRegistrations;
@@ -126,13 +129,27 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 	}
 
 	public void createPartControl(Composite parent) {
-		viewer = new TreeViewer(parent, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+		Composite container = new Composite(parent, SWT.NONE);
+		GridLayout gridLayout = new GridLayout();
+		gridLayout.numColumns = 1;
+		container.setLayout(gridLayout);
+
+		viewer = new TreeViewer(container, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
 		viewer.setContentProvider(new ContentProviderImpl());
 		viewer.getTree().setHeaderVisible(true);
 		viewer.getTree().setLinesVisible(true);
 		viewer.getTree().setData(HerokuServices.ROOT_WIDGET_ID, HerokuViewConstants.V_APPS_LIST);
 		viewer.setComparer(new ElementComparerImpl());
 		viewer.setComparator(new AppComparator());
+
+		GridData viewerGridData = new GridData();
+		viewerGridData.verticalAlignment = GridData.FILL;
+		viewerGridData.verticalSpan = 2;
+		viewerGridData.grabExcessVerticalSpace = true;
+		viewerGridData.horizontalAlignment = GridData.FILL;
+		viewerGridData.grabExcessHorizontalSpace = true;
+
+		viewer.getTree().setLayoutData(viewerGridData);
 
 		{
 			nameColumn = new TreeViewerColumn(viewer, SWT.NONE);
@@ -197,6 +214,24 @@ public class HerokuApplicationManagerViewPart extends ViewPart implements Websit
 
 		refreshApplications(new NullProgressMonitor(), false);
 		subscribeToEvents();
+
+		footerButton = new Button(container, SWT.NONE);
+		GridData footerGridData = new GridData();
+		footerGridData.horizontalAlignment = SWT.CENTER;
+		footerButton.setLayoutData(footerGridData);
+		footerButton.setText(Messages.getString("HerokuAppManagerViewPart_Create"));
+		footerButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				try {
+					// create the app
+					Activator.getDefault().getService().createApp(new NullProgressMonitor());
+				}
+				catch (HerokuServiceException e1) {
+					HerokuUtils.herokuError(footerButton.getShell(), e1);
+				}
+			}
+		});
 	}
 
 	private void createToolbar() {
